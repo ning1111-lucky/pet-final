@@ -146,6 +146,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const [imgLoadError, setImgLoadError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [generatedPetImage, setGeneratedPetImage] = useState<string | null>(() => getStoredGeneratedImage());
+  const [generatedPetProvider, setGeneratedPetProvider] = useState<string | null>(null);
 
   const safeDay = Math.min(Math.max(Number(currentMockDay) || 1, 1), 7);
   const safeWeekItems = Array.isArray(currentWeekItems) ? currentWeekItems : [];
@@ -216,6 +217,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     setImgLoading(false);
     setImgLoadError(false);
     setImgLoaded(false);
+    setGeneratedPetProvider(null);
 
     try {
       localStorage.removeItem(GENERATED_WEEKLY_PET_IMAGE_KEY);
@@ -285,6 +287,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       }
 
       setGeneratedPetImage(data.imageUrl);
+      setGeneratedPetProvider(typeof data.provider === "string" ? data.provider : "gemini");
       try {
         localStorage.setItem(GENERATED_WEEKLY_PET_IMAGE_KEY, data.imageUrl);
       } catch {
@@ -333,7 +336,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       mainGenre,
       secondGenre: subGenre,
       items: collectedItems,
-      provider: "pollinations",
+      provider: generatedPetProvider || "gemini",
       top: 50 + (Math.random() - 0.5) * 10,
       left: 50 + (Math.random() - 0.5) * 10,
     };

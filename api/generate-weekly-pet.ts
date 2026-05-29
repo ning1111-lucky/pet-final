@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -20,9 +21,7 @@ type ApiResponse = {
 
 type JsonObject = Record<string, unknown>;
 
-const POLLINATIONS_EDITS_URL = "https://gen.pollinations.ai/v1/images/edits";
-const POLLINATIONS_MEDIA_UPLOAD_URL = "https://media.pollinations.ai/upload";
-const POLLINATIONS_MODELS = ["nanobanana", "seedream"] as const;
+const GEMINI_IMAGE_MODELS = ["gemini-3.1-flash-image", "gemini-2.5-flash-image"] as const;
 const MAX_PROMPT_LENGTH = 2400;
 const PUBLIC_DIR = path.join(process.cwd(), "public");
 
@@ -43,11 +42,10 @@ function buildEditPrompt(prompt: string): string {
     "output one cohesive full-body pixel-art character",
     "keep the same cute pet identity as the base image",
     "soft pixel art, warm creamy colors, dark brown outlines",
-    "no text, no watermark, centered front view",
+    "centered front view, no text, no watermark",
   ].join(", ");
 
-  const combinedPrompt = `${normalizedPrompt}. ${hardRequirements}.`;
-  return combinedPrompt.slice(0, MAX_PROMPT_LENGTH).trim();
+  return `${normalizedPrompt}. ${hardRequirements}.`.slice(0, MAX_PROMPT_LENGTH).trim();
 }
 
 function sanitizePublicAssetPath(assetPath: string): string | null {
@@ -57,7 +55,6 @@ function sanitizePublicAssetPath(assetPath: string): string | null {
 
   const decodedPath = decodeURIComponent(assetPath);
   const resolvedPath = path.resolve(PUBLIC_DIR, `.${decodedPath}`);
-
   if (!resolvedPath.startsWith(PUBLIC_DIR)) {
     return null;
   }
@@ -73,148 +70,70 @@ function getMimeType(filePath: string): string {
   return "application/octet-stream";
 }
 
-async function readAssetBlob(assetPath: string): Promise<{ blob: Blob; filename: string }> {
+async function readAssetInlineData(assetPath: string): Promise<{ inlineData: { mimeType: string; data: string } }> {
   const resolvedPath = sanitizePublicAssetPath(assetPath);
   if (!resolvedPath) {
     throw new Error(`無效的素材路徑：${assetPath}`);
   }
 
   const fileBuffer = await readFile(resolvedPath);
-  const filename = path.basename(resolvedPath);
-
   return {
-    blob: new Blob([fileBuffer], { type: getMimeType(resolvedPath) }),
-    filename,
+    inlineData: {
+      mimeType: getMimeType(resolvedPath),
+      data: fileBuffer.toString("base64"),
+    },
   };
 }
 
-async function readErrorMessage(response: Response): Promise<string> {
-  const fallbackMessage = "Pollinations 圖片編輯暫時失敗，請稍後再試。";
-  const rawText = await response.text().catch(() => "");
-  if (!rawText.trim()) {
-    return fallbackMessage;
-  }
-
-  try {
-    const parsed = JSON.parse(rawText) as JsonObject;
-    if (typeof parsed.error === "string" && parsed.error) {
-      return parsed.error;
-    }
-    const nestedError = parsed.error as JsonObject | undefined;
-    if (nestedError && typeof nestedError.message === "string" && nestedError.message) {
-      return nestedError.message;
-    }
-    if (typeof parsed.message === "string" && parsed.message) {
-      return parsed.message;
-    }
-  } catch {
-    return rawText.trim() || fallbackMessage;
-  }
-
-  return rawText.trim() || fallbackMessage;
+function getGeminiApiKey() {
+  return process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
 }
 
-async function readJsonResponse(response: Response): Promise<JsonObject | null> {
-  const rawText = await response.text().catch(() => "");
-  if (!rawText.trim()) {
-    return null;
+function extractErrorMessage(error: unknown, fallback = "Gemini 圖片生成暫時失敗，請稍後再試。") {
+  if (error instanceof Error && error.message) {
+    return error.message;
   }
 
-  try {
-    const parsed = JSON.parse(rawText);
-    return parsed && typeof parsed === "object" ? (parsed as JsonObject) : null;
-  } catch {
-    return null;
+  if (typeof error === "string" && error) {
+    return error;
   }
+
+  return fallback;
 }
 
-async function uploadGeneratedImage(
-  imageBuffer: Uint8Array,
-  contentType: string,
-  apiKey: string,
-  filename: string
-): Promise<string | null> {
-  try {
-    const formData = new FormData();
-    formData.append("file", new Blob([imageBuffer], { type: contentType }), filename);
-
-    const response = await fetch(POLLINATIONS_MEDIA_UPLOAD_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const payload = await readJsonResponse(response);
-    return typeof payload?.url === "string" && payload.url ? payload.url : null;
-  } catch {
-    return null;
-  }
-}
-
-async function requestImageEdit(options: {
+async function requestGeminiImageEdit(options: {
   apiKey: string;
-  model: (typeof POLLINATIONS_MODELS)[number];
+  model: (typeof GEMINI_IMAGE_MODELS)[number];
   prompt: string;
   baseImagePath: string;
   itemImagePaths: string[];
 }): Promise<{ imageUrl: string; model: string }> {
-  const formData = new FormData();
-  const imagePaths = [options.baseImagePath, ...options.itemImagePaths];
+  const ai = new GoogleGenAI({ apiKey: options.apiKey });
+  const imageParts = await Promise.all(
+    [options.baseImagePath, ...options.itemImagePaths].map((imagePath) => readAssetInlineData(imagePath))
+  );
 
-  for (const imagePath of imagePaths) {
-    const asset = await readAssetBlob(imagePath);
-    formData.append("image", asset.blob, asset.filename);
-  }
-
-  formData.append("prompt", options.prompt);
-  formData.append("model", options.model);
-  formData.append("size", "1024x1024");
-  formData.append("response_format", "url");
-
-  const response = await fetch(POLLINATIONS_EDITS_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${options.apiKey}`,
-    },
-    body: formData,
+  const response = await ai.models.generateContent({
+    model: options.model,
+    contents: [
+      ...imageParts,
+      {
+        text: options.prompt,
+      },
+    ],
   });
 
-  if (!response.ok) {
-    throw new Error(await readErrorMessage(response));
+  const parts = response.candidates?.[0]?.content?.parts || [];
+  const imagePart = parts.find((part) => part.inlineData?.data);
+
+  if (!imagePart?.inlineData?.data) {
+    throw new Error("Gemini 沒有回傳可用的圖片結果。");
   }
 
-  const payload = await readJsonResponse(response);
-  const imageEntry = Array.isArray(payload?.data) ? (payload.data[0] as JsonObject | undefined) : undefined;
-
-  if (imageEntry && typeof imageEntry.url === "string" && imageEntry.url) {
-    return {
-      imageUrl: imageEntry.url,
-      model: options.model,
-    };
-  }
-
-  if (imageEntry && typeof imageEntry.b64_json === "string" && imageEntry.b64_json) {
-    const imageBuffer = Buffer.from(imageEntry.b64_json, "base64");
-    const uploadedImageUrl = await uploadGeneratedImage(
-      imageBuffer,
-      "image/png",
-      options.apiKey,
-      `weekly-pet-${options.model}.png`
-    );
-
-    return {
-      imageUrl: uploadedImageUrl || `data:image/png;base64,${imageEntry.b64_json}`,
-      model: options.model,
-    };
-  }
-
-  throw new Error("Pollinations 沒有回傳可用的編輯圖片結果。");
+  return {
+    imageUrl: `data:${imagePart.inlineData.mimeType || "image/png"};base64,${imagePart.inlineData.data}`,
+    model: options.model,
+  };
 }
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
@@ -244,20 +163,20 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
     return jsonResponse(res, 400, { ok: false, error: "缺少有效的素材圖片路徑，請重新生成本週物品後再試。" });
   }
 
-  const apiKey = process.env.POLLINATIONS_KEY;
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
     return jsonResponse(res, 500, {
       ok: false,
-      error: "Pollinations API key 尚未設定，請先在 Vercel 環境變數加入 POLLINATIONS_KEY。",
+      error: "Gemini API key 尚未設定，請先在 .env.local 或部署環境中加入 GEMINI_API_KEY。",
     });
   }
 
   const finalPrompt = buildEditPrompt(prompt);
   const attemptErrors: string[] = [];
 
-  for (const model of POLLINATIONS_MODELS) {
+  for (const model of GEMINI_IMAGE_MODELS) {
     try {
-      const result = await requestImageEdit({
+      const result = await requestGeminiImageEdit({
         apiKey,
         model,
         prompt: finalPrompt,
@@ -268,18 +187,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
       return jsonResponse(res, 200, {
         ok: true,
         imageUrl: result.imageUrl,
-        provider: "pollinations",
+        provider: "gemini",
         model: result.model,
       });
     } catch (error) {
-      const message = error instanceof Error && error.message ? error.message : `模型 ${model} 編輯失敗。`;
-      attemptErrors.push(`${model}: ${message}`);
+      attemptErrors.push(`${model}: ${extractErrorMessage(error)}`);
     }
   }
 
-  console.error("Pollinations weekly pet edit failed:", attemptErrors);
+  console.error("Gemini weekly pet edit failed:", attemptErrors);
   return jsonResponse(res, 502, {
     ok: false,
-    error: attemptErrors[attemptErrors.length - 1] || "Pollinations 圖片編輯暫時失敗，請稍後再試。",
+    error: attemptErrors[attemptErrors.length - 1] || "Gemini 圖片生成暫時失敗，請稍後再試。",
   });
 }
