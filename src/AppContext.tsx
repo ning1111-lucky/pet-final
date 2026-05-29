@@ -1,0 +1,328 @@
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { UserProfile, MusicItem, Pet, MapEntry, Genre, ItemPart } from "./types";
+import { getBaseType, MOCK_MAP_ENTRIES } from "./mockData";
+import { generateId } from "./utils";
+
+interface AppState {
+  userProfile: UserProfile | null;
+  currentMockDay: number;
+  currentWeekItems: (MusicItem | null)[];
+  dailyHistory: MusicItem[];
+  weeklyPets: Pet[];
+  mapEntries: MapEntry[];
+}
+
+interface AppContextType extends AppState {
+  login: (profile: UserProfile) => void;
+  generateItem: (item: MusicItem) => void;
+  advanceDay: () => void;
+  generateWeeklyPet: (pet: Pet) => void;
+  resetWeek: () => void;
+  addToMap: (entry: MapEntry) => void;
+  autoFillWeek: () => void;
+}
+
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const STORAGE_KEY = "melody_app_state";
+const INITIAL_ITEMS = Array.from({ length: 7 }, () => null) as (MusicItem | null)[];
+const VALID_GENRES: Genre[] = ["Pop", "Hip-hop", "Hiphop", "K-pop", "Kpop", "EDM", "Classical", "Jazz", "R&B", "RnB", "Country", "Rock", "Taiwan Indie", "Indie", "Mixed", "Hidden"];
+const VALID_PARTS: ItemPart[] = ["clothes", "headwear", "accessory", "handheld", "shoes", "enhance", "final weekly pet"];
+
+const isRecord = (value: unknown): value is Record<string, any> => typeof value === "object" && value !== null;
+
+const normalizeGenre = (value: unknown): Genre => {
+  if (typeof value !== "string") return "Pop";
+
+  const genreMap: Record<string, Genre> = {
+    "K-pop": "Kpop",
+    Kpop: "Kpop",
+    KPOP: "Kpop",
+    kpop: "Kpop",
+    Pop: "Pop",
+    POP: "Pop",
+    pop: "Pop",
+    "R&B": "RnB",
+    RnB: "RnB",
+    RNB: "RnB",
+    rnb: "RnB",
+    Rock: "Rock",
+    ROCK: "Rock",
+    rock: "Rock",
+    Jazz: "Jazz",
+    JAZZ: "Jazz",
+    jazz: "Jazz",
+    Indie: "Indie",
+    INDIE: "Indie",
+    indie: "Indie",
+    "Taiwan Indie": "Indie",
+    "Hip-hop": "Hiphop",
+    Hiphop: "Hiphop",
+    HIPHOP: "Hiphop",
+    hiphop: "Hiphop",
+    Classical: "Classical",
+    CLASSICAL: "Classical",
+    classical: "Classical",
+    Country: "Country",
+    COUNTRY: "Country",
+    country: "Country",
+    EDM: "EDM",
+    edm: "EDM",
+    Mixed: "Mixed",
+    Hidden: "Hidden",
+  };
+
+  const normalized = genreMap[value] || (VALID_GENRES.includes(value as Genre) ? (value as Genre) : undefined);
+  return normalized || "Pop";
+};
+
+const clampDay = (value: unknown) => Math.min(Math.max(Number(value) || 1, 1), 7);
+
+const normalizePart = (value: unknown, index = 0): ItemPart => {
+  if (typeof value === "string" && VALID_PARTS.includes(value as ItemPart)) {
+    return value as ItemPart;
+  }
+
+  const fallbackParts: ItemPart[] = ["clothes", "headwear", "accessory", "handheld", "shoes", "enhance"];
+  return fallbackParts[index] || "clothes";
+};
+
+const normalizeMusicItem = (value: unknown, index = 0): MusicItem | null => {
+  if (!isRecord(value)) return null;
+
+  const genre = normalizeGenre(value.genre);
+  const part = normalizePart(value.part, index);
+
+  return {
+    id: typeof value.id === "string" && value.id ? value.id : generateId(),
+    day: clampDay(value.day ?? index + 1),
+    part,
+    genre,
+    label: typeof value.label === "string" && value.label ? value.label : `${genre} ${part}`,
+    icon: typeof value.icon === "string" && value.icon ? value.icon : "✨",
+    imageSrc: typeof value.imageSrc === "string" && value.imageSrc ? value.imageSrc : null,
+  };
+};
+
+const normalizeItemsArray = (value: unknown, ensureWeekLength = false): (MusicItem | null)[] => {
+  const safeItems = Array.isArray(value) ? value : [];
+  const normalized = safeItems.slice(0, 7).map((item, index) => normalizeMusicItem(item, index));
+
+  if (!ensureWeekLength) {
+    return normalized.filter((item): item is MusicItem => Boolean(item));
+  }
+
+  const padded = Array.from({ length: 7 }, (_, index) => normalized[index] || null);
+  return padded;
+};
+
+const normalizePet = (value: unknown): Pet | null => {
+  if (!isRecord(value)) return null;
+
+  const mainGenre = normalizeGenre(value.mainGenre ?? value.baseGenre);
+  const items = normalizeItemsArray(value.items, false) as MusicItem[];
+  const fallbackSubGenre = items[1]?.genre || items[0]?.genre || mainGenre;
+  const rawBaseType = value.baseType;
+  const baseType = rawBaseType === "O" || rawBaseType === "G" || rawBaseType === "B" ? rawBaseType : getBaseType(mainGenre);
+
+  return {
+    id: typeof value.id === "string" && value.id ? value.id : generateId(),
+    name: typeof value.name === "string" && value.name ? value.name : `${mainGenre} 音樂精靈`,
+    mainGenre,
+    subGenre: normalizeGenre(value.subGenre ?? fallbackSubGenre),
+    baseType,
+    items,
+    description: typeof value.description === "string" && value.description ? value.description : `由本週的音樂行程誕生，充滿 ${mainGenre} 的氣息。`,
+    weekNumber: Math.max(Number(value.weekNumber) || 1, 1),
+  };
+};
+
+const normalizeMapEntry = (value: unknown): MapEntry | null => {
+  if (!isRecord(value)) return null;
+
+  const fallbackPetInput = isRecord(value.pet)
+    ? value.pet
+    : {
+        id: value.petId,
+        name: value.petName,
+        mainGenre: value.mainGenre,
+        subGenre: value.secondGenre,
+        items: value.items,
+        description: typeof value.description === "string" ? value.description : undefined,
+        weekNumber: 1,
+      };
+
+  const pet = normalizePet(fallbackPetInput);
+  if (!pet) return null;
+
+  const petName = typeof value.petName === "string" && value.petName ? value.petName : pet.name;
+  const mainGenre = normalizeGenre(value.mainGenre ?? pet.mainGenre);
+  const secondGenre = normalizeGenre(value.secondGenre ?? pet.subGenre);
+  const items = normalizeItemsArray(value.items ?? pet.items, false) as MusicItem[];
+  const provider = typeof value.provider === "string" && value.provider ? value.provider : null;
+  const petImage = typeof value.petImage === "string" && value.petImage ? value.petImage : null;
+
+  return {
+    id: typeof value.id === "string" && value.id ? value.id : generateId(),
+    petId: typeof value.petId === "string" && value.petId ? value.petId : pet.id,
+    ownerName: typeof value.ownerName === "string" && value.ownerName ? value.ownerName : "Anonymous",
+    country: typeof value.country === "string" && value.country ? value.country : "Taiwan",
+    city: typeof value.city === "string" && value.city ? value.city : "Taipei",
+    top: Number.isFinite(Number(value.top)) ? Number(value.top) : 50,
+    left: Number.isFinite(Number(value.left)) ? Number(value.left) : 50,
+    pet: {
+      ...pet,
+      name: petName,
+      mainGenre,
+      subGenre: secondGenre,
+      items,
+    },
+    petImage,
+    petName,
+    mainGenre,
+    secondGenre,
+    items,
+    provider,
+  };
+};
+
+const getDefaultState = (): AppState => ({
+  userProfile: null,
+  currentMockDay: 1,
+  currentWeekItems: [...INITIAL_ITEMS],
+  dailyHistory: [],
+  weeklyPets: [],
+  mapEntries: [],
+});
+
+const loadStoredState = (): AppState => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return getDefaultState();
+    }
+
+    const parsed = JSON.parse(stored);
+    if (!isRecord(parsed)) {
+      return getDefaultState();
+    }
+
+    const safeMapEntries = (Array.isArray(parsed.mapEntries) ? parsed.mapEntries : [])
+      .map(normalizeMapEntry)
+      .filter((entry): entry is MapEntry => Boolean(entry))
+      .filter((entry) => !MOCK_MAP_ENTRIES.some((mockEntry) => mockEntry.id === entry.id));
+
+    return {
+      userProfile: isRecord(parsed.userProfile) ? {
+        name: typeof parsed.userProfile.name === "string" ? parsed.userProfile.name : "",
+        email: typeof parsed.userProfile.email === "string" ? parsed.userProfile.email : "",
+        country: typeof parsed.userProfile.country === "string" && parsed.userProfile.country ? parsed.userProfile.country : "Taiwan",
+        city: typeof parsed.userProfile.city === "string" && parsed.userProfile.city ? parsed.userProfile.city : "Taipei",
+        style: typeof parsed.userProfile.style === "string" ? parsed.userProfile.style : undefined,
+        agreed: Boolean(parsed.userProfile.agreed),
+      } : null,
+      currentMockDay: clampDay(parsed.currentMockDay ?? parsed.currentDay),
+      currentWeekItems: normalizeItemsArray(parsed.currentWeekItems, true),
+      dailyHistory: normalizeItemsArray(parsed.dailyHistory, false) as MusicItem[],
+      weeklyPets: (Array.isArray(parsed.weeklyPets) ? parsed.weeklyPets : [])
+        .map(normalizePet)
+        .filter((pet): pet is Pet => Boolean(pet)),
+      mapEntries: safeMapEntries,
+    };
+  } catch (e) {
+    console.error("Failed to load state", e);
+    return getDefaultState();
+  }
+};
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [state, setState] = useState<AppState>(loadStoredState);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }, [state]);
+
+  const login = (profile: UserProfile) => {
+    setState((s) => ({ ...s, userProfile: profile }));
+  };
+
+  const generateItem = (item: MusicItem) => {
+    setState((s) => {
+      const newItems = [...s.currentWeekItems];
+      newItems[clampDay(s.currentMockDay) - 1] = normalizeMusicItem(item, clampDay(s.currentMockDay) - 1);
+      return {
+        ...s,
+        currentWeekItems: newItems,
+        dailyHistory: [...(Array.isArray(s.dailyHistory) ? s.dailyHistory : []), normalizeMusicItem(item, clampDay(s.currentMockDay) - 1)].filter((entry): entry is MusicItem => Boolean(entry)),
+      };
+    });
+  };
+
+  const advanceDay = () => {
+    setState((s) => ({ ...s, currentMockDay: clampDay((s.currentMockDay || 1) + 1) }));
+  };
+
+  const generateWeeklyPet = (pet: Pet) => {
+    setState((s) => {
+      const safePet = normalizePet(pet);
+      if (!safePet) return s;
+      return { ...s, weeklyPets: [...(Array.isArray(s.weeklyPets) ? s.weeklyPets : []), safePet] };
+    });
+  };
+
+  const resetWeek = () => {
+    setState((s) => ({
+      ...s,
+      currentMockDay: 1,
+      currentWeekItems: [...INITIAL_ITEMS],
+    }));
+  };
+
+  const autoFillWeek = async () => {
+    const { getTodayMusicData, getDailyPart } = await import("./mockData");
+    const { assetMap } = await import("./assetMap");
+    
+    // generate 6 days randomly
+    const newItems = [...INITIAL_ITEMS];
+    
+    for (let i = 0; i < 6; i++) { // Days 1 to 6
+      const dailyData = await getTodayMusicData("mock");
+      const genre = dailyData.assetGenre || dailyData.mainGenre;
+      const part = getDailyPart(i + 1);
+      
+      newItems[i] = {
+        id: Math.random().toString(36).substring(2),
+        day: i + 1,
+        part: part,
+        genre: genre as any,
+        label: `${genre} ${part}`,
+        icon: "✨",
+        imageSrc: assetMap[genre]?.[part] || null
+      };
+    }
+    
+    // Day 7 is just null intentionally since it represents the final assembly day
+    // We update state after generation
+    setState(s => ({ ...s, currentMockDay: 7, currentWeekItems: newItems }));
+  };
+
+  const addToMap = (entry: MapEntry) => {
+    setState((s) => {
+      const safeEntry = normalizeMapEntry(entry);
+      if (!safeEntry) return s;
+      return { ...s, mapEntries: [...(Array.isArray(s.mapEntries) ? s.mapEntries : []), safeEntry] };
+    });
+  };
+
+  return (
+    <AppContext.Provider value={{ ...state, login, generateItem, advanceDay, generateWeeklyPet, resetWeek, addToMap, autoFillWeek }}>
+      {children}
+    </AppContext.Provider>
+  );
+};
+
+export const useApp = () => {
+  const ctx = useContext(AppContext);
+  if (!ctx) throw new Error("useApp must be used within AppProvider");
+  return ctx;
+};

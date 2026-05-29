@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FAF3E8;
+  --color-brown: #4A2C17;
+  --color-sand: #E8D5B7;
+  --color-blush: #F2BFAB;
+  --color-caramel: #A0714F;
+  --color-card: #FFF8EC;
+  --font-pixel: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@layer base {
+  html, body, #root {
+    width: 100%;
+    height: 100%;
+  }
+
+  body {
+    background-color: #E6DFD4;
+    color: var(--color-brown);
+    font-family: 'ui-rounded', 'SF Pro Rounded', system-ui, -apple-system, 'Microsoft JhengHei', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 0;
+  }
+}
+
+.pixel-border {
+  border: 3px solid var(--color-brown);
+  border-radius: 8px;
+}
+
+.pixel-shadow {
+  box-shadow: 4px 4px 0px 0px var(--color-caramel);
+}
+
+.pixel-btn-active:active {
+  transform: translateY(2px);
+  box-shadow: 2px 2px 0px 0px var(--color-caramel);
+}
+
+.map-bg {
+  background-image: 
+    radial-gradient(var(--color-sand) 15%, transparent 16%),
+    radial-gradient(var(--color-sand) 15%, transparent 16%);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+.page-wrapper {
+  background-color: var(--color-cream);
+  background-image: radial-gradient(var(--color-sand) 2px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.pixel-header {
+  margin: 16px;
+  padding: 14px 16px;
+  border: 3px solid var(--color-brown);
+  background: var(--color-card);
+  box-shadow: 4px 4px 0 var(--color-caramel);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pixel-header h1 {
+  font-family: monospace;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: var(--color-brown);
+  text-shadow: 2px 2px 0 var(--color-sand);
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.pixel-header p {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--color-caramel);
+  text-align: center;
+}
+
+.logo-chip {
+  width: 42px;
+  height: 42px;
+  border: 2px solid var(--color-brown);
+  background: var(--color-blush);
+  box-shadow: 2px 2px 0 var(--color-brown);
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: var(--color-brown);
+}
+
+.pixel-button {
+  border: 3px solid var(--color-brown);
+  border-radius: 8px;
+  box-shadow: 3px 3px 0 var(--color-caramel);
+  transition: all 0.1s ease;
+  background: var(--color-card);
+  color: var(--color-brown);
+}
+
+.pixel-button:active:not(:disabled) {
+  box-shadow: 0px 0px 0 var(--color-caramel);
+  transform: translate(3px, 3px);
+}
+.pixel-button:disabled {
+  opacity: 0.5;
+}
+

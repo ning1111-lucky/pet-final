@@ -1,0 +1,148 @@
+// 未來 PNG assets 將取代 PixelItemPlaceholder
+// This asset map reserves space for future PNG overlays.
+
+export const baseShapeMap: Record<string, string> = {
+  "base-1": "/base-1.png",
+  "base-2": "/base-2.png",
+  "base-3": "/base-3.png"
+};
+
+export const genreToBaseType: Record<string, string> = {
+  Pop: "base-1",
+  Kpop: "base-1",
+  "K-pop": "base-1",
+  RnB: "base-1",
+  RNB: "base-1",
+  "R&B": "base-1",
+  Jazz: "base-1",
+  Hiphop: "base-2",
+  "Hip-hop": "base-2",
+  Rock: "base-2",
+  EDM: "base-2",
+  Country: "base-2",
+  Classical: "base-3",
+  "Taiwan Indie": "base-3",
+  Indie: "base-3",
+  Mixed: "base-1",
+  Hidden: "base-1"
+};
+
+export const assetMap: Record<string, Record<string, string | null>> = {
+  Classical: {
+    clothes: "/CLASSICAL-clothes.png",
+    headwear: "/CLASSICAL-headwear.png",
+    accessory: "/CLASSICAL-accessory.png",
+    handheld: "/CLASSICAL-handheld.png",
+    shoes: "/CLASSICAL-shoes.png",
+    enhance: "/CLASSICAL-enhance.png"
+  },
+  Country: {
+    clothes: "/COUNTRY-clothes.png",
+    headwear: "/COUNTRY-headwear.png",
+    accessory: "/COUNTRY-accessory.png",
+    handheld: "/COUNTRY-handheld.png",
+    shoes: "/COUNTRY-shoes.png",
+    enhance: "/COUNTRY-enhance.png"
+  },
+  EDM: {
+    clothes: "/EDM-clothes.png",
+    headwear: "/EDM-headwear.png",
+    accessory: "/EDM-accessory.png",
+    handheld: "/EDM-handheld.png",
+    shoes: "/EDM-shoes.png",
+    enhance: "/EDM-enhance.png"
+  },
+  Kpop: {
+    clothes: "/KPOP-clothes.png",
+    headwear: "/KPOP-headwear.png",
+    accessory: "/KPOP-accessory.png",
+    handheld: "/KPOP-handheld.png",
+    shoes: "/KPOP-shoes.png",
+    enhance: "/KPOP-enhance.png"
+  },
+  "K-pop": {
+    clothes: "/KPOP-clothes.png",
+    headwear: "/KPOP-headwear.png",
+    accessory: "/KPOP-accessory.png",
+    handheld: "/KPOP-handheld.png",
+    shoes: "/KPOP-shoes.png",
+    enhance: "/KPOP-enhance.png"
+  },
+  Pop: {
+    clothes: "/POP-clothes.png",
+    headwear: "/POP-headwear.png",
+    accessory: "/POP-accessory.png",
+    handheld: "/POP-handheld.png",
+    shoes: "/POP-shoes.png",
+    enhance: "/POP-enhance.png"
+  },
+  RnB: {
+    clothes: "/RNB-clothes.png",
+    headwear: "/RNB-headwear.png",
+    accessory: "/RNB-accessory.png",
+    handheld: "/RNB-handheld.png",
+    shoes: "/RNB-shoes.png",
+    enhance: "/RNB-enhance.png"
+  },
+  "R&B": {
+    clothes: "/RNB-clothes.png",
+    headwear: "/RNB-headwear.png",
+    accessory: "/RNB-accessory.png",
+    handheld: "/RNB-handheld.png",
+    shoes: "/RNB-shoes.png",
+    enhance: "/RNB-enhance.png"
+  },
+  Rock: {
+    clothes: "/ROCK-clothes.png",
+    headwear: "/ROCK-headwear.png",
+    accessory: "/ROCK-accessory.png",
+    handheld: "/ROCK-handheld.png",
+    shoes: "/ROCK-shoes.png",
+    enhance: "/ROCK-enhance.png"
+  },
+  Jazz: {
+    clothes: "/JAZZ-clothes.png",
+    headwear: "/JAZZ-headwear.png",
+    accessory: "/JAZZ-accessory.png",
+    handheld: "/JAZZ-handheld.png",
+    shoes: "/JAZZ-shoes.png",
+    enhance: "/JAZZ-enhance.png"
+  },
+  Indie: {
+    clothes: "/INDIE-clothes.png",
+    headwear: "/INDIE-headwear.png",
+    accessory: "/INDIE-accessory.png",
+    handheld: "/INDIE-handheld.png",
+    shoes: "/INDIE-shoes.png",
+    enhance: "/INDIE-enhance.png"
+  },
+  "Taiwan Indie": {
+    clothes: "/INDIE-clothes.png",
+    headwear: "/INDIE-headwear.png",
+    accessory: "/INDIE-accessory.png",
+    handheld: "/INDIE-handheld.png",
+    shoes: "/INDIE-shoes.png",
+    enhance: "/INDIE-enhance.png"
+  },
+  Hiphop: {
+    clothes: "/HIPHOP-clothes.png",
+    headwear: "/HIPHOP-headwear.png",
+    accessory: "/HIPHOP-accessory.png",
+    handheld: "/HIPHOP-handheld.png",
+    shoes: "/HIPHOP-shoes.png",
+    enhance: "/HIPHOP-enhance.png"
+  },
+  "Hip-hop": {
+    clothes: "/HIPHOP-clothes.png",
+    headwear: "/HIPHOP-headwear.png",
+    accessory: "/HIPHOP-accessory.png",
+    handheld: "/HIPHOP-handheld.png",
+    shoes: "/HIPHOP-shoes.png",
+    enhance: "/HIPHOP-enhance.png"
+  },
+  base: {
+    1: "/base-1.png",
+    2: "/base-2.png",
+    3: "/base-3.png"
+  }
+};
