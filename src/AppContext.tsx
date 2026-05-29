@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { UserProfile, MusicItem, Pet, MapEntry, Genre, ItemPart } from "./types";
 import { getBaseType, MOCK_MAP_ENTRIES } from "./mockData";
 import { generateId } from "./utils";
+import { normalizeStoredAssetImage, resolveAssetImage } from "./assetMap";
 
 interface AppState {
   userProfile: UserProfile | null;
@@ -92,15 +93,22 @@ const normalizeMusicItem = (value: unknown, index = 0): MusicItem | null => {
 
   const genre = normalizeGenre(value.genre);
   const part = normalizePart(value.part, index);
+  const id = typeof value.id === "string" && value.id ? value.id : generateId();
+  const day = clampDay(value.day ?? index + 1);
 
   return {
-    id: typeof value.id === "string" && value.id ? value.id : generateId(),
-    day: clampDay(value.day ?? index + 1),
+    id,
+    day,
     part,
     genre,
     label: typeof value.label === "string" && value.label ? value.label : `${genre} ${part}`,
     icon: typeof value.icon === "string" && value.icon ? value.icon : "✨",
-    imageSrc: typeof value.imageSrc === "string" && value.imageSrc ? value.imageSrc : null,
+    imageSrc: normalizeStoredAssetImage(
+      genre,
+      part,
+      typeof value.imageSrc === "string" && value.imageSrc ? value.imageSrc : null,
+      `${id}:${day}`
+    ),
   };
 };
 
@@ -280,8 +288,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const autoFillWeek = async () => {
     const { getTodayMusicData, getDailyPart } = await import("./mockData");
-    const { assetMap } = await import("./assetMap");
-    
+
     // generate 6 days randomly
     const newItems = [...INITIAL_ITEMS];
     
@@ -297,7 +304,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         genre: genre as any,
         label: `${genre} ${part}`,
         icon: "✨",
-        imageSrc: assetMap[genre]?.[part] || null
+        imageSrc: resolveAssetImage(String(genre), String(part), `${genre}-${part}-${i + 1}`)
       };
     }
     

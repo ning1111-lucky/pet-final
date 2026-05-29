@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "../utils";
 import { Genre, ItemPart } from "../types";
-import { assetMap } from "../assetMap";
+import { resolveAssetImage } from "../assetMap";
 
 export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" }>(({ className, variant = "primary", ...props }, ref) => {
   return (
@@ -52,7 +52,7 @@ export const PixelItemPlaceholder: React.FC<{
   className?: string;
 }> = ({ genre, part, label, imageSrc, className }) => {
   // Check if we have a real PNG mapped for this genre and part.
-  const imagePath: string | null = imageSrc || assetMap[genre]?.[part] || null;
+  const imagePath: string | null = imageSrc || resolveAssetImage(genre, part, `${genre}-${part}`) || null;
   const [imageFailed, setImageFailed] = React.useState(false);
 
   React.useEffect(() => {

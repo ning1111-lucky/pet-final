@@ -5,7 +5,7 @@ import { getBaseType, getDailyPart, getTodayMusicData, MUSIC_PROVIDER } from "..
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet } from "../types";
 import { generateId, cn } from "../utils";
 import { motion } from "motion/react";
-import { assetMap, baseShapeMap, genreToBaseType } from "../assetMap";
+import { assetMap, baseShapeMap, genreToBaseType, resolveAssetImage } from "../assetMap";
 
 const GENERATED_WEEKLY_PET_IMAGE_KEY = "generatedWeeklyPetImage";
 
@@ -115,6 +115,7 @@ Day 6 enhancement: ${findGenreByPart("enhance")} inspired magical music effect
 
 Instructions:
 preserve the base character silhouette and proportions.
+Preserve the front-facing pose.
 Use selected item images as outfit and accessory references.
 Redraw them naturally onto the character.
 Do not collage or paste raw images.
@@ -155,7 +156,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const targetPart = getDailyPart(safeDay);
   const targetGenre = confirmedGenre || mockMusic?.assetGenre || mockMusic?.mainGenre || "Pop";
   const normalizedTargetGenre = normalizeGenre(targetGenre as string);
-  const targetImageSrc = isFinalPetDay ? null : assetMap[normalizedTargetGenre]?.[targetPart] || null;
+  const targetImageSrc = isFinalPetDay ? null : resolveAssetImage(normalizedTargetGenre, targetPart, `${normalizedTargetGenre}-${targetPart}-${safeDay}`);
   const distribution = Array.isArray(mockMusic?.distribution) ? mockMusic.distribution : [];
   const currentItem = safeWeekItems[safeDay - 1];
 
@@ -287,7 +288,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       }
 
       setGeneratedPetImage(data.imageUrl);
-      setGeneratedPetProvider(typeof data.provider === "string" ? data.provider : "gemini");
+      setGeneratedPetProvider("leonardo");
       try {
         localStorage.setItem(GENERATED_WEEKLY_PET_IMAGE_KEY, data.imageUrl);
       } catch {
@@ -336,7 +337,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       mainGenre,
       secondGenre: subGenre,
       items: collectedItems,
-      provider: generatedPetProvider || "gemini",
+      provider: generatedPetProvider || "leonardo",
       top: 50 + (Math.random() - 0.5) * 10,
       left: 50 + (Math.random() - 0.5) * 10,
     };

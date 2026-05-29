@@ -7,6 +7,61 @@ export const baseShapeMap: Record<string, string> = {
   "base-3": "/base-3.png"
 };
 
+const variantAssetMap: Record<string, Partial<Record<string, string[]>>> = {
+  Indie: {
+    clothes: ["/INDIE-clothes-A.png", "/INDIE-clothes-B.png"],
+    headwear: ["/INDIE-headwear-A.png", "/INDIE-headwear-B.png"],
+    shoes: ["/INDIE-shoes-A.png", "/INDIE-shoes-B.png"],
+    enhance: ["/INDIE-enhance-A.png", "/INDIE-enhance-B.png"]
+  },
+  "Taiwan Indie": {
+    clothes: ["/INDIE-clothes-A.png", "/INDIE-clothes-B.png"],
+    headwear: ["/INDIE-headwear-A.png", "/INDIE-headwear-B.png"],
+    shoes: ["/INDIE-shoes-A.png", "/INDIE-shoes-B.png"],
+    enhance: ["/INDIE-enhance-A.png", "/INDIE-enhance-B.png"]
+  }
+};
+
+const legacyAssetPathMap: Record<string, string[]> = {
+  "Indie:clothes": ["/INDIE-clothes.png", "/INDIE-clothes-A.png", "/INDIE-clothes-B.png"],
+  "Indie:headwear": ["/INDIE-headwear.png", "/INDIE-headwear-A.png", "/INDIE-headwear-B.png"],
+  "Indie:shoes": ["/INDIE-shoes.png", "/INDIE-shoes-A.png", "/INDIE-shoes-B.png"],
+  "Indie:enhance": ["/INDIE-enhance.png", "/INDIE-enhance-A.png", "/INDIE-enhance-B.png"],
+  "Taiwan Indie:clothes": ["/INDIE-clothes.png", "/INDIE-clothes-A.png", "/INDIE-clothes-B.png"],
+  "Taiwan Indie:headwear": ["/INDIE-headwear.png", "/INDIE-headwear-A.png", "/INDIE-headwear-B.png"],
+  "Taiwan Indie:shoes": ["/INDIE-shoes.png", "/INDIE-shoes-A.png", "/INDIE-shoes-B.png"],
+  "Taiwan Indie:enhance": ["/INDIE-enhance.png", "/INDIE-enhance-A.png", "/INDIE-enhance-B.png"]
+};
+
+function getSeededIndex(seed: string, length: number) {
+  let total = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    total = (total + seed.charCodeAt(i) * (i + 1)) % 2147483647;
+  }
+  return Math.abs(total) % length;
+}
+
+export function resolveAssetImage(genre: string, part: string, seed?: string) {
+  const variants = variantAssetMap[genre]?.[part];
+  if (variants && variants.length > 0) {
+    if (!seed) {
+      return variants[Math.floor(Math.random() * variants.length)];
+    }
+    return variants[getSeededIndex(seed, variants.length)];
+  }
+
+  return assetMap[genre]?.[part] || null;
+}
+
+export function normalizeStoredAssetImage(genre: string, part: string, imageSrc: string | null | undefined, seed?: string) {
+  const legacyPaths = legacyAssetPathMap[`${genre}:${part}`];
+  if (legacyPaths && (!imageSrc || legacyPaths.includes(imageSrc))) {
+    return resolveAssetImage(genre, part, seed);
+  }
+
+  return imageSrc || resolveAssetImage(genre, part, seed);
+}
+
 export const genreToBaseType: Record<string, string> = {
   Pop: "base-1",
   Kpop: "base-1",
@@ -109,20 +164,20 @@ export const assetMap: Record<string, Record<string, string | null>> = {
     enhance: "/JAZZ-enhance.png"
   },
   Indie: {
-    clothes: "/INDIE-clothes.png",
-    headwear: "/INDIE-headwear.png",
+    clothes: "/INDIE-clothes-A.png",
+    headwear: "/INDIE-headwear-A.png",
     accessory: "/INDIE-accessory.png",
     handheld: "/INDIE-handheld.png",
-    shoes: "/INDIE-shoes.png",
-    enhance: "/INDIE-enhance.png"
+    shoes: "/INDIE-shoes-A.png",
+    enhance: "/INDIE-enhance-A.png"
   },
   "Taiwan Indie": {
-    clothes: "/INDIE-clothes.png",
-    headwear: "/INDIE-headwear.png",
+    clothes: "/INDIE-clothes-A.png",
+    headwear: "/INDIE-headwear-A.png",
     accessory: "/INDIE-accessory.png",
     handheld: "/INDIE-handheld.png",
-    shoes: "/INDIE-shoes.png",
-    enhance: "/INDIE-enhance.png"
+    shoes: "/INDIE-shoes-A.png",
+    enhance: "/INDIE-enhance-A.png"
   },
   Hiphop: {
     clothes: "/HIPHOP-clothes.png",
