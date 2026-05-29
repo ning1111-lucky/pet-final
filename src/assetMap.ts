@@ -53,6 +53,24 @@ export function resolveAssetImage(genre: string, part: string, seed?: string) {
   return assetMap[genre]?.[part] || null;
 }
 
+export function getAssetErrorFallback(genre: string, part: string, currentSrc: string | null | undefined, seed?: string) {
+  const variants = variantAssetMap[genre]?.[part] || [];
+  const preferred = resolveAssetImage(genre, part, seed);
+
+  if (preferred && preferred !== currentSrc) {
+    return preferred;
+  }
+
+  if (variants.length > 1 && currentSrc) {
+    const alternative = variants.find((variant) => variant !== currentSrc);
+    if (alternative) {
+      return alternative;
+    }
+  }
+
+  return null;
+}
+
 export function normalizeStoredAssetImage(genre: string, part: string, imageSrc: string | null | undefined, seed?: string) {
   const legacyPaths = legacyAssetPathMap[`${genre}:${part}`];
   if (legacyPaths && (!imageSrc || legacyPaths.includes(imageSrc))) {

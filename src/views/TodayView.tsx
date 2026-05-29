@@ -5,7 +5,7 @@ import { getBaseType, getDailyPart, getTodayMusicData, MUSIC_PROVIDER } from "..
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet } from "../types";
 import { generateId, cn } from "../utils";
 import { motion } from "motion/react";
-import { assetMap, baseShapeMap, genreToBaseType, resolveAssetImage } from "../assetMap";
+import { assetMap, baseShapeMap, genreToBaseType, getAssetErrorFallback, resolveAssetImage } from "../assetMap";
 
 const GENERATED_WEEKLY_PET_IMAGE_KEY = "generatedWeeklyPetImage";
 
@@ -519,7 +519,12 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                   className="w-full h-full object-contain"
                   style={{ imageRendering: "pixelated" }}
                   onError={(event) => {
-                    (event.target as HTMLImageElement).style.display = "none";
+                    const fallback = getAssetErrorFallback(item.genre, item.part, item.imageSrc, item.id);
+                    if (fallback && fallback !== item.imageSrc) {
+                      (event.currentTarget as HTMLImageElement).src = fallback;
+                      return;
+                    }
+                    (event.currentTarget as HTMLImageElement).style.display = "none";
                   }}
                 />
               </div>

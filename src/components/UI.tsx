@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "../utils";
 import { Genre, ItemPart } from "../types";
-import { resolveAssetImage } from "../assetMap";
+import { getAssetErrorFallback, resolveAssetImage } from "../assetMap";
 
 export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" }>(({ className, variant = "primary", ...props }, ref) => {
   return (
@@ -63,7 +63,20 @@ export const PixelItemPlaceholder: React.FC<{
     <div className={cn("flex flex-col items-center justify-center p-2 bg-[var(--color-cream)] border-2 border-dashed border-[var(--color-brown)] rounded-sm overflow-hidden relative group", className)}>
       {imagePath && !imageFailed ? (
         <div className="flex flex-col items-center">
-          <img src={imagePath} alt={`${genre} ${part}`} className="w-16 h-16 object-contain" style={{ imageRendering: 'pixelated' }} onError={() => setImageFailed(true)} />
+          <img
+            src={imagePath}
+            alt={`${genre} ${part}`}
+            className="w-16 h-16 object-contain"
+            style={{ imageRendering: "pixelated" }}
+            onError={(event) => {
+              const fallback = getAssetErrorFallback(genre, part, imagePath, `${genre}-${part}`);
+              if (fallback && fallback !== imagePath) {
+                (event.currentTarget as HTMLImageElement).src = fallback;
+                return;
+              }
+              setImageFailed(true);
+            }}
+          />
         </div>
       ) : (
         <div className="flex flex-col items-center">

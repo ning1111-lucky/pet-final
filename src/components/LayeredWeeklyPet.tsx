@@ -1,6 +1,7 @@
 import React from "react";
 import { MusicItem } from "../types";
 import { cn } from "../utils";
+import { getAssetErrorFallback } from "../assetMap";
 
 export const defaultPlacementMap: Record<string, any> = {
   shoes: { zIndex: 2 },
@@ -52,6 +53,14 @@ export const LayeredWeeklyPet: React.FC<LayeredWeeklyPetProps> = ({ baseSrc, ite
             style={{
               imageRendering: "pixelated",
               zIndex: placement.zIndex,
+            }}
+            onError={(event) => {
+              const fallback = getAssetErrorFallback(item.genre, item.part, item.imageSrc, item.id);
+              if (fallback && fallback !== item.imageSrc) {
+                (event.currentTarget as HTMLImageElement).src = fallback;
+                return;
+              }
+              (event.currentTarget as HTMLImageElement).style.display = "none";
             }}
           />
         );
