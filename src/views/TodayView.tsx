@@ -138,6 +138,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     addToMap,
     autoFillWeek,
     userProfile,
+    updateUserProfile,
   } = useApp();
 
   const [mockMusic, setMockMusic] = useState<DailyMusicData | null>(null);
@@ -153,6 +154,8 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const [musicLoadCode, setMusicLoadCode] = useState<string | null>(null);
   const [spotifyConnected, setSpotifyConnected] = useState<boolean | null>(null);
   const [spotifyDisplayName, setSpotifyDisplayName] = useState<string | null>(null);
+  const [showMusicSourcePanel, setShowMusicSourcePanel] = useState(false);
+  const [draftLastfmUsername, setDraftLastfmUsername] = useState(userProfile?.lastfmUsername || "");
 
   const safeDay = Math.min(Math.max(Number(currentMockDay) || 1, 1), TOTAL_DAYS);
   const safeWeekItems = Array.isArray(currentWeekItems) ? currentWeekItems : [];
@@ -183,6 +186,10 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     .map((slot) => getCollectedItemByPart(slot.part))
     .filter((item): item is MusicItem => Boolean(item));
   const hasGeneratedToday = todaysGeneratedItems.length === daySlotConfigs.length;
+
+  useEffect(() => {
+    setDraftLastfmUsername(userProfile?.lastfmUsername || "");
+  }, [userProfile?.lastfmUsername]);
 
   useEffect(() => {
     let active = true;
@@ -434,6 +441,21 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
         ? "LAST.FM"
         : "MOCK";
 
+  const handleProviderChange = (provider: "mock" | "spotify" | "lastfm") => {
+    updateUserProfile({ musicProvider: provider });
+    if (provider !== "lastfm") {
+      setShowMusicSourcePanel(false);
+    }
+  };
+
+  const handleSaveLastfmUsername = () => {
+    updateUserProfile({
+      musicProvider: "lastfm",
+      lastfmUsername: draftLastfmUsername.trim(),
+    });
+    setShowMusicSourcePanel(false);
+  };
+
   if (!mockMusic && !musicLoadError) {
     return <div className="p-8 text-center type-body">加載今日音樂數據...</div>;
   }
@@ -454,6 +476,88 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           )}
         </div>
       </div>
+
+      <section className="section-surface space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="type-label">音樂來源</div>
+            <div className="type-body mt-1">
+              {activeMusicProvider === "spotify"
+                ? "Spotify 已連接後會直接讀近期播放與常聽風格。"
+                : activeMusicProvider === "lastfm"
+                  ? "目前使用 Last.fm 使用者名稱讀取近期紀錄。"
+                  : "目前是體驗模式，使用隨機示範資料。"}
+            </div>
+          </div>
+          <div className="info-chip">{providerLabel}</div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" onClick={() => setShowMusicSourcePanel((value) => !value)}>
+            切換音樂來源
+          </Button>
+          {activeMusicProvider === "spotify" && (
+            <Button onClick={handleConnectSpotify}>
+              {spotifyConnected ? "重新連接 Spotify" : "連接 Spotify"}
+            </Button>
+          )}
+        </div>
+
+        {showMusicSourcePanel && (
+          <div className="section-plain bg-white space-y-3">
+            <div className="type-caption text-[var(--color-muted)]">
+              切換後，之後的音樂分析會改讀新的來源；目前已收集的素材不會被清掉。
+            </div>
+            <div className="grid grid-cols-1 gap-2">
+              <button
+                type="button"
+                onClick={() => handleProviderChange("spotify")}
+                className={`text-left rounded-xl border-[2px] px-4 py-3 ${activeMusicProvider === "spotify" ? "border-[var(--color-caramel)] bg-[var(--color-cream)]" : "border-[var(--color-line)] bg-white"}`}
+              >
+                <div className="type-label">Spotify</div>
+                <div className="type-caption text-[var(--color-muted)] mt-1">授權後直接讀最近播放與常聽風格。</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleProviderChange("lastfm")}
+                className={`text-left rounded-xl border-[2px] px-4 py-3 ${activeMusicProvider === "lastfm" ? "border-[var(--color-caramel)] bg-[var(--color-cream)]" : "border-[var(--color-line)] bg-white"}`}
+              >
+                <div className="type-label">Last.fm</div>
+                <div className="type-caption text-[var(--color-muted)] mt-1">輸入使用者名稱讀取近期紀錄與藝人標籤。</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleProviderChange("mock")}
+                className={`text-left rounded-xl border-[2px] px-4 py-3 ${activeMusicProvider === "mock" ? "border-[var(--color-caramel)] bg-[var(--color-cream)]" : "border-[var(--color-line)] bg-white"}`}
+              >
+                <div className="type-label">體驗模式</div>
+                <div className="type-caption text-[var(--color-muted)] mt-1">快速測流程，不連接真實音樂資料。</div>
+              </button>
+            </div>
+
+            {(activeMusicProvider === "lastfm" || showMusicSourcePanel) && (
+              <div className="space-y-2 pt-1">
+                <label className="type-label">Last.fm 使用者名稱</label>
+                <input
+                  value={draftLastfmUsername}
+                  onChange={(event) => setDraftLastfmUsername(event.target.value)}
+                  className="w-full min-w-0 pixel-border p-2 bg-[var(--color-cream)] outline-none focus:border-[var(--color-caramel)]"
+                  placeholder="例如：musiclover123"
+                />
+                <div className="flex justify-end">
+                  <Button
+                    variant="secondary"
+                    onClick={handleSaveLastfmUsername}
+                    disabled={!draftLastfmUsername.trim()}
+                  >
+                    儲存 Last.fm 帳號
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
 
       {musicLoadError && (
         <section className="section-surface text-center space-y-4">
