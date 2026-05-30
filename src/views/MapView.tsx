@@ -60,13 +60,9 @@ export const MapView: React.FC = () => {
 
   return (
     <div className="p-4 space-y-6 pb-24">
-      <div className="text-center">
-        <h2 className="text-xl font-bold bg-white inline-block px-2 border-2 border-[var(--color-brown)] rounded-md shadow-sm mb-2">
-          世界音樂寵物地圖
-        </h2>
-        <p className="text-sm opacity-80 font-bold bg-white inline-block px-1 rounded shadow-sm border border-[var(--color-brown)]">
-          看看大家本週的音樂寵物出現在世界哪裡。
-        </p>
+      <div className="page-title-group">
+        <h2 className="page-title">世界音樂寵物地圖</h2>
+        <p className="page-subtitle">看看大家本週的音樂寵物出現在世界哪裡。</p>
       </div>
 
       <div
@@ -110,18 +106,18 @@ export const MapView: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        <div className="bg-[var(--color-cream)] border-2 border-[var(--color-brown)] p-2 rounded-lg text-center shadow-[2px_2px_0_var(--color-caramel)]">
-          <div className="text-[10px] font-bold text-[var(--color-brown)] opacity-80">世界寵物數</div>
-          <div className="text-lg font-bold">{totalPets}</div>
+      <div className="section-surface grid grid-cols-3 gap-3 text-center">
+        <div className="section-plain bg-[var(--color-cream)]">
+          <div className="type-caption text-[var(--color-muted)]">世界寵物數</div>
+          <div className="type-h2 mt-1">{totalPets}</div>
         </div>
-        <div className="bg-[var(--color-cream)] border-2 border-[var(--color-brown)] p-2 rounded-lg text-center shadow-[2px_2px_0_var(--color-caramel)]">
-          <div className="text-[10px] font-bold text-[var(--color-brown)] opacity-80">熱門風格</div>
-          <div className="text-[14px] font-bold mt-1 line-clamp-1">{topGenre}</div>
+        <div className="section-plain bg-[var(--color-cream)]">
+          <div className="type-caption text-[var(--color-muted)]">熱門風格</div>
+          <div className="type-label mt-1 line-clamp-1">{topGenre}</div>
         </div>
-        <div className="bg-[var(--color-cream)] border-2 border-[var(--color-brown)] p-2 rounded-lg text-center shadow-[2px_2px_0_var(--color-caramel)]">
-          <div className="text-[10px] font-bold text-[var(--color-brown)] opacity-80">最新城市</div>
-          <div className="text-[14px] font-bold mt-1 line-clamp-1">{latestCity}</div>
+        <div className="section-plain bg-[var(--color-cream)]">
+          <div className="type-caption text-[var(--color-muted)]">最新城市</div>
+          <div className="type-label mt-1 line-clamp-1">{latestCity}</div>
         </div>
       </div>
 
@@ -142,7 +138,7 @@ export const MapView: React.FC = () => {
             </button>
 
             <div className="flex flex-col items-center">
-              <div className="text-sm font-bold text-[var(--color-cream)] bg-[var(--color-brown)] px-3 py-1 rounded-full mb-4">
+              <div className="type-caption text-[var(--color-cream)] bg-[var(--color-brown)] px-3 py-1 rounded-full mb-4">
                 📍 {selectedEntry.city || "未知城市"}, {selectedEntry.country || "未知國家"}
               </div>
 
@@ -154,30 +150,28 @@ export const MapView: React.FC = () => {
                 )}
               </div>
 
-              <h3 className="font-bold text-2xl text-[var(--color-brown)] mb-1 bg-[--color-cream] px-2 rounded">
-                {selectedEntry.petName}
-              </h3>
-              <div className="text-sm font-bold text-[var(--color-caramel)] mb-4 bg-white px-2 rounded-sm border border-[var(--color-brown)]">
+              <h3 className="type-h1 text-[var(--color-brown)] mb-1">{selectedEntry.petName}</h3>
+              <div className="type-caption text-[var(--color-caramel)] mb-4">
                 Owner: {selectedEntry.ownerName || "Anonymous"}
               </div>
 
-              <div className="flex space-x-2 text-sm mb-4 font-bold">
-                <div className="bg-[var(--color-sand)] border-2 border-[var(--color-brown)] px-3 py-1 rounded-md shadow-sm">
+              <div className="flex space-x-2 mb-4 flex-wrap justify-center">
+                <div className="info-chip">
                   主風格: {selectedEntry.mainGenre}
                 </div>
-                <div className="bg-[var(--color-sand)] border-2 border-[var(--color-brown)] px-3 py-1 rounded-md shadow-sm">
+                <div className="info-chip">
                   次風格: {selectedEntry.secondGenre}
                 </div>
               </div>
 
-              <div className="text-sm font-bold opacity-80 mb-4 px-4 text-center bg-white py-2 rounded-md border border-gray-200 w-full">
+              <div className="section-plain type-body mb-4 text-center bg-white w-full">
                 "{selectedEntry.description}"
               </div>
 
-              <div className="w-full text-left font-bold text-sm mb-2 text-[var(--color-brown)] border-b-2 border-dashed border-[var(--color-brown)] pb-1">
+              <div className="w-full text-left type-label mb-2 text-[var(--color-brown)] border-b-2 border-dashed border-[var(--color-brown)] pb-1">
                 本週收集物品
               </div>
-              <div className="flex flex-wrap gap-2 justify-start w-full bg-[var(--color-cream)] p-2 rounded-md border-2 border-[var(--color-brown)]">
+              <div className="flex flex-wrap gap-2 justify-start w-full section-plain bg-[var(--color-cream)]">
                 {selectedEntry.items.length > 0 ? (
                   selectedEntry.items.map((item) => (
                     <div
@@ -189,7 +183,7 @@ export const MapView: React.FC = () => {
                     </div>
                   ))
                 ) : (
-                  <span className="text-xs text-gray-500 font-bold p-2">沒有穿戴物品</span>
+                  <span className="type-caption text-[var(--color-muted)] p-2">沒有穿戴物品</span>
                 )}
               </div>
             </div>

@@ -88,7 +88,7 @@ const BottomNavIcon = ({ type, active }: { type: string, active: boolean }) => {
 const PixelHeader = () => (
   <header className="pixel-header">
     <div className="logo-chip">♪</div>
-    <div>
+    <div className="page-title-group">
       <h1>Melody Pet Map</h1>
       <p>音樂寵物地圖</p>
     </div>
@@ -124,15 +124,15 @@ const AppContent: React.FC = () => {
        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-[var(--color-sand)] border-t-[3px] border-[var(--color-brown)] rounded-t-xl z-50 flex items-center py-3">
           <button onClick={() => setActiveTab("today")} className="flex-1 flex flex-col items-center">
              <BottomNavIcon type="today" active={activeTab === "today"} />
-             <span className="text-[10px] font-bold mt-1 text-[var(--color-brown)]">今日</span>
+             <span className="type-caption mt-1 text-[var(--color-brown)]">今日</span>
           </button>
           <button onClick={() => setActiveTab("items")} className="flex-1 flex flex-col items-center">
              <BottomNavIcon type="items" active={activeTab === "items"} />
-             <span className="text-[10px] font-bold mt-1 text-[var(--color-brown)]">物品</span>
+             <span className="type-caption mt-1 text-[var(--color-brown)]">物品</span>
           </button>
           <button onClick={() => setActiveTab("map")} className="flex-1 flex flex-col items-center">
              <BottomNavIcon type="map" active={activeTab === "map"} />
-             <span className="text-[10px] font-bold mt-1 text-[var(--color-brown)]">世界地圖</span>
+             <span className="type-caption mt-1 text-[var(--color-brown)]">世界地圖</span>
           </button>
        </nav>
     </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useApp } from "../AppContext";
-import { Card, Button, PixelItemPlaceholder } from "../components/UI";
+import { Button, PixelItemPlaceholder } from "../components/UI";
 import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, MUSIC_PROVIDER, TOTAL_DAYS } from "../mockData";
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet } from "../types";
 import { generateId } from "../utils";
@@ -373,47 +373,53 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   };
 
   if (!mockMusic) {
-    return <div className="p-8 text-center text-sm font-bold">加載今日音樂數據...</div>;
+    return <div className="p-8 text-center type-body">加載今日音樂數據...</div>;
   }
 
   return (
     <div className="p-4 space-y-6 pb-24">
-      <div className="text-center">
-        <h2 className="text-xl font-bold bg-white inline-block px-2 border-2 border-[var(--color-brown)] rounded-md shadow-sm mb-2">
+      <div className="page-title-group">
+        <h2 className="page-title">
           {isPetGenerationStage ? "音樂寵物生成" : "今日音樂分析"}
         </h2>
-        <div className="flex items-center justify-center space-x-2">
-          <span className="text-xs bg-[var(--color-sand)] px-1 pixel-border border border-[var(--color-brown)]">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <span className="info-chip">
             Day {safeDay}/{TOTAL_DAYS}
           </span>
-          <span className="text-[10px] text-gray-500 italic">Data Source: {MUSIC_PROVIDER.toUpperCase()}</span>
+          <span className="type-caption text-[var(--color-muted)]">Data Source: {MUSIC_PROVIDER.toUpperCase()}</span>
         </div>
       </div>
 
       {mockMusic && (
-        <Card className="flex flex-col space-y-4 shadow-sm border-2 border-[var(--color-brown)]">
-          <div className="text-center font-bold text-lg mb-2 relative">🎶 聆聽數據 🎶</div>
-          <div className="flex justify-between items-center border-b-[2px] border-[var(--color-brown)] pb-2 border-dashed">
-            <div className="font-bold">聽歌數量</div>
-            <div className="text-xl">{mockMusic.songCount} 首</div>
+        <section className="section-surface flex flex-col space-y-4">
+          <div>
+            <h3 className="type-h2 text-center">相關數據</h3>
           </div>
-          <div className="flex justify-between items-center border-b-[2px] border-[var(--color-brown)] pb-2 border-dashed">
-            <div className="font-bold">分析類型</div>
-            <div className="text-xl mx-2 bg-[var(--color-sand)] px-2 pixel-border">
+
+          <div className="metric-row">
+            <div className="type-label">聽歌數量</div>
+            <div className="type-h2">{mockMusic.songCount} 首</div>
+          </div>
+
+          <div className="metric-row">
+            <div className="type-label">分析類型</div>
+            <div className="info-chip">
               {mockMusic.mainGenre === "Mixed" ? "混合型" : mockMusic.mainGenre === "Hidden" ? "隱藏版" : "純粹型"}
             </div>
           </div>
-          <div className="flex justify-between items-center border-b-[2px] border-[var(--color-brown)] pb-2 border-dashed">
-            <div className="font-bold">推薦主風格</div>
-            <div className="text-xl mx-2">{normalizeGenre((mockMusic.assetGenre || mockMusic.mainGenre) as string).toUpperCase()}</div>
-          </div>
-          <div className="flex justify-between items-center border-b-[2px] border-[var(--color-brown)] pb-2 border-dashed">
-            <div className="font-bold">推薦次風格</div>
-            <div className="text-xl mx-2">{normalizeGenre((mockMusic.subGenre || "Pop") as string).toUpperCase()}</div>
+
+          <div className="metric-row">
+            <div className="type-label">推薦主風格</div>
+            <div className="type-h2">{normalizeGenre((mockMusic.assetGenre || mockMusic.mainGenre) as string).toUpperCase()}</div>
           </div>
 
-          <div className="pt-2">
-            <div className="text-sm font-bold mb-2">音樂風格分佈</div>
+          <div className="metric-row">
+            <div className="type-label">推薦次風格</div>
+            <div className="type-h2">{normalizeGenre((mockMusic.subGenre || "Pop") as string).toUpperCase()}</div>
+          </div>
+
+          <div className="section-plain">
+            <div className="type-label mb-2">音樂風格分佈</div>
             <div className="flex h-4 bg-[var(--color-cream)] pixel-border overflow-hidden">
               {distribution.map((item, index) => (
                 <div
@@ -435,25 +441,25 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             </div>
           </div>
 
-          <div className="bg-[var(--color-cream)] p-3 pixel-border text-sm italic text-center font-bold">
+          <div className="section-plain bg-[var(--color-cream)] text-center italic">
             "{mockMusic.quote}"
           </div>
-        </Card>
+        </section>
       )}
 
       {mockMusic && !hasGeneratedToday && (
-        <Card className="text-center border-dashed border-4 border-[var(--color-brown)] shadow-sm">
-          <h3 className="font-bold mb-4 bg-white inline-block px-2 py-1 rounded shadow-sm border border-[var(--color-brown)]">
+        <section className="section-surface text-center">
+          <h3 className="type-h2 mb-3">
             今日生成組合
           </h3>
-          <div className="text-xs font-bold text-[var(--color-brown)] mb-4 bg-white px-3 py-2 rounded-md border border-[var(--color-brown)]">
+          <p className="type-body mb-4">
             今天會同時使用主風格與次風格來生成素材。
-          </div>
+          </p>
 
           <div className="grid grid-cols-2 gap-3 mb-4">
             {todaysPreviewItems.map((item) => (
-              <div key={item.id} className="bg-white border-2 border-dashed border-[var(--color-brown)] rounded-md p-2">
-                <div className="text-[10px] font-bold mb-1 text-[var(--color-brown)]">{item.label}</div>
+              <div key={item.id} className="section-plain bg-white">
+                <div className="type-caption mb-2 text-[var(--color-brown)]">{item.label}</div>
                 <PixelItemPlaceholder
                   genre={item.genre}
                   part={item.part}
@@ -483,30 +489,30 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                 ))}
               </motion.div>
             ) : (
-              <div className="text-sm opacity-60">
+              <div className="type-body text-[var(--color-muted)]">
                 Day {safeDay} 會生成 {daySlotConfigs.map((slot) => slot.part).join(" + ")}
               </div>
             )}
 
             {!showGenAnim ? (
-              <Button onClick={handleGenerate} className="w-full !py-2 text-sm pixel-button font-bold">
+              <Button onClick={handleGenerate} className="w-full !py-2">
                 確認今日分析並生成素材
               </Button>
             ) : (
               <div className="min-h-[40px]" />
             )}
             {todaysPreviewItems.some((item) => !item.imageSrc) && !showGenAnim && (
-              <div className="text-xs text-red-500 mt-2 font-bold bg-white px-1">
+              <div className="type-caption text-red-600 mt-2">
                 有素材缺失，請檢查今日對應的圖片檔。
               </div>
             )}
           </div>
-        </Card>
+        </section>
       )}
 
       {hasGeneratedToday && (
-        <Card className="text-center border-dashed border-4 border-[var(--color-brown)] shadow-sm">
-          <h3 className="font-bold mb-4 bg-white inline-block px-2 py-1 rounded shadow-sm border border-gray-200">
+        <section className="section-surface text-center">
+          <h3 className="type-h2 mb-4">
             Day {safeDay} 已收錄素材
           </h3>
           <motion.div
@@ -515,7 +521,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             className={`grid gap-3 ${todaysGeneratedItems.length > 1 ? "grid-cols-2" : "grid-cols-1"} items-start`}
           >
             {todaysGeneratedItems.map((item) => (
-              <div key={item.id} className="flex flex-col items-center justify-center space-y-3 min-h-[160px]">
+              <div key={item.id} className="section-plain flex flex-col items-center justify-center space-y-3 min-h-[160px] bg-white">
                 <PixelItemPlaceholder
                   genre={item.genre}
                   part={item.part}
@@ -523,35 +529,35 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                   imageSrc={item.imageSrc}
                   className="w-32 h-32"
                 />
-                <div className="text-sm font-bold text-[var(--color-caramel)] bg-white px-2 py-1 rounded shadow-sm border border-[var(--color-brown)]">
+                <div className="type-caption text-[var(--color-caramel)]">
                   已收錄至本週收藏
                 </div>
               </div>
             ))}
           </motion.div>
-        </Card>
+        </section>
       )}
 
       {isPetGenerationStage && (
-        <Card className="text-center border-dashed border-4 border-[var(--color-caramel)] shadow-sm">
-          <h3 className="text-xl font-bold mb-2">確認生成音樂寵物</h3>
-          <p className="text-xs text-gray-600 mb-4 font-bold">
+        <section className="section-surface text-center">
+          <h3 className="type-h2 mb-2">確認生成音樂寵物</h3>
+          <p className="type-body mb-4">
             系統已根據這 3 天收集的 5 個音樂物品，整理出完整寵物生成提示詞。
           </p>
 
           <div className="mb-4">
-            <div className="font-bold text-lg">{mainGenre} 音樂精靈</div>
-            <div className="flex justify-center space-x-2 mt-1">
-              <span className="text-xs bg-[var(--color-sand)] px-2 pixel-border">主：{mainGenre}</span>
-              <span className="text-xs bg-white border border-gray-300 px-2 pixel-border">副：{subGenre}</span>
+            <div className="type-h2">{mainGenre} 音樂精靈</div>
+            <div className="flex justify-center gap-2 mt-2 flex-wrap">
+              <span className="info-chip">主：{mainGenre}</span>
+              <span className="info-chip bg-white">副：{subGenre}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-5 gap-1 mb-4 bg-gray-100 p-2 rounded border-2 border-gray-300">
+          <div className="grid grid-cols-5 gap-2 mb-4 section-plain bg-[var(--color-panel)]">
             {collectedItems.map((item) => (
               <div
                 key={item.id}
-                className="aspect-square bg-white border-2 border-gray-300 flex items-center justify-center p-1 border-dashed"
+                className="aspect-square bg-white border-2 border-[var(--color-line)] flex items-center justify-center p-1 rounded-md"
               >
                 <img
                   src={item.imageSrc || undefined}
@@ -572,7 +578,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           </div>
 
           {generatedImgErr && (
-            <div className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 p-2 rounded mb-4">
+            <div className="type-caption text-red-600 bg-red-50 border border-red-200 p-2 rounded mb-4">
               {generatedImgErr}
             </div>
           )}
@@ -581,12 +587,12 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             <div className="mb-6 flex flex-col items-center">
               <div className="w-48 h-48 border-4 border-dashed border-[var(--color-brown)] rounded-xl bg-white p-2 shadow-[4px_4px_0_var(--color-caramel)] relative overflow-hidden">
                 {imgLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 text-xs font-bold text-gray-500 text-center px-2 border-2 border-dashed border-gray-300">
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 type-caption text-[var(--color-muted)] text-center px-2 border-2 border-dashed border-gray-300">
                     正在載入圖片...
                   </div>
                 )}
                 {imgLoadError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-red-50 z-10 text-xs font-bold text-red-500 text-center p-2 border-2 border-dashed border-red-200">
+                  <div className="absolute inset-0 flex items-center justify-center bg-red-50 z-10 type-caption text-red-500 text-center p-2 border-2 border-dashed border-red-200">
                     圖片暫時載入失敗，請重新生成或稍後再試。
                   </div>
                 )}
@@ -604,11 +610,11 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                     setImgLoadError(true);
                     setImgLoaded(false);
                   }}
-                />
+              />
               </div>
 
               {imgLoaded && !imgLoadError && (
-                <div className="text-xs font-bold text-green-600 mt-2 bg-green-50 px-2 py-1 rounded-sm border border-green-200">
+                <div className="type-caption text-green-600 mt-2 bg-green-50 px-2 py-1 rounded-sm border border-green-200">
                   生成成功！
                 </div>
               )}
@@ -616,7 +622,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               <div className="mt-4 w-full">
                 <Button
                   onClick={generateWeeklyPetImage}
-                  className="w-full text-base py-3 pixel-button font-bold text-white bg-blue-500 hover:bg-blue-600 border-blue-700"
+                  className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 border-blue-700"
                   disabled={isGenerating}
                 >
                   {isGenerating ? "正在生成本週音樂寵物，可能需要幾秒鐘。" : "重新生成本週音樂寵物"}
@@ -627,38 +633,38 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             <div className="mb-4">
               <Button
                 onClick={generateWeeklyPetImage}
-                className="w-full text-base py-3 pixel-button font-bold text-white bg-blue-500 hover:bg-blue-600 border-blue-700"
+                className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 border-blue-700"
                 disabled={isGenerating}
               >
                 {isGenerating ? "正在生成本週音樂寵物，可能需要幾秒鐘。" : "生成本週音樂寵物"}
               </Button>
             </div>
           )}
-        </Card>
+        </section>
       )}
 
       <Button
         onClick={handleDeployToMap}
-        className="w-full text-lg py-3 pixel-button font-bold"
+        className="w-full py-3"
         disabled={!generatedPetImage || isGenerating}
       >
         放到地圖上
       </Button>
 
-      <div className="pt-4 flex flex-wrap gap-2 justify-center border-t-2 border-[var(--color-brown)] border-dashed mt-8 p-4">
-        <div className="w-full text-center text-xs font-bold mb-2">DEV TOOLS</div>
+      <div className="section-divider pt-4 flex flex-wrap gap-2 justify-center mt-8">
+        <div className="w-full text-center type-label mb-1">DEV TOOLS</div>
         <Button
           variant="secondary"
           onClick={advanceDay}
-          className="text-xs !p-2 pixel-button shadow-sm"
+          className="!p-2"
           disabled={safeDay >= TOTAL_DAYS}
         >
           模擬下一天
         </Button>
-        <Button variant="secondary" onClick={handleResetWeek} className="text-xs !p-2 pixel-button shadow-sm">
+        <Button variant="secondary" onClick={handleResetWeek} className="!p-2">
           重置本週
         </Button>
-        <Button variant="secondary" onClick={handleAutoFillWeek} className="text-xs !p-2 pixel-button shadow-sm opacity-80">
+        <Button variant="secondary" onClick={handleAutoFillWeek} className="!p-2 opacity-80">
           一鍵生成三天
         </Button>
       </div>

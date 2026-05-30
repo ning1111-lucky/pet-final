@@ -8,7 +8,7 @@ export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttrib
     <button
       ref={ref}
       className={cn(
-        "pixel-button font-bold px-4 py-3 select-none text-center",
+        "pixel-button type-button px-4 py-3 select-none text-center",
         variant === "primary" ? "bg-[var(--color-caramel)] text-[var(--color-cream)]" : "bg-[var(--color-sand)] text-[var(--color-brown)]",
         className
       )}
@@ -20,7 +20,7 @@ Button.displayName = "Button";
 
 export const Card = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   return (
-    <div className={cn("bg-[var(--color-card)] pixel-border pixel-shadow p-4", className)}>
+    <div className={cn("bg-[var(--color-card)] pixel-border pixel-shadow p-4 rounded-2xl", className)}>
       {children}
     </div>
   );
@@ -84,10 +84,10 @@ export const PixelItemPlaceholder: React.FC<{
             <span>{getPartIcon(part)}</span>
             <span className="absolute bottom-[-4px] right-[-4px] text-lg bg-[var(--color-cream)] rounded-full pt-1">{getGenreIcon(genre)}</span>
           </div>
-          <div className="mt-2 text-[10px] font-bold text-center text-red-500">缺少素材：{genre} {part}</div>
+          <div className="type-caption mt-2 text-center text-red-500">缺少素材：{genre} {part}</div>
         </div>
       )}
-      {label && <div className="mt-2 text-[10px] font-bold text-center leading-tight truncate">{label}</div>}
+      {label && <div className="type-caption mt-2 text-center leading-tight truncate">{label}</div>}
     </div>
   );
 };

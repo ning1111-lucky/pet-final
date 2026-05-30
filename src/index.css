@@ -8,6 +8,24 @@
   --color-caramel: #A0714F;
   --color-card: #FFF8EC;
   --font-pixel: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --type-h1-size: 2rem;
+  --type-h1-weight: 800;
+  --type-h1-tracking: -0.03em;
+  --type-h2-size: 1.375rem;
+  --type-h2-weight: 750;
+  --type-h2-tracking: -0.02em;
+  --type-body-size: 0.975rem;
+  --type-body-weight: 500;
+  --type-body-tracking: -0.005em;
+  --type-caption-size: 0.74rem;
+  --type-caption-weight: 600;
+  --type-caption-tracking: 0.02em;
+  --type-label-size: 0.82rem;
+  --type-label-weight: 750;
+  --type-label-tracking: 0.015em;
+  --type-button-size: 0.92rem;
+  --type-button-weight: 800;
+  --type-button-tracking: 0.01em;
 }
 
 @layer base {
@@ -25,6 +43,111 @@
     align-items: flex-start;
     margin: 0;
   }
+
+  h1, h2, h3, p {
+    margin: 0;
+  }
+}
+
+.type-h1 {
+  font-size: var(--type-h1-size);
+  font-weight: var(--type-h1-weight);
+  letter-spacing: var(--type-h1-tracking);
+  line-height: 1.05;
+}
+
+.type-h2 {
+  font-size: var(--type-h2-size);
+  font-weight: var(--type-h2-weight);
+  letter-spacing: var(--type-h2-tracking);
+  line-height: 1.15;
+}
+
+.type-body {
+  font-size: var(--type-body-size);
+  font-weight: var(--type-body-weight);
+  letter-spacing: var(--type-body-tracking);
+  line-height: 1.55;
+}
+
+.type-caption {
+  font-size: var(--type-caption-size);
+  font-weight: var(--type-caption-weight);
+  letter-spacing: var(--type-caption-tracking);
+  line-height: 1.4;
+}
+
+.type-label {
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+  letter-spacing: var(--type-label-tracking);
+  line-height: 1.35;
+}
+
+.type-button {
+  font-size: var(--type-button-size);
+  font-weight: var(--type-button-weight);
+  letter-spacing: var(--type-button-tracking);
+  line-height: 1.2;
+}
+
+.page-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.page-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.page-subtitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--color-brown) 70%, white);
+}
+
+.section-surface {
+  background: color-mix(in srgb, var(--color-card) 94%, white);
+  border: 2px solid color-mix(in srgb, var(--color-brown) 60%, transparent);
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.section-plain {
+  padding: 0.25rem 0;
+}
+
+.section-divider {
+  border-top: 2px dashed color-mix(in srgb, var(--color-brown) 45%, transparent);
+}
+
+.metric-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px dashed color-mix(in srgb, var(--color-brown) 38%, transparent);
+}
+
+.metric-row:last-child {
+  border-bottom: none;
+}
+
+.info-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--color-brown) 45%, transparent);
+  background: color-mix(in srgb, var(--color-sand) 70%, white);
+  padding: 0.35rem 0.7rem;
 }
 
 .pixel-border {
@@ -56,31 +179,27 @@
 }
 
 .pixel-header {
-  margin: 16px;
+  margin: 16px 16px 8px;
   padding: 14px 16px;
-  border: 3px solid var(--color-brown);
-  background: var(--color-card);
-  box-shadow: 4px 4px 0 var(--color-caramel);
-  border-radius: 16px;
+  border-bottom: 2px dashed color-mix(in srgb, var(--color-brown) 40%, transparent);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .pixel-header h1 {
-  font-family: monospace;
-  font-weight: bold;
-  letter-spacing: 1px;
+  font-family: var(--font-pixel);
+  font-weight: 800;
+  letter-spacing: 0.05em;
   color: var(--color-brown);
-  text-shadow: 2px 2px 0 var(--color-sand);
-  font-size: 1.1rem;
-  margin-bottom: 2px;
+  font-size: 1rem;
   text-align: center;
 }
 
 .pixel-header p {
-  font-size: 0.75rem;
-  font-weight: bold;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: var(--color-caramel);
   text-align: center;
 }
@@ -106,6 +225,10 @@
   transition: all 0.1s ease;
   background: var(--color-card);
   color: var(--color-brown);
+  font-size: var(--type-button-size);
+  font-weight: var(--type-button-weight);
+  letter-spacing: var(--type-button-tracking);
+  line-height: 1.2;
 }
 
 .pixel-button:active:not(:disabled) {
@@ -115,4 +238,3 @@
 .pixel-button:disabled {
   opacity: 0.5;
 }
-
