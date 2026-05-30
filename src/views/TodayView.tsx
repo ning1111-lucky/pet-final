@@ -436,10 +436,10 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   const providerLabel =
     activeMusicProvider === "spotify"
-      ? "SPOTIFY"
+      ? "Spotify 直連"
       : activeMusicProvider === "lastfm"
-        ? "LAST.FM"
-        : "MOCK";
+        ? "通用同步模式"
+        : "體驗模式";
 
   const handleProviderChange = (provider: "mock" | "spotify" | "lastfm") => {
     updateUserProfile({ musicProvider: provider });
@@ -485,7 +485,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               {activeMusicProvider === "spotify"
                 ? "Spotify 已連接後會直接讀近期播放與常聽風格。"
                 : activeMusicProvider === "lastfm"
-                  ? "目前使用 Last.fm 使用者名稱讀取近期紀錄。"
+                  ? "目前使用通用同步模式，透過 Last.fm 讀取近期紀錄。"
                   : "目前是體驗模式，使用隨機示範資料。"}
             </div>
           </div>
@@ -515,23 +515,15 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                 className={`text-left rounded-xl border-[2px] px-4 py-3 ${activeMusicProvider === "spotify" ? "border-[var(--color-caramel)] bg-[var(--color-cream)]" : "border-[var(--color-line)] bg-white"}`}
               >
                 <div className="type-label">Spotify</div>
-                <div className="type-caption text-[var(--color-muted)] mt-1">授權後直接讀最近播放與常聽風格。</div>
+                <div className="type-caption text-[var(--color-muted)] mt-1">Spotify 直連，授權後直接讀最近播放與常聽風格。</div>
               </button>
               <button
                 type="button"
                 onClick={() => handleProviderChange("lastfm")}
                 className={`text-left rounded-xl border-[2px] px-4 py-3 ${activeMusicProvider === "lastfm" ? "border-[var(--color-caramel)] bg-[var(--color-cream)]" : "border-[var(--color-line)] bg-white"}`}
               >
-                <div className="type-label">Last.fm</div>
-                <div className="type-caption text-[var(--color-muted)] mt-1">輸入使用者名稱讀取近期紀錄與藝人標籤。</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleProviderChange("mock")}
-                className={`text-left rounded-xl border-[2px] px-4 py-3 ${activeMusicProvider === "mock" ? "border-[var(--color-caramel)] bg-[var(--color-cream)]" : "border-[var(--color-line)] bg-white"}`}
-              >
-                <div className="type-label">體驗模式</div>
-                <div className="type-caption text-[var(--color-muted)] mt-1">快速測流程，不連接真實音樂資料。</div>
+                <div className="type-label">通用同步模式</div>
+                <div className="type-caption text-[var(--color-muted)] mt-1">適合 YouTube Music、Apple Music、網易雲與其他可同步到 Last.fm 的平台。</div>
               </button>
             </div>
 
