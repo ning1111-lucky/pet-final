@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import dotenv from "dotenv";
-import { ApiRequest, ApiResponse, getHeader, getRequestUrl, parseCookies, serializeCookie } from "./http";
+import { ApiRequest, ApiResponse, getHeader, getRequestUrl, parseCookies, serializeCookie } from "./http.js";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();

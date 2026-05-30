@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
-import { buildDailyMusicData } from "../_lib/music-analysis";
-import { ApiRequest, ApiResponse, getRequestUrl, jsonResponse } from "../_lib/http";
-import { getValidSpotifyAccessToken, spotifyApiFetch } from "../_lib/spotify";
+import { buildDailyMusicData } from "../_lib/music-analysis.js";
+import { ApiRequest, ApiResponse, getRequestUrl, jsonResponse } from "../_lib/http.js";
+import { getValidSpotifyAccessToken, spotifyApiFetch } from "../_lib/spotify.js";
 import type { DailyMusicData } from "../../src/types";
 
 dotenv.config({ path: ".env.local" });

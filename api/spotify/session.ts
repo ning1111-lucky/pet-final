@@ -1,5 +1,5 @@
-import { getValidSpotifyAccessToken, spotifyApiFetch } from "../_lib/spotify";
-import { ApiRequest, ApiResponse, jsonResponse } from "../_lib/http";
+import { getValidSpotifyAccessToken, spotifyApiFetch } from "../_lib/spotify.js";
+import { ApiRequest, ApiResponse, jsonResponse } from "../_lib/http.js";
 
 type SpotifyProfile = {
   display_name?: string;

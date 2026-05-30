@@ -1,5 +1,5 @@
-import { createSpotifyAuthorizeUrl, setSpotifyStateCookie } from "../_lib/spotify";
-import { ApiRequest, ApiResponse, jsonResponse, redirectResponse } from "../_lib/http";
+import { createSpotifyAuthorizeUrl, setSpotifyStateCookie } from "../_lib/spotify.js";
+import { ApiRequest, ApiResponse, jsonResponse, redirectResponse } from "../_lib/http.js";
 
 export default async function handler(req: ApiRequest, res: ApiResponse) {
   if (req.method !== "GET") {
