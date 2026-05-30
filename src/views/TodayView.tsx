@@ -571,23 +571,6 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             ))}
           </div>
 
-          <div className="mb-4 text-left">
-            <div className="text-xs font-bold mb-1 ml-1 text-[var(--color-brown)]">Final Pet Prompt</div>
-            <textarea
-              className="w-full h-32 px-3 py-2 text-xs text-gray-700 pixel-border border-2 bg-white resize-none"
-              readOnly
-              value={finalPetPrompt || ""}
-            />
-            {finalPetPrompt && (
-              <button
-                className="mt-2 text-xs bg-[var(--color-sand)] text-[var(--color-brown)] font-bold px-3 py-1 border-2 border-[var(--color-brown)] rounded-sm active:scale-95 transition-transform"
-                onClick={() => navigator.clipboard.writeText(finalPetPrompt)}
-              >
-                複製 Prompt
-              </button>
-            )}
-          </div>
-
           {generatedImgErr && (
             <div className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 p-2 rounded mb-4">
               {generatedImgErr}
