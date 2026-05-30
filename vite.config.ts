@@ -3,6 +3,11 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, type Plugin } from "vite";
 import generateWeeklyPetHandler from "./api/generate-weekly-pet";
+import musicTodayHandler from "./api/music/today";
+import spotifyAuthHandler from "./api/spotify/auth";
+import spotifyCallbackHandler from "./api/spotify/callback";
+import spotifyLogoutHandler from "./api/spotify/logout";
+import spotifySessionHandler from "./api/spotify/session";
 
 function createJsonResponder(res: {
   statusCode: number;
@@ -54,13 +59,24 @@ async function readRequestBody(req: {
   });
 }
 
+const routeHandlers: Record<string, (req: { method?: string; url?: string; headers?: Record<string, string | string[] | undefined>; body?: Record<string, unknown> | null }, res: ReturnType<typeof createJsonResponder> & { end?: (chunk?: string) => void; statusCode?: number }) => Promise<unknown>> = {
+  "/api/generate-weekly-pet": generateWeeklyPetHandler,
+  "/api/music/today": musicTodayHandler,
+  "/api/spotify/auth": spotifyAuthHandler,
+  "/api/spotify/callback": spotifyCallbackHandler,
+  "/api/spotify/session": spotifySessionHandler,
+  "/api/spotify/logout": spotifyLogoutHandler,
+};
+
 function localApiPlugin(): Plugin {
   return {
-    name: "local-pollinations-api",
+    name: "local-app-api",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const pathname = req.url?.split("?")[0];
-        if (pathname !== "/api/generate-weekly-pet") {
+        const handler = pathname ? routeHandlers[pathname] : undefined;
+
+        if (!handler) {
           next();
           return;
         }
@@ -74,16 +90,22 @@ function localApiPlugin(): Plugin {
             return;
           }
 
-          await generateWeeklyPetHandler(
+          await handler(
             {
               method: req.method,
+              url: req.url,
+              headers: req.headers as Record<string, string | string[] | undefined>,
               body,
             },
-            responder
+            {
+              ...responder,
+              end: res.end.bind(res),
+              statusCode: res.statusCode,
+            }
           );
         } catch (error) {
-          console.error("Local /api/generate-weekly-pet middleware failed:", error);
-          responder.status(500).json({ ok: false, error: "生成失敗，請重試" });
+          console.error(`Local ${pathname} middleware failed:`, error);
+          responder.status(500).json({ ok: false, error: "請求處理失敗，請重試" });
         }
       });
     },

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { UserProfile, MusicItem, Pet, MapEntry, Genre, ItemPart } from "./types";
+import { UserProfile, MusicItem, Pet, MapEntry, Genre, ItemPart, MusicProvider } from "./types";
 import { COLLECTION_ITEM_PARTS, getBaseType, getCollectionSlotIndex, getDaySlotConfigs, MOCK_MAP_ENTRIES, TOTAL_DAYS } from "./mockData";
 import { generateId } from "./utils";
 import { BaseKey, getRandomBaseKey, normalizeBaseKey, normalizeStoredAssetImage, resolveAssetImage } from "./assetMap";
@@ -16,6 +16,7 @@ interface AppState {
 
 interface AppContextType extends AppState {
   login: (profile: UserProfile) => void;
+  updateUserProfile: (updates: Partial<UserProfile>) => void;
   generateItem: (item: MusicItem) => void;
   advanceDay: () => void;
   generateWeeklyPet: (pet: Pet) => void;
@@ -229,6 +230,8 @@ const loadStoredState = (): AppState => {
         country: typeof parsed.userProfile.country === "string" && parsed.userProfile.country ? parsed.userProfile.country : "Taiwan",
         city: typeof parsed.userProfile.city === "string" && parsed.userProfile.city ? parsed.userProfile.city : "Taipei",
         style: typeof parsed.userProfile.style === "string" ? parsed.userProfile.style : undefined,
+        musicProvider: (typeof parsed.userProfile.musicProvider === "string" ? parsed.userProfile.musicProvider : "mock") as MusicProvider,
+        lastfmUsername: typeof parsed.userProfile.lastfmUsername === "string" ? parsed.userProfile.lastfmUsername : undefined,
         agreed: Boolean(parsed.userProfile.agreed),
       } : null,
       currentMockDay: clampDay(parsed.currentMockDay ?? parsed.currentDay),
@@ -254,7 +257,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [state]);
 
   const login = (profile: UserProfile) => {
-    setState((s) => ({ ...s, userProfile: profile }));
+    setState((s) => ({
+      ...s,
+      userProfile: {
+        ...profile,
+        musicProvider: profile.musicProvider || "mock",
+        lastfmUsername: profile.lastfmUsername?.trim() || undefined,
+      },
+    }));
+  };
+
+  const updateUserProfile = (updates: Partial<UserProfile>) => {
+    setState((s) => {
+      if (!s.userProfile) {
+        return s;
+      }
+
+      return {
+        ...s,
+        userProfile: {
+          ...s.userProfile,
+          ...updates,
+          musicProvider: (updates.musicProvider || s.userProfile.musicProvider || "mock") as MusicProvider,
+          lastfmUsername: updates.lastfmUsername !== undefined
+            ? updates.lastfmUsername.trim() || undefined
+            : s.userProfile.lastfmUsername,
+        },
+      };
+    });
   };
 
   const generateItem = (item: MusicItem) => {
@@ -303,11 +333,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const autoFillWeek = async () => {
     const { getTodayMusicData } = await import("./mockData");
+    const provider = (state.userProfile?.musicProvider || "mock") as MusicProvider;
+    const lastfmUsername = state.userProfile?.lastfmUsername;
 
     const newItems = [...INITIAL_ITEMS];
 
     for (let day = 1; day <= TOTAL_DAYS; day += 1) {
-      const dailyData = await getTodayMusicData("mock");
+      const dailyData = await getTodayMusicData(provider, { lastfmUsername });
       const mainGenre = normalizeGenre(dailyData.assetGenre || dailyData.mainGenre);
       const secondGenre = normalizeGenre(dailyData.subGenre || mainGenre);
 
@@ -342,7 +374,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   return (
-    <AppContext.Provider value={{ ...state, login, generateItem, advanceDay, generateWeeklyPet, resetWeek, addToMap, autoFillWeek }}>
+    <AppContext.Provider value={{ ...state, login, updateUserProfile, generateItem, advanceDay, generateWeeklyPet, resetWeek, addToMap, autoFillWeek }}>
       {children}
     </AppContext.Provider>
   );

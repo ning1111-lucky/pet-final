@@ -1,7 +1,6 @@
-import { DailyMusicData, Genre, ItemPart, MapEntry, Pet, MusicItem } from "./types";
+import { DailyMusicData, Genre, ItemPart, MapEntry, Pet, MusicItem, MusicProvider } from "./types";
 import { generateId } from "./utils";
 
-export type MusicProvider = "mock" | "spotify" | "lastfm";
 export const MUSIC_PROVIDER: MusicProvider = "mock";
 
 export const GENRES: Genre[] = [
@@ -101,31 +100,53 @@ async function getMockTodayMusicData(): Promise<DailyMusicData> {
 }
 
 export async function getSpotifyTodayMusicData(): Promise<DailyMusicData> {
-  // TODO:
-  // Spotify browser web integration should use Authorization Code with PKCE.
-  // Future implementation:
-  // 1. Login with Spotify
-  // 2. Request user listening data
-  // 3. Convert tracks/artists to genre tags
-  // 4. Return same shape as mockMusicData
-  throw new Error("Spotify provider is not configured yet.");
+  const response = await fetch("/api/music/today?provider=spotify", {
+    credentials: "include",
+  });
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok || body?.ok !== true || !body?.data) {
+    const error = typeof body?.error === "string" ? body.error : "Spotify 資料讀取失敗。";
+    const enrichedError = new Error(error) as Error & { code?: string };
+    if (typeof body?.code === "string") {
+      enrichedError.code = body.code;
+    }
+    throw enrichedError;
+  }
+
+  return body.data as DailyMusicData;
 }
 
-export async function getLastFmTodayMusicData(): Promise<DailyMusicData> {
-  // TODO:
-  // Future implementation:
-  // 1. Ask user for Last.fm username
-  // 2. Use user.getRecentTracks
-  // 3. Filter today's tracks
-  // 4. Convert tags to app genre categories
-  // 5. Return same shape as mockMusicData
-  throw new Error("Last.fm provider is not configured yet.");
+export async function getLastFmTodayMusicData(lastfmUsername?: string): Promise<DailyMusicData> {
+  const query = new URLSearchParams({ provider: "lastfm" });
+  if (lastfmUsername) {
+    query.set("lastfmUsername", lastfmUsername);
+  }
+
+  const response = await fetch(`/api/music/today?${query.toString()}`, {
+    credentials: "include",
+  });
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok || body?.ok !== true || !body?.data) {
+    const error = typeof body?.error === "string" ? body.error : "Last.fm 資料讀取失敗。";
+    const enrichedError = new Error(error) as Error & { code?: string };
+    if (typeof body?.code === "string") {
+      enrichedError.code = body.code;
+    }
+    throw enrichedError;
+  }
+
+  return body.data as DailyMusicData;
 }
 
-export const getTodayMusicData = async (provider: MusicProvider = MUSIC_PROVIDER): Promise<DailyMusicData> => {
+export const getTodayMusicData = async (
+  provider: MusicProvider = MUSIC_PROVIDER,
+  options: { lastfmUsername?: string } = {}
+): Promise<DailyMusicData> => {
   if (provider === "mock") return getMockTodayMusicData();
   if (provider === "spotify") return getSpotifyTodayMusicData();
-  if (provider === "lastfm") return getLastFmTodayMusicData();
+  if (provider === "lastfm") return getLastFmTodayMusicData(options.lastfmUsername);
   return getMockTodayMusicData();
 };
 

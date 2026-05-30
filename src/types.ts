@@ -1,4 +1,5 @@
 export type Genre = "Pop" | "Hip-hop" | "Hiphop" | "K-pop" | "Kpop" | "EDM" | "Classical" | "Jazz" | "R&B" | "RnB" | "Country" | "Rock" | "Taiwan Indie" | "Indie" | "Mixed" | "Hidden";
+export type MusicProvider = "mock" | "spotify" | "lastfm";
 
 export type ItemPart = "clothes" | "headwear" | "accessory" | "handheld" | "shoes" | "enhance" | "final weekly pet";
 
@@ -8,6 +9,8 @@ export interface UserProfile {
   country: string;
   city: string;
   style?: string;
+  musicProvider?: MusicProvider;
+  lastfmUsername?: string;
   agreed: boolean;
 }
 

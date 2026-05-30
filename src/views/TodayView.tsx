@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useApp } from "../AppContext";
 import { Button, PixelItemPlaceholder } from "../components/UI";
-import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, MUSIC_PROVIDER, TOTAL_DAYS } from "../mockData";
+import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, TOTAL_DAYS } from "../mockData";
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet } from "../types";
 import { generateId } from "../utils";
 import { motion } from "motion/react";
@@ -149,10 +149,15 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const [imgLoaded, setImgLoaded] = useState(false);
   const [generatedPetImage, setGeneratedPetImage] = useState<string | null>(() => getStoredGeneratedImage());
   const [generatedPetProvider, setGeneratedPetProvider] = useState<string | null>(null);
+  const [musicLoadError, setMusicLoadError] = useState<string | null>(null);
+  const [musicLoadCode, setMusicLoadCode] = useState<string | null>(null);
+  const [spotifyConnected, setSpotifyConnected] = useState<boolean | null>(null);
+  const [spotifyDisplayName, setSpotifyDisplayName] = useState<string | null>(null);
 
   const safeDay = Math.min(Math.max(Number(currentMockDay) || 1, 1), TOTAL_DAYS);
   const safeWeekItems = Array.isArray(currentWeekItems) ? currentWeekItems : [];
   const daySlotConfigs = getDaySlotConfigs(safeDay);
+  const activeMusicProvider = userProfile?.musicProvider || "mock";
   const distribution = Array.isArray(mockMusic?.distribution) ? mockMusic.distribution : [];
   const primarySuggestedGenre = normalizeGenre((mockMusic?.assetGenre || mockMusic?.mainGenre || "Pop") as string) as Genre;
   const secondarySuggestedGenre = normalizeGenre((mockMusic?.subGenre || primarySuggestedGenre) as string) as Genre;
@@ -182,16 +187,58 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   useEffect(() => {
     let active = true;
     setShowGenAnim(false);
+    setMusicLoadError(null);
+    setMusicLoadCode(null);
 
-    getTodayMusicData(MUSIC_PROVIDER).then((data) => {
-      if (!active) return;
-      setMockMusic(data);
-    });
+    getTodayMusicData(activeMusicProvider, {
+      lastfmUsername: userProfile?.lastfmUsername,
+    })
+      .then((data) => {
+        if (!active) return;
+        setMockMusic(data);
+      })
+      .catch((error: Error & { code?: string }) => {
+        if (!active) return;
+        setMockMusic(null);
+        setMusicLoadError(error.message || "音樂資料讀取失敗。");
+        setMusicLoadCode(error.code || null);
+      });
 
     return () => {
       active = false;
     };
-  }, [safeDay]);
+  }, [safeDay, activeMusicProvider, userProfile?.lastfmUsername]);
+
+  useEffect(() => {
+    if (activeMusicProvider !== "spotify") {
+      setSpotifyConnected(null);
+      setSpotifyDisplayName(null);
+      return;
+    }
+
+    let active = true;
+    fetch("/api/spotify/session", { credentials: "include" })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!active) return;
+        if (data?.ok === true && data.connected) {
+          setSpotifyConnected(true);
+          setSpotifyDisplayName(typeof data.displayName === "string" ? data.displayName : "Spotify User");
+          return;
+        }
+        setSpotifyConnected(false);
+        setSpotifyDisplayName(null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setSpotifyConnected(false);
+        setSpotifyDisplayName(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeMusicProvider]);
 
   const collectedItems = safeWeekItems
     .slice(0, 5)
@@ -372,7 +419,22 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     await autoFillWeek();
   };
 
-  if (!mockMusic) {
+  const handleConnectSpotify = () => {
+    window.location.href = "/api/spotify/auth";
+  };
+
+  const handleDisconnectSpotify = () => {
+    window.location.href = "/api/spotify/logout";
+  };
+
+  const providerLabel =
+    activeMusicProvider === "spotify"
+      ? "SPOTIFY"
+      : activeMusicProvider === "lastfm"
+        ? "LAST.FM"
+        : "MOCK";
+
+  if (!mockMusic && !musicLoadError) {
     return <div className="p-8 text-center type-body">加載今日音樂數據...</div>;
   }
 
@@ -386,9 +448,40 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           <span className="info-chip">
             Day {safeDay}/{TOTAL_DAYS}
           </span>
-          <span className="type-caption text-[var(--color-muted)]">Data Source: {MUSIC_PROVIDER.toUpperCase()}</span>
+          <span className="type-caption text-[var(--color-muted)]">Data Source: {providerLabel}</span>
+          {activeMusicProvider === "spotify" && spotifyConnected && spotifyDisplayName && (
+            <span className="type-caption text-[var(--color-muted)]">Connected: {spotifyDisplayName}</span>
+          )}
         </div>
       </div>
+
+      {musicLoadError && (
+        <section className="section-surface text-center space-y-4">
+          <div>
+            <h3 className="type-h2 mb-2">音樂資料尚未就緒</h3>
+            <p className="type-body text-red-600">{musicLoadError}</p>
+          </div>
+
+          {activeMusicProvider === "spotify" && (
+            <div className="flex flex-col gap-3">
+              <Button onClick={handleConnectSpotify}>
+                連接 Spotify
+              </Button>
+              {spotifyConnected && (
+                <Button variant="secondary" onClick={handleDisconnectSpotify}>
+                  解除 Spotify 連線
+                </Button>
+              )}
+            </div>
+          )}
+
+          {activeMusicProvider === "lastfm" && musicLoadCode === "LASTFM_USERNAME_REQUIRED" && (
+            <div className="type-caption text-[var(--color-muted)]">
+              目前登入資料沒有 Last.fm 使用者名稱，請重新登入並填寫。
+            </div>
+          )}
+        </section>
+      )}
 
       {mockMusic && (
         <section className="section-surface flex flex-col space-y-4">
