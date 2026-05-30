@@ -2,11 +2,12 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { UserProfile, MusicItem, Pet, MapEntry, Genre, ItemPart } from "./types";
 import { COLLECTION_ITEM_PARTS, getBaseType, getCollectionSlotIndex, getDaySlotConfigs, MOCK_MAP_ENTRIES, TOTAL_DAYS } from "./mockData";
 import { generateId } from "./utils";
-import { normalizeStoredAssetImage, resolveAssetImage } from "./assetMap";
+import { BaseKey, getRandomBaseKey, normalizeBaseKey, normalizeStoredAssetImage, resolveAssetImage } from "./assetMap";
 
 interface AppState {
   userProfile: UserProfile | null;
   currentMockDay: number;
+  currentBaseKey: BaseKey;
   currentWeekItems: (MusicItem | null)[];
   dailyHistory: MusicItem[];
   weeklyPets: Pet[];
@@ -197,6 +198,7 @@ const normalizeMapEntry = (value: unknown): MapEntry | null => {
 const getDefaultState = (): AppState => ({
   userProfile: null,
   currentMockDay: 1,
+  currentBaseKey: getRandomBaseKey(),
   currentWeekItems: [...INITIAL_ITEMS],
   dailyHistory: [],
   weeklyPets: [],
@@ -230,6 +232,7 @@ const loadStoredState = (): AppState => {
         agreed: Boolean(parsed.userProfile.agreed),
       } : null,
       currentMockDay: clampDay(parsed.currentMockDay ?? parsed.currentDay),
+      currentBaseKey: normalizeBaseKey(parsed.currentBaseKey ?? getRandomBaseKey()),
       currentWeekItems: normalizeItemsArray(parsed.currentWeekItems, true),
       dailyHistory: normalizeItemsArray(parsed.dailyHistory, false) as MusicItem[],
       weeklyPets: (Array.isArray(parsed.weeklyPets) ? parsed.weeklyPets : [])
@@ -293,6 +296,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setState((s) => ({
       ...s,
       currentMockDay: 1,
+      currentBaseKey: getRandomBaseKey(),
       currentWeekItems: [...INITIAL_ITEMS],
     }));
   };

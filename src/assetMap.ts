@@ -1,11 +1,23 @@
 // 未來 PNG assets 將取代 PixelItemPlaceholder
 // This asset map reserves space for future PNG overlays.
 
-export const baseShapeMap: Record<string, string> = {
+export type BaseKey = "base-1" | "base-2" | "base-3";
+
+export const BASE_KEYS: BaseKey[] = ["base-1", "base-2", "base-3"];
+
+export const baseShapeMap: Record<BaseKey, string> = {
   "base-1": "/base-1.png",
   "base-2": "/base-2.png",
   "base-3": "/base-3.png"
 };
+
+export function normalizeBaseKey(value: unknown): BaseKey {
+  return BASE_KEYS.includes(value as BaseKey) ? (value as BaseKey) : "base-1";
+}
+
+export function getRandomBaseKey(): BaseKey {
+  return BASE_KEYS[Math.floor(Math.random() * BASE_KEYS.length)];
+}
 
 const variantAssetMap: Record<string, Partial<Record<string, string[]>>> = {
   Indie: {

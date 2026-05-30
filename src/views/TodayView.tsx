@@ -5,7 +5,7 @@ import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicDa
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet } from "../types";
 import { generateId } from "../utils";
 import { motion } from "motion/react";
-import { baseShapeMap, genreToBaseType, getAssetErrorFallback, resolveAssetImage } from "../assetMap";
+import { baseShapeMap, getAssetErrorFallback, resolveAssetImage } from "../assetMap";
 
 const GENERATED_WEEKLY_PET_IMAGE_KEY = "generatedWeeklyPetImage";
 
@@ -92,7 +92,7 @@ function buildFinalPetPrompt(
   weekItems: MusicItem[],
   mainGenre: string,
   secondGenre: string,
-  baseType: string
+  baseKey: string
 ): string | null {
   if (weekItems.length < 5) return null;
 
@@ -103,7 +103,7 @@ function buildFinalPetPrompt(
 Weekly music identity:
 Main genre: ${mainGenre}
 Secondary genre: ${secondGenre}
-Base type: ${baseType}
+Random base reference: ${baseKey}
 
 Selected item references:
 Day 1 clothes: ${findGenreByPart("clothes")} inspired main outfit
@@ -129,6 +129,7 @@ Centered front view, no text, no watermark.`;
 export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") => void }> = ({ navigateTo }) => {
   const {
     currentMockDay,
+    currentBaseKey,
     currentWeekItems,
     generateItem,
     advanceDay,
@@ -225,9 +226,8 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     subGenre = mainGenre;
   }
 
-  const promptBaseType = genreToBaseType[mainGenre as string] || "base-1";
-  const baseImageSrc = baseShapeMap[promptBaseType] || baseShapeMap["base-1"];
-  const finalPetPrompt = isComplete ? buildFinalPetPrompt(collectedItems, mainGenre, subGenre, promptBaseType) : null;
+  const baseImageSrc = baseShapeMap[currentBaseKey] || baseShapeMap["base-1"];
+  const finalPetPrompt = isComplete ? buildFinalPetPrompt(collectedItems, mainGenre, subGenre, currentBaseKey) : null;
 
   const clearGeneratedWeeklyPetImage = () => {
     setGeneratedPetImage(null);
