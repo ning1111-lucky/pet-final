@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useApp } from "../AppContext";
 import { Card, Button, PixelItemPlaceholder } from "../components/UI";
-import { getBaseType, getDailyPart, getTodayMusicData, MUSIC_PROVIDER } from "../mockData";
+import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, MUSIC_PROVIDER, TOTAL_DAYS } from "../mockData";
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet } from "../types";
-import { generateId, cn } from "../utils";
+import { generateId } from "../utils";
 import { motion } from "motion/react";
-import { assetMap, baseShapeMap, genreToBaseType, getAssetErrorFallback, resolveAssetImage } from "../assetMap";
+import { baseShapeMap, genreToBaseType, getAssetErrorFallback, resolveAssetImage } from "../assetMap";
 
 const GENERATED_WEEKLY_PET_IMAGE_KEY = "generatedWeeklyPetImage";
 
@@ -88,13 +88,13 @@ async function readApiJsonResponse(response: Response): Promise<Record<string, u
   };
 }
 
-function buildDay7FinalPetPrompt(
+function buildFinalPetPrompt(
   weekItems: MusicItem[],
   mainGenre: string,
   secondGenre: string,
   baseType: string
 ): string | null {
-  if (weekItems.length < 6) return null;
+  if (weekItems.length < 5) return null;
 
   const findGenreByPart = (part: string) => weekItems.find((item) => item?.part === part)?.genre || "Unknown genre";
 
@@ -106,12 +106,11 @@ Secondary genre: ${secondGenre}
 Base type: ${baseType}
 
 Selected item references:
-Day 1 clothes: ${findGenreByPart("clothes")} inspired clothing
+Day 1 clothes: ${findGenreByPart("clothes")} inspired main outfit
+Day 1 shoes: ${findGenreByPart("shoes")} inspired secondary footwear
 Day 2 headwear: ${findGenreByPart("headwear")} inspired headwear
-Day 3 accessory: ${findGenreByPart("accessory")} inspired accessory
-Day 4 handheld: ${findGenreByPart("handheld")} inspired handheld object
-Day 5 shoes: ${findGenreByPart("shoes")} inspired shoes
-Day 6 enhancement: ${findGenreByPart("enhance")} inspired magical music effect
+Day 2 handheld: ${findGenreByPart("handheld")} inspired handheld object
+Day 3 accessory: ${findGenreByPart("accessory")} inspired accessory with a subtle integrated music aura
 
 Instructions:
 preserve the base character silhouette and proportions.
@@ -120,6 +119,8 @@ Use selected item images as outfit and accessory references.
 Redraw them naturally onto the character.
 Do not collage or paste raw images.
 Keep the same cute pet identity as the base character.
+Keep the lower body readable and let both shoes stay clearly visible.
+Keep the handheld object beside the body instead of blocking the feet.
 Output one cohesive full-body pixel-art character.
 Soft pixel art, warm creamy colors, dark brown outlines.
 Centered front view, no text, no watermark.`;
@@ -140,7 +141,6 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   const [mockMusic, setMockMusic] = useState<DailyMusicData | null>(null);
   const [showGenAnim, setShowGenAnim] = useState(false);
-  const [confirmedGenre, setConfirmedGenre] = useState<Genre | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImgErr, setGeneratedImgErr] = useState<string | null>(null);
   const [imgLoading, setImgLoading] = useState(Boolean(getStoredGeneratedImage()));
@@ -149,26 +149,42 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const [generatedPetImage, setGeneratedPetImage] = useState<string | null>(() => getStoredGeneratedImage());
   const [generatedPetProvider, setGeneratedPetProvider] = useState<string | null>(null);
 
-  const safeDay = Math.min(Math.max(Number(currentMockDay) || 1, 1), 7);
+  const safeDay = Math.min(Math.max(Number(currentMockDay) || 1, 1), TOTAL_DAYS);
   const safeWeekItems = Array.isArray(currentWeekItems) ? currentWeekItems : [];
-  const isFinalPetDay = safeDay === 7;
-  const hasGeneratedToday = isFinalPetDay ? true : !!safeWeekItems[safeDay - 1];
-  const targetPart = getDailyPart(safeDay);
-  const targetGenre = confirmedGenre || mockMusic?.assetGenre || mockMusic?.mainGenre || "Pop";
-  const normalizedTargetGenre = normalizeGenre(targetGenre as string);
-  const targetImageSrc = isFinalPetDay ? null : resolveAssetImage(normalizedTargetGenre, targetPart, `${normalizedTargetGenre}-${targetPart}-${safeDay}`);
+  const daySlotConfigs = getDaySlotConfigs(safeDay);
   const distribution = Array.isArray(mockMusic?.distribution) ? mockMusic.distribution : [];
-  const currentItem = safeWeekItems[safeDay - 1];
+  const primarySuggestedGenre = normalizeGenre((mockMusic?.assetGenre || mockMusic?.mainGenre || "Pop") as string) as Genre;
+  const secondarySuggestedGenre = normalizeGenre((mockMusic?.subGenre || primarySuggestedGenre) as string) as Genre;
+
+  const getCollectedItemByPart = (part: string) => {
+    const index = getCollectionSlotIndex(part as MusicItem["part"]);
+    return index >= 0 ? safeWeekItems[index] : null;
+  };
+
+  const todaysPreviewItems = daySlotConfigs.map((slot, index) => {
+    const genre = (slot.genreSource === "main" ? primarySuggestedGenre : secondarySuggestedGenre) as Genre;
+    return {
+      id: `${safeDay}-${slot.part}-${index}`,
+      day: safeDay,
+      part: slot.part,
+      genre,
+      label: slot.title,
+      icon: "✨",
+      imageSrc: resolveAssetImage(genre, slot.part, `${genre}-${slot.part}-${safeDay}`),
+    } as MusicItem;
+  });
+  const todaysGeneratedItems = daySlotConfigs
+    .map((slot) => getCollectedItemByPart(slot.part))
+    .filter((item): item is MusicItem => Boolean(item));
+  const hasGeneratedToday = todaysGeneratedItems.length === daySlotConfigs.length;
 
   useEffect(() => {
     let active = true;
-    setConfirmedGenre(null);
     setShowGenAnim(false);
 
     getTodayMusicData(MUSIC_PROVIDER).then((data) => {
       if (!active) return;
       setMockMusic(data);
-      setConfirmedGenre((data.assetGenre || data.mainGenre) as Genre);
     });
 
     return () => {
@@ -177,9 +193,10 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   }, [safeDay]);
 
   const collectedItems = safeWeekItems
-    .slice(0, 6)
+    .slice(0, 5)
     .filter((item): item is MusicItem => Boolean(item?.genre && item?.part && item?.imageSrc));
-  const isComplete = collectedItems.length === 6;
+  const isComplete = collectedItems.length === 5;
+  const isPetGenerationStage = safeDay === TOTAL_DAYS && isComplete;
 
   const genreCounts: Record<string, number> = {};
   collectedItems.forEach((item) => {
@@ -210,7 +227,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   const promptBaseType = genreToBaseType[mainGenre as string] || "base-1";
   const baseImageSrc = baseShapeMap[promptBaseType] || baseShapeMap["base-1"];
-  const day7Prompt = isComplete ? buildDay7FinalPetPrompt(collectedItems, mainGenre, subGenre, promptBaseType) : null;
+  const finalPetPrompt = isComplete ? buildFinalPetPrompt(collectedItems, mainGenre, subGenre, promptBaseType) : null;
 
   const clearGeneratedWeeklyPetImage = () => {
     setGeneratedPetImage(null);
@@ -228,25 +245,22 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   };
 
   const handleGenerate = () => {
-    if (!confirmedGenre) return;
+    if (!mockMusic) return;
 
     setShowGenAnim(true);
     setTimeout(() => {
-      const newItem: MusicItem = {
-        id: generateId(),
-        day: safeDay,
-        part: targetPart,
-        genre: normalizedTargetGenre as Genre,
-        label: `${normalizedTargetGenre} ${targetPart}`,
-        icon: "✨",
-        imageSrc: targetImageSrc,
-      };
-      generateItem(newItem);
+      todaysPreviewItems.forEach((item) => {
+        generateItem({
+          ...item,
+          id: generateId(),
+          label: `${item.genre} ${item.part}`,
+        });
+      });
     }, 600);
   };
 
   const generateWeeklyPetImage = async () => {
-    if (!day7Prompt) {
+    if (!finalPetPrompt) {
       setGeneratedImgErr("尚未產生本週寵物提示詞。");
       return;
     }
@@ -268,7 +282,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: day7Prompt,
+          prompt: finalPetPrompt,
           baseImagePath: baseImageSrc,
           itemImagePaths: collectedItems.map((item) => item.imageSrc).filter((imageSrc): imageSrc is string => typeof imageSrc === "string" && imageSrc.length > 0),
         }),
@@ -358,7 +372,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     await autoFillWeek();
   };
 
-  if (!mockMusic && !isFinalPetDay) {
+  if (!mockMusic) {
     return <div className="p-8 text-center text-sm font-bold">加載今日音樂數據...</div>;
   }
 
@@ -366,17 +380,17 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     <div className="p-4 space-y-6 pb-24">
       <div className="text-center">
         <h2 className="text-xl font-bold bg-white inline-block px-2 border-2 border-[var(--color-brown)] rounded-md shadow-sm mb-2">
-          {isFinalPetDay ? "本週音樂寵物完成" : "今日音樂分析"}
+          {isPetGenerationStage ? "音樂寵物生成" : "今日音樂分析"}
         </h2>
         <div className="flex items-center justify-center space-x-2">
           <span className="text-xs bg-[var(--color-sand)] px-1 pixel-border border border-[var(--color-brown)]">
-            Day {safeDay}/7
+            Day {safeDay}/{TOTAL_DAYS}
           </span>
           <span className="text-[10px] text-gray-500 italic">Data Source: {MUSIC_PROVIDER.toUpperCase()}</span>
         </div>
       </div>
 
-      {!isFinalPetDay && mockMusic && (
+      {mockMusic && (
         <Card className="flex flex-col space-y-4 shadow-sm border-2 border-[var(--color-brown)]">
           <div className="text-center font-bold text-lg mb-2 relative">🎶 聆聽數據 🎶</div>
           <div className="flex justify-between items-center border-b-[2px] border-[var(--color-brown)] pb-2 border-dashed">
@@ -427,25 +441,26 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
         </Card>
       )}
 
-      {!isFinalPetDay && mockMusic && !hasGeneratedToday && (
+      {mockMusic && !hasGeneratedToday && (
         <Card className="text-center border-dashed border-4 border-[var(--color-brown)] shadow-sm">
           <h3 className="font-bold mb-4 bg-white inline-block px-2 py-1 rounded shadow-sm border border-[var(--color-brown)]">
-            你覺得今天比較像哪種風格？
+            今日生成組合
           </h3>
-          <div className="flex flex-wrap justify-center gap-2 mb-4">
-            {["KPOP", "POP", "RNB", "ROCK", "JAZZ", "INDIE", "HIPHOP", "CLASSICAL", "COUNTRY", "EDM"].map((genre) => (
-              <button
-                key={genre}
-                onClick={() => setConfirmedGenre(genre as Genre)}
-                className={cn(
-                  "px-2 py-1 rounded-md border-2 text-xs font-bold transition-all",
-                  normalizeGenre(confirmedGenre as string).toUpperCase() === genre
-                    ? "bg-[var(--color-caramel)] border-[var(--color-brown)] text-[var(--color-cream)] shadow-[2px_2px_0_var(--color-brown)] -translate-y-1"
-                    : "bg-[var(--color-cream)] border-[var(--color-brown)] text-[var(--color-brown)] opacity-80"
-                )}
-              >
-                {genre}
-              </button>
+          <div className="text-xs font-bold text-[var(--color-brown)] mb-4 bg-white px-3 py-2 rounded-md border border-[var(--color-brown)]">
+            今天會同時使用主風格與次風格來生成素材。
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            {todaysPreviewItems.map((item) => (
+              <div key={item.id} className="bg-white border-2 border-dashed border-[var(--color-brown)] rounded-md p-2">
+                <div className="text-[10px] font-bold mb-1 text-[var(--color-brown)]">{item.label}</div>
+                <PixelItemPlaceholder
+                  genre={item.genre}
+                  part={item.part}
+                  imageSrc={item.imageSrc}
+                  className="w-full h-24 border-none shadow-none bg-transparent"
+                />
+              </div>
             ))}
           </div>
 
@@ -455,48 +470,73 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: [0, -10, 0], opacity: 1 }}
                 transition={{ duration: 0.5 }}
+                className="grid grid-cols-2 gap-3 w-full"
               >
-                <PixelItemPlaceholder genre={normalizeGenre(confirmedGenre as string)} part={targetPart} className="w-24 h-24" />
+                {todaysPreviewItems.map((item) => (
+                  <PixelItemPlaceholder
+                    key={item.id}
+                    genre={item.genre}
+                    part={item.part}
+                    imageSrc={item.imageSrc}
+                    className="w-full h-24"
+                  />
+                ))}
               </motion.div>
             ) : (
-              <div className="text-sm opacity-60">將生成 {normalizeGenre(confirmedGenre as string)} 的 {targetPart}</div>
+              <div className="text-sm opacity-60">
+                Day {safeDay} 會生成 {daySlotConfigs.map((slot) => slot.part).join(" + ")}
+              </div>
             )}
 
-            {!showGenAnim && confirmedGenre ? (
+            {!showGenAnim ? (
               <Button onClick={handleGenerate} className="w-full !py-2 text-sm pixel-button font-bold">
-                確認今日風格並生成物品
+                確認今日分析並生成素材
               </Button>
             ) : (
               <div className="min-h-[40px]" />
             )}
-            {!targetImageSrc && !showGenAnim && confirmedGenre && (
+            {todaysPreviewItems.some((item) => !item.imageSrc) && !showGenAnim && (
               <div className="text-xs text-red-500 mt-2 font-bold bg-white px-1">
-                缺少素材：{normalizeGenre(confirmedGenre as string)}-{targetPart}
+                有素材缺失，請檢查今日對應的圖片檔。
               </div>
             )}
           </div>
         </Card>
       )}
 
-      {isFinalPetDay && !isComplete && (
-        <Card className="text-center border-dashed border-4 border-red-300 shadow-sm">
-          <h3 className="text-xl font-bold mb-2 text-red-500">無法生成寵物</h3>
-          <p className="text-sm font-bold text-gray-600 mb-6">
-            還需要收集更多物品，才能生成本週音樂寵物。
-            <br />
-            （這通常是因為使用了舊版紀錄或缺乏素材）
-          </p>
-          <Button onClick={handleResetWeek} className="w-full text-lg py-3 pixel-button font-bold">
-            重置並重新開始
-          </Button>
+      {hasGeneratedToday && (
+        <Card className="text-center border-dashed border-4 border-[var(--color-brown)] shadow-sm">
+          <h3 className="font-bold mb-4 bg-white inline-block px-2 py-1 rounded shadow-sm border border-gray-200">
+            Day {safeDay} 已收錄素材
+          </h3>
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className={`grid gap-3 ${todaysGeneratedItems.length > 1 ? "grid-cols-2" : "grid-cols-1"} items-start`}
+          >
+            {todaysGeneratedItems.map((item) => (
+              <div key={item.id} className="flex flex-col items-center justify-center space-y-3 min-h-[160px]">
+                <PixelItemPlaceholder
+                  genre={item.genre}
+                  part={item.part}
+                  label={item.label}
+                  imageSrc={item.imageSrc}
+                  className="w-32 h-32"
+                />
+                <div className="text-sm font-bold text-[var(--color-caramel)] bg-white px-2 py-1 rounded shadow-sm border border-[var(--color-brown)]">
+                  已收錄至本週收藏
+                </div>
+              </div>
+            ))}
+          </motion.div>
         </Card>
       )}
 
-      {isFinalPetDay && isComplete && (
+      {isPetGenerationStage && (
         <Card className="text-center border-dashed border-4 border-[var(--color-caramel)] shadow-sm">
-          <h3 className="text-xl font-bold mb-2">本週音樂寵物生成</h3>
+          <h3 className="text-xl font-bold mb-2">確認生成音樂寵物</h3>
           <p className="text-xs text-gray-600 mb-4 font-bold">
-            系統已根據這週收集的 6 個音樂物品，整理出完整寵物生成提示詞。
+            系統已根據這 3 天收集的 5 個音樂物品，整理出完整寵物生成提示詞。
           </p>
 
           <div className="mb-4">
@@ -507,7 +547,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             </div>
           </div>
 
-          <div className="grid grid-cols-6 gap-1 mb-4 bg-gray-100 p-2 rounded border-2 border-gray-300">
+          <div className="grid grid-cols-5 gap-1 mb-4 bg-gray-100 p-2 rounded border-2 border-gray-300">
             {collectedItems.map((item) => (
               <div
                 key={item.id}
@@ -532,16 +572,16 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           </div>
 
           <div className="mb-4 text-left">
-            <div className="text-xs font-bold mb-1 ml-1 text-[var(--color-brown)]">Day 7 Final Pet Prompt</div>
+            <div className="text-xs font-bold mb-1 ml-1 text-[var(--color-brown)]">Final Pet Prompt</div>
             <textarea
               className="w-full h-32 px-3 py-2 text-xs text-gray-700 pixel-border border-2 bg-white resize-none"
               readOnly
-              value={day7Prompt || ""}
+              value={finalPetPrompt || ""}
             />
-            {day7Prompt && (
+            {finalPetPrompt && (
               <button
                 className="mt-2 text-xs bg-[var(--color-sand)] text-[var(--color-brown)] font-bold px-3 py-1 border-2 border-[var(--color-brown)] rounded-sm active:scale-95 transition-transform"
-                onClick={() => navigator.clipboard.writeText(day7Prompt)}
+                onClick={() => navigator.clipboard.writeText(finalPetPrompt)}
               >
                 複製 Prompt
               </button>
@@ -611,40 +651,16 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               </Button>
             </div>
           )}
-
-          <Button
-            onClick={handleDeployToMap}
-            className="w-full text-lg py-3 pixel-button font-bold"
-            disabled={!generatedPetImage || isGenerating}
-          >
-            放到地圖上
-          </Button>
         </Card>
       )}
 
-      {!isFinalPetDay && hasGeneratedToday && (
-        <Card className="text-center border-dashed border-4 border-[var(--color-brown)] shadow-sm">
-          <h3 className="font-bold mb-4 bg-white inline-block px-2 py-1 rounded shadow-sm border border-gray-200">
-            今日生成目標：{targetPart}
-          </h3>
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="flex flex-col items-center justify-center space-y-4 min-h-[160px]"
-          >
-            <PixelItemPlaceholder
-              genre={(currentItem?.genre as string) || normalizedTargetGenre}
-              part={currentItem?.part || targetPart}
-              label={currentItem?.label}
-              imageSrc={currentItem?.imageSrc}
-              className="w-32 h-32"
-            />
-            <div className="text-sm font-bold text-[var(--color-caramel)] bg-white px-2 py-1 rounded shadow-sm border border-[var(--color-brown)]">
-              已收錄至本週收藏
-            </div>
-          </motion.div>
-        </Card>
-      )}
+      <Button
+        onClick={handleDeployToMap}
+        className="w-full text-lg py-3 pixel-button font-bold"
+        disabled={!generatedPetImage || isGenerating}
+      >
+        放到地圖上
+      </Button>
 
       <div className="pt-4 flex flex-wrap gap-2 justify-center border-t-2 border-[var(--color-brown)] border-dashed mt-8 p-4">
         <div className="w-full text-center text-xs font-bold mb-2">DEV TOOLS</div>
@@ -652,7 +668,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           variant="secondary"
           onClick={advanceDay}
           className="text-xs !p-2 pixel-button shadow-sm"
-          disabled={safeDay >= 7}
+          disabled={safeDay >= TOTAL_DAYS}
         >
           模擬下一天
         </Button>
@@ -660,7 +676,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           重置本週
         </Button>
         <Button variant="secondary" onClick={handleAutoFillWeek} className="text-xs !p-2 pixel-button shadow-sm opacity-80">
-          一鍵生成一週
+          一鍵生成三天
         </Button>
       </div>
     </div>

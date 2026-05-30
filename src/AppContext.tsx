@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { UserProfile, MusicItem, Pet, MapEntry, Genre, ItemPart } from "./types";
-import { getBaseType, MOCK_MAP_ENTRIES } from "./mockData";
+import { COLLECTION_ITEM_PARTS, getBaseType, getCollectionSlotIndex, getDaySlotConfigs, MOCK_MAP_ENTRIES, TOTAL_DAYS } from "./mockData";
 import { generateId } from "./utils";
 import { normalizeStoredAssetImage, resolveAssetImage } from "./assetMap";
 
@@ -26,7 +26,7 @@ interface AppContextType extends AppState {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEY = "melody_app_state";
-const INITIAL_ITEMS = Array.from({ length: 7 }, () => null) as (MusicItem | null)[];
+const INITIAL_ITEMS = Array.from({ length: COLLECTION_ITEM_PARTS.length }, () => null) as (MusicItem | null)[];
 const VALID_GENRES: Genre[] = ["Pop", "Hip-hop", "Hiphop", "K-pop", "Kpop", "EDM", "Classical", "Jazz", "R&B", "RnB", "Country", "Rock", "Taiwan Indie", "Indie", "Mixed", "Hidden"];
 const VALID_PARTS: ItemPart[] = ["clothes", "headwear", "accessory", "handheld", "shoes", "enhance", "final weekly pet"];
 
@@ -77,14 +77,14 @@ const normalizeGenre = (value: unknown): Genre => {
   return normalized || "Pop";
 };
 
-const clampDay = (value: unknown) => Math.min(Math.max(Number(value) || 1, 1), 7);
+const clampDay = (value: unknown) => Math.min(Math.max(Number(value) || 1, 1), TOTAL_DAYS);
 
 const normalizePart = (value: unknown, index = 0): ItemPart => {
   if (typeof value === "string" && VALID_PARTS.includes(value as ItemPart)) {
     return value as ItemPart;
   }
 
-  const fallbackParts: ItemPart[] = ["clothes", "headwear", "accessory", "handheld", "shoes", "enhance"];
+  const fallbackParts: ItemPart[] = [...COLLECTION_ITEM_PARTS];
   return fallbackParts[index] || "clothes";
 };
 
@@ -114,13 +114,13 @@ const normalizeMusicItem = (value: unknown, index = 0): MusicItem | null => {
 
 const normalizeItemsArray = (value: unknown, ensureWeekLength = false): (MusicItem | null)[] => {
   const safeItems = Array.isArray(value) ? value : [];
-  const normalized = safeItems.slice(0, 7).map((item, index) => normalizeMusicItem(item, index));
+  const normalized = safeItems.slice(0, COLLECTION_ITEM_PARTS.length).map((item, index) => normalizeMusicItem(item, index));
 
   if (!ensureWeekLength) {
     return normalized.filter((item): item is MusicItem => Boolean(item));
   }
 
-  const padded = Array.from({ length: 7 }, (_, index) => normalized[index] || null);
+  const padded = Array.from({ length: COLLECTION_ITEM_PARTS.length }, (_, index) => normalized[index] || null);
   return padded;
 };
 
@@ -256,12 +256,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const generateItem = (item: MusicItem) => {
     setState((s) => {
+      const normalizedItem = normalizeMusicItem(item, clampDay(s.currentMockDay) - 1);
+      if (!normalizedItem) {
+        return s;
+      }
+
+      const targetIndex = getCollectionSlotIndex(normalizedItem.part);
+      if (targetIndex === -1) {
+        return s;
+      }
+
       const newItems = [...s.currentWeekItems];
-      newItems[clampDay(s.currentMockDay) - 1] = normalizeMusicItem(item, clampDay(s.currentMockDay) - 1);
+      newItems[targetIndex] = normalizedItem;
+
       return {
         ...s,
         currentWeekItems: newItems,
-        dailyHistory: [...(Array.isArray(s.dailyHistory) ? s.dailyHistory : []), normalizeMusicItem(item, clampDay(s.currentMockDay) - 1)].filter((entry): entry is MusicItem => Boolean(entry)),
+        dailyHistory: [...(Array.isArray(s.dailyHistory) ? s.dailyHistory : []), normalizedItem],
       };
     });
   };
@@ -287,30 +298,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const autoFillWeek = async () => {
-    const { getTodayMusicData, getDailyPart } = await import("./mockData");
+    const { getTodayMusicData } = await import("./mockData");
 
-    // generate 6 days randomly
     const newItems = [...INITIAL_ITEMS];
-    
-    for (let i = 0; i < 6; i++) { // Days 1 to 6
+
+    for (let day = 1; day <= TOTAL_DAYS; day += 1) {
       const dailyData = await getTodayMusicData("mock");
-      const genre = dailyData.assetGenre || dailyData.mainGenre;
-      const part = getDailyPart(i + 1);
-      
-      newItems[i] = {
-        id: Math.random().toString(36).substring(2),
-        day: i + 1,
-        part: part,
-        genre: genre as any,
-        label: `${genre} ${part}`,
-        icon: "✨",
-        imageSrc: resolveAssetImage(String(genre), String(part), `${genre}-${part}-${i + 1}`)
-      };
+      const mainGenre = normalizeGenre(dailyData.assetGenre || dailyData.mainGenre);
+      const secondGenre = normalizeGenre(dailyData.subGenre || mainGenre);
+
+      getDaySlotConfigs(day).forEach((slot, slotIndex) => {
+        const itemGenre = slot.genreSource === "main" ? mainGenre : secondGenre;
+        const targetIndex = getCollectionSlotIndex(slot.part);
+        if (targetIndex === -1) {
+          return;
+        }
+
+        newItems[targetIndex] = {
+          id: `${day}-${slot.part}-${slotIndex}-${Math.random().toString(36).substring(2)}`,
+          day,
+          part: slot.part,
+          genre: itemGenre,
+          label: `${itemGenre} ${slot.part}`,
+          icon: "✨",
+          imageSrc: resolveAssetImage(itemGenre, slot.part, `${itemGenre}-${slot.part}-${day}`),
+        };
+      });
     }
-    
-    // Day 7 is just null intentionally since it represents the final assembly day
-    // We update state after generation
-    setState(s => ({ ...s, currentMockDay: 7, currentWeekItems: newItems }));
+
+    setState((s) => ({ ...s, currentMockDay: TOTAL_DAYS, currentWeekItems: newItems }));
   };
 
   const addToMap = (entry: MapEntry) => {

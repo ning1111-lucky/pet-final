@@ -9,14 +9,46 @@ export const GENRES: Genre[] = [
   "Jazz", "RnB", "Country", "Rock", "Indie"
 ];
 
-export const DAILY_PARTS: ItemPart[] = [
-  "clothes", "headwear", "accessory", "handheld", "shoes", "enhance"
+export const TOTAL_DAYS = 3;
+
+export type DaySlotConfig = {
+  part: ItemPart;
+  genreSource: "main" | "secondary";
+  title: string;
+};
+
+export const COLLECTION_ITEM_PARTS: ItemPart[] = [
+  "clothes",
+  "shoes",
+  "headwear",
+  "handheld",
+  "accessory",
 ];
 
-export const getDailyPart = (day: number): ItemPart => {
-  if (day >= 1 && day <= 6) return DAILY_PARTS[day - 1];
-  return "shoes"; // arbitrary fallback, shouldn't be used for day 7
+export const DAY_SLOT_CONFIGS: Record<number, DaySlotConfig[]> = {
+  1: [
+    { part: "clothes", genreSource: "main", title: "主風格服裝" },
+    { part: "shoes", genreSource: "secondary", title: "次風格鞋子" },
+  ],
+  2: [
+    { part: "headwear", genreSource: "main", title: "主風格頭飾" },
+    { part: "handheld", genreSource: "secondary", title: "次風格手持物" },
+  ],
+  3: [
+    { part: "accessory", genreSource: "main", title: "主風格配件（融合特效）" },
+  ],
 };
+
+export const getDaySlotConfigs = (day: number): DaySlotConfig[] => {
+  if (day < 1 || day > TOTAL_DAYS) {
+    return DAY_SLOT_CONFIGS[TOTAL_DAYS];
+  }
+  return DAY_SLOT_CONFIGS[day];
+};
+
+export const getDailyPart = (day: number): ItemPart => getDaySlotConfigs(day)[0]?.part || "accessory";
+
+export const getCollectionSlotIndex = (part: ItemPart): number => COLLECTION_ITEM_PARTS.indexOf(part);
 
 function shuffleArray<T>(array: T[]): T[] {
   const newArray = [...array];

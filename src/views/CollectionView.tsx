@@ -10,7 +10,7 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
   const [generatedPet, setGeneratedPet] = useState<Pet | null>(null);
 
   const safeWeekItems = Array.isArray(currentWeekItems) ? currentWeekItems : [];
-  const collectedItems = safeWeekItems.slice(0, 6);
+  const collectedItems = safeWeekItems.slice(0, 5);
   const isWeekFull = collectedItems.every(item => item !== null);
 
   const handleGenPet = () => {
@@ -23,7 +23,7 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
     <div className="p-4 space-y-6 pb-24">
       <div className="text-center">
         <h2 className="text-xl font-bold bg-white inline-block px-2 border-2 border-[var(--color-brown)] rounded-md shadow-sm mb-2">本週收集</h2>
-        <p className="text-sm opacity-80 font-bold bg-white inline-block px-1 rounded shadow-sm border border-gray-200">快集滿六件，解鎖音樂寵物！</p>
+        <p className="text-sm opacity-80 font-bold bg-white inline-block px-1 rounded shadow-sm border border-gray-200">快集滿五件，解鎖音樂寵物！</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -48,8 +48,8 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
       {isWeekFull && (
         <Card className="text-center bg-[var(--color-sand)] mt-4">
            <h3 className="font-bold text-lg mb-2">收集完成！</h3>
-           <p className="text-xs mb-4">你已經集滿本週六件物品～</p>
-           <Button onClick={handleGenPet} className="w-full">✨ 切換至今日（D7）領取專屬寵物 ✨</Button>
+           <p className="text-xs mb-4">你已經集滿本週五件物品～</p>
+           <Button onClick={handleGenPet} className="w-full">✨ 切換至今日（D3）確認生成音樂寵物 ✨</Button>
         </Card>
       )}
     </div>
