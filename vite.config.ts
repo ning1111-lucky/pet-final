@@ -2,6 +2,8 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig, type Plugin } from "vite";
+import analyzeAssetsHandler from "./api/analyze-assets";
+import generatePetHandler from "./api/generate-pet";
 import generateWeeklyPetHandler from "./api/generate-weekly-pet";
 import musicTodayHandler from "./api/music/today";
 import spotifyAuthHandler from "./api/spotify/auth";
@@ -30,10 +32,16 @@ function createJsonResponder(res: {
   };
 }
 
-async function readRequestBody(req: {
+async function readRequestPayload(req: {
+  headers?: Record<string, string | string[] | undefined>;
   on: (event: string, handler: (chunk?: Buffer) => void) => void;
-}): Promise<Record<string, unknown> | null> {
+}): Promise<{ body: Record<string, unknown> | null; rawBody: Buffer | null; invalidJson: boolean }> {
   const chunks: Buffer[] = [];
+  const contentType = Array.isArray(req.headers?.["content-type"])
+    ? req.headers?.["content-type"]?.[0] || ""
+    : typeof req.headers?.["content-type"] === "string"
+      ? req.headers["content-type"]
+      : "";
 
   return new Promise((resolve) => {
     req.on("data", (chunk) => {
@@ -43,23 +51,36 @@ async function readRequestBody(req: {
     });
 
     req.on("end", () => {
-      const text = Buffer.concat(chunks).toString("utf8").trim();
-      if (!text) {
-        resolve(null);
+      const rawBody = Buffer.concat(chunks);
+
+      if (contentType.toLowerCase().includes("application/json")) {
+        const text = rawBody.toString("utf8").trim();
+        if (!text) {
+          resolve({ body: null, rawBody: null, invalidJson: false });
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(text);
+          resolve({
+            body: parsed && typeof parsed === "object" ? parsed : null,
+            rawBody: null,
+            invalidJson: false,
+          });
+        } catch {
+          resolve({ body: null, rawBody: null, invalidJson: true });
+        }
         return;
       }
 
-      try {
-        const parsed = JSON.parse(text);
-        resolve(parsed && typeof parsed === "object" ? parsed : null);
-      } catch {
-        resolve({ __invalidJson: true });
-      }
+      resolve({ body: null, rawBody, invalidJson: false });
     });
   });
 }
 
-const routeHandlers: Record<string, (req: { method?: string; url?: string; headers?: Record<string, string | string[] | undefined>; body?: Record<string, unknown> | null }, res: ReturnType<typeof createJsonResponder> & { end?: (chunk?: string) => void; statusCode?: number }) => Promise<unknown>> = {
+const routeHandlers: Record<string, (req: { method?: string; url?: string; headers?: Record<string, string | string[] | undefined>; body?: Record<string, unknown> | null; rawBody?: Buffer | null }, res: ReturnType<typeof createJsonResponder> & { end?: (chunk?: string) => void; statusCode?: number }) => Promise<unknown>> = {
+  "/api/analyze-assets": analyzeAssetsHandler,
+  "/api/generate-pet": generatePetHandler,
   "/api/generate-weekly-pet": generateWeeklyPetHandler,
   "/api/music/today": musicTodayHandler,
   "/api/spotify/auth": spotifyAuthHandler,
@@ -84,8 +105,8 @@ function localApiPlugin(): Plugin {
         const responder = createJsonResponder(res);
 
         try {
-          const body = await readRequestBody(req);
-          if (body && "__invalidJson" in body) {
+          const payload = await readRequestPayload(req);
+          if (payload.invalidJson) {
             responder.status(400).json({ ok: false, error: "請求格式錯誤，JSON 內容無法解析。" });
             return;
           }
@@ -95,7 +116,8 @@ function localApiPlugin(): Plugin {
               method: req.method,
               url: req.url,
               headers: req.headers as Record<string, string | string[] | undefined>,
-              body,
+              body: payload.body,
+              rawBody: payload.rawBody,
             },
             {
               ...responder,

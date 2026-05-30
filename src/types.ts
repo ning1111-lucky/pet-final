@@ -60,3 +60,15 @@ export interface DailyMusicData {
   distribution: { genre: Genre; percentage: number }[];
   quote: string;
 }
+
+export interface GeminiAssetAnalysis {
+  base_description: string;
+  clothes_description: string;
+  shoes_description: string;
+  headwear_description: string;
+  handheld_description: string;
+  accessory_description: string;
+  style_summary: string;
+  final_prompt_en: string;
+  negative_prompt_en: string;
+}

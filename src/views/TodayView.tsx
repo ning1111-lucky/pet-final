@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useApp } from "../AppContext";
 import { Button, PixelItemPlaceholder } from "../components/UI";
 import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, TOTAL_DAYS } from "../mockData";
-import { DailyMusicData, MusicItem, Genre, MapEntry, Pet } from "../types";
+import { DailyMusicData, MusicItem, Genre, MapEntry, Pet, GeminiAssetAnalysis } from "../types";
 import { generateId } from "../utils";
 import { motion } from "motion/react";
-import { baseShapeMap, getAssetErrorFallback, resolveAssetImage } from "../assetMap";
+import { baseShapeMap, resolveAssetImage } from "../assetMap";
 
 const GENERATED_WEEKLY_PET_IMAGE_KEY = "generatedWeeklyPetImage";
 
@@ -88,29 +88,22 @@ async function readApiJsonResponse(response: Response): Promise<Record<string, u
   };
 }
 
-function buildFinalPetPrompt(
-  weekItems: MusicItem[],
-  mainGenre: string,
-  secondGenre: string,
-  baseKey: string
-): string | null {
-  if (weekItems.length < 5) return null;
+async function appendImageAssetToFormData(formData: FormData, fieldName: string, source: string) {
+  try {
+    const response = await fetch(source);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${fieldName}`);
+    }
 
-  const findGenreByPart = (part: string) => weekItems.find((item) => item?.part === part)?.genre || "Unknown genre";
-
-  return [
-    "Redraw one final weekly music pet using the provided base character image as the strict body reference.",
-    `Weekly identity: main genre ${mainGenre}, secondary genre ${secondGenre}, random base ${baseKey}.`,
-    `Concrete item references: clothes=${findGenreByPart("clothes")} outfit, shoes=${findGenreByPart("shoes")} shoes, headwear=${findGenreByPart("headwear")} head item, handheld=${findGenreByPart("handheld")} handheld object, accessory=${findGenreByPart("accessory")} visible accessory.`,
-    "Keep the same base identity, silhouette, proportions, body shape, and front-facing pose.",
-    "The base must stay a complete solid character with full head, face, torso, belly, arms, legs, and feet.",
-    "No hollow body, no empty shell, no transparent or black gaps inside the outfit.",
-    "Install each selected item in the correct slot: clothes on torso, shoes on both feet, headwear on top or side of head, handheld in one hand or beside body, accessory on face, chest, collar, or waist according to the object.",
-    "Do not confuse categories, turn one item into a different object, merge unrelated items, remove important items, or let the handheld block the shoes.",
-    "Keep the face cute and readable, keep the lower body readable, keep both shoes visible, and keep the composition balanced.",
-    "Redesign the selected items naturally onto the base character. Do not paste or collage raw images.",
-    "Generate one cohesive full-body pixel-art character with soft pixel art, warm creamy colors, dark brown outlines, simple clean background, no text, and no watermark.",
-  ].join(" ");
+    const blob = await response.blob();
+    const cleanPath = source.split("?")[0];
+    const extension = cleanPath.includes(".") ? cleanPath.split(".").pop() || "png" : "png";
+    const mimeType = blob.type || (extension === "jpg" || extension === "jpeg" ? "image/jpeg" : "image/png");
+    const file = new File([blob], `${fieldName}.${extension}`, { type: mimeType });
+    formData.append(fieldName, file);
+  } catch {
+    formData.append(fieldName, source);
+  }
 }
 
 export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") => void }> = ({ navigateTo }) => {
@@ -130,19 +123,28 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   const [mockMusic, setMockMusic] = useState<DailyMusicData | null>(null);
   const [showGenAnim, setShowGenAnim] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImgErr, setGeneratedImgErr] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [imgLoading, setImgLoading] = useState(Boolean(getStoredGeneratedImage()));
   const [imgLoadError, setImgLoadError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [generatedPetImage, setGeneratedPetImage] = useState<string | null>(() => getStoredGeneratedImage());
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(() => getStoredGeneratedImage());
   const [generatedPetProvider, setGeneratedPetProvider] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<GeminiAssetAnalysis | null>(null);
+  const [finalPrompt, setFinalPrompt] = useState("");
   const [musicLoadError, setMusicLoadError] = useState<string | null>(null);
   const [musicLoadCode, setMusicLoadCode] = useState<string | null>(null);
   const [spotifyConnected, setSpotifyConnected] = useState<boolean | null>(null);
   const [spotifyDisplayName, setSpotifyDisplayName] = useState<string | null>(null);
   const [showMusicSourcePanel, setShowMusicSourcePanel] = useState(false);
   const [draftLastfmUsername, setDraftLastfmUsername] = useState(userProfile?.lastfmUsername || "");
+  const [selectedBase, setSelectedBase] = useState<string | null>(null);
+  const [selectedClothes, setSelectedClothes] = useState<string | null>(null);
+  const [selectedShoes, setSelectedShoes] = useState<string | null>(null);
+  const [selectedHeadwear, setSelectedHeadwear] = useState<string | null>(null);
+  const [selectedHandheld, setSelectedHandheld] = useState<string | null>(null);
+  const [selectedAccessory, setSelectedAccessory] = useState<string | null>(null);
 
   const safeDay = Math.min(Math.max(Number(currentMockDay) || 1, 1), TOTAL_DAYS);
   const safeWeekItems = Array.isArray(currentWeekItems) ? currentWeekItems : [];
@@ -268,15 +270,37 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   }
 
   const baseImageSrc = baseShapeMap[currentBaseKey] || baseShapeMap["base-1"];
-  const finalPetPrompt = isComplete ? buildFinalPetPrompt(collectedItems, mainGenre, subGenre, currentBaseKey) : null;
+  const clothesItem = getCollectedItemByPart("clothes");
+  const shoesItem = getCollectedItemByPart("shoes");
+  const headwearItem = getCollectedItemByPart("headwear");
+  const handheldItem = getCollectedItemByPart("handheld");
+  const accessoryItem = getCollectedItemByPart("accessory");
+
+  useEffect(() => {
+    setSelectedBase(baseImageSrc);
+    setSelectedClothes(clothesItem?.imageSrc || null);
+    setSelectedShoes(shoesItem?.imageSrc || null);
+    setSelectedHeadwear(headwearItem?.imageSrc || null);
+    setSelectedHandheld(handheldItem?.imageSrc || null);
+    setSelectedAccessory(accessoryItem?.imageSrc || null);
+  }, [
+    baseImageSrc,
+    clothesItem?.imageSrc,
+    shoesItem?.imageSrc,
+    headwearItem?.imageSrc,
+    handheldItem?.imageSrc,
+    accessoryItem?.imageSrc,
+  ]);
 
   const clearGeneratedWeeklyPetImage = () => {
-    setGeneratedPetImage(null);
-    setGeneratedImgErr(null);
+    setGeneratedImageUrl(null);
+    setError(null);
     setImgLoading(false);
     setImgLoadError(false);
     setImgLoaded(false);
     setGeneratedPetProvider(null);
+    setAnalysis(null);
+    setFinalPrompt("");
 
     try {
       localStorage.removeItem(GENERATED_WEEKLY_PET_IMAGE_KEY);
@@ -300,71 +324,91 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     }, 600);
   };
 
-  const generateWeeklyPetImage = async () => {
-    if (!finalPetPrompt) {
-      setGeneratedImgErr("尚未產生本週寵物提示詞。");
+  const analyzeAndGeneratePet = async () => {
+    if (!selectedBase || !selectedClothes || !selectedShoes || !selectedHeadwear || !selectedHandheld || !selectedAccessory) {
+      setError("缺少 base 或素材圖片，請先完成 5 個素材收集。");
       return;
     }
 
-    if (generatedPetImage && !window.confirm("重新生成會覆蓋目前圖片，確定嗎？")) {
+    if (generatedImageUrl && !window.confirm("重新生成會覆蓋目前圖片，確定嗎？")) {
       return;
     }
 
-    setIsGenerating(true);
-    setGeneratedImgErr(null);
-    setImgLoading(true);
+    setError(null);
+    setAnalysis(null);
+    setFinalPrompt("");
+    setGeneratedImageUrl(null);
+    setGeneratedPetProvider(null);
+    setImgLoading(false);
     setImgLoadError(false);
     setImgLoaded(false);
 
     try {
-      const response = await fetch("/api/generate-weekly-pet", {
+      setIsAnalyzing(true);
+      const formData = new FormData();
+      await Promise.all([
+        appendImageAssetToFormData(formData, "base", selectedBase),
+        appendImageAssetToFormData(formData, "clothes", selectedClothes),
+        appendImageAssetToFormData(formData, "shoes", selectedShoes),
+        appendImageAssetToFormData(formData, "headwear", selectedHeadwear),
+        appendImageAssetToFormData(formData, "handheld", selectedHandheld),
+        appendImageAssetToFormData(formData, "accessory", selectedAccessory),
+      ]);
+
+      const analyzeResponse = await fetch("/api/analyze-assets", {
+        method: "POST",
+        body: formData,
+      });
+      const analyzeData = await readApiJsonResponse(analyzeResponse);
+      if (!analyzeResponse.ok || !analyzeData.analysis || typeof analyzeData.analysis !== "object") {
+        const message = typeof analyzeData.error === "string" ? analyzeData.error : "素材分析失敗，請重試";
+        throw new Error(message);
+      }
+
+      const parsedAnalysis = analyzeData.analysis as unknown as GeminiAssetAnalysis;
+      setAnalysis(parsedAnalysis);
+      setFinalPrompt(parsedAnalysis.final_prompt_en || "");
+      setIsAnalyzing(false);
+
+      setIsGenerating(true);
+      setImgLoading(true);
+      const generateResponse = await fetch("/api/generate-pet", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          prompt: finalPetPrompt,
-          baseImagePath: baseImageSrc,
-          itemImagePaths: collectedItems.map((item) => item.imageSrc).filter((imageSrc): imageSrc is string => typeof imageSrc === "string" && imageSrc.length > 0),
+          analysis: parsedAnalysis,
         }),
       });
 
-      const data = await readApiJsonResponse(response);
-      if (!response.ok || data.ok !== true) {
-        const message =
-          typeof data.error === "string" && data.error
-            ? data.error
-            : "生成失敗，請重試";
+      const generateData = await readApiJsonResponse(generateResponse);
+      if (!generateResponse.ok || typeof generateData.imageUrl !== "string" || !generateData.imageUrl) {
+        const message = typeof generateData.error === "string" ? generateData.error : "生成失敗，請重試";
         throw new Error(message);
       }
 
-      if (typeof data.imageUrl !== "string" || !data.imageUrl) {
-        throw new Error("生成失敗，請重試");
-      }
-
-      setGeneratedPetImage(data.imageUrl);
+      setGeneratedImageUrl(generateData.imageUrl);
       setGeneratedPetProvider("leonardo");
       try {
-        localStorage.setItem(GENERATED_WEEKLY_PET_IMAGE_KEY, data.imageUrl);
+        localStorage.setItem(GENERATED_WEEKLY_PET_IMAGE_KEY, generateData.imageUrl);
       } catch {
         // Ignore quota errors so the generated image can still be displayed.
       }
     } catch (error) {
-      const message =
-        error instanceof Error && error.message
-          ? error.message
-          : "生成失敗，請重試";
-      setGeneratedImgErr(message);
+      const message = error instanceof Error && error.message ? error.message : "生成失敗，請重試";
+      setError(message);
       setImgLoading(false);
       setImgLoadError(false);
       setImgLoaded(false);
     } finally {
+      setIsAnalyzing(false);
       setIsGenerating(false);
     }
   };
 
   const handleDeployToMap = () => {
-    if (!isComplete || !generatedPetImage) return;
+    if (!isComplete || !generatedImageUrl) return;
 
     const petId = generateId();
     const petName = `${mainGenre} 音樂精靈`;
@@ -384,7 +428,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       id: generateId(),
       petId,
       pet: newPet,
-      petImage: generatedPetImage,
+      petImage: generatedImageUrl,
       petName,
       ownerName: userProfile?.name || "Anonymous",
       country: userProfile?.country || "Taiwan",
@@ -718,7 +762,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
         <section className="section-surface text-center">
           <h3 className="type-h2 mb-2">確認生成音樂寵物</h3>
           <p className="type-body mb-4">
-            系統已根據這 3 天收集的 5 個音樂物品，整理出完整寵物生成提示詞。
+            系統會先將 base 與 5 個素材交給 Gemini 分析，再把整理好的 final prompt 交給 Leonardo 生成最終寵物圖。
           </p>
 
           <div className="mb-4">
@@ -729,37 +773,71 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             </div>
           </div>
 
-          <div className="grid grid-cols-5 gap-2 mb-4 section-plain bg-[var(--color-panel)]">
-            {collectedItems.map((item) => (
+          <div className="grid grid-cols-3 gap-2 mb-4 section-plain bg-[var(--color-panel)]">
+            {[
+              { key: "base", src: selectedBase, label: "base" },
+              { key: "clothes", src: selectedClothes, label: "clothes" },
+              { key: "shoes", src: selectedShoes, label: "shoes" },
+              { key: "headwear", src: selectedHeadwear, label: "headwear" },
+              { key: "handheld", src: selectedHandheld, label: "handheld" },
+              { key: "accessory", src: selectedAccessory, label: "accessory" },
+            ].map((item) => (
               <div
-                key={item.id}
+                key={item.key}
                 className="aspect-square bg-white border-2 border-[var(--color-line)] flex items-center justify-center p-1 rounded-md"
               >
                 <img
-                  src={item.imageSrc || undefined}
-                  alt={item.part}
+                  src={item.src || undefined}
+                  alt={item.label}
                   className="w-full h-full object-contain"
                   style={{ imageRendering: "pixelated" }}
-                  onError={(event) => {
-                    const fallback = getAssetErrorFallback(item.genre, item.part, item.imageSrc, item.id);
-                    if (fallback && fallback !== item.imageSrc) {
-                      (event.currentTarget as HTMLImageElement).src = fallback;
-                      return;
-                    }
-                    (event.currentTarget as HTMLImageElement).style.display = "none";
-                  }}
+                  onError={(event) => ((event.currentTarget as HTMLImageElement).style.display = "none")}
                 />
               </div>
             ))}
           </div>
 
-          {generatedImgErr && (
+          {error && (
             <div className="type-caption text-red-600 bg-red-50 border border-red-200 p-2 rounded mb-4">
-              {generatedImgErr}
+              {error}
             </div>
           )}
 
-          {generatedPetImage ? (
+          {(isAnalyzing || analysis || finalPrompt) && (
+            <div className="section-plain bg-white text-left mb-4 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="type-label">素材分析結果</div>
+                {isAnalyzing && <div className="type-caption text-[var(--color-muted)]">正在分析素材…</div>}
+              </div>
+
+              {analysis && (
+                <div className="space-y-2">
+                  <div className="type-caption"><span className="font-semibold">Base：</span>{analysis.base_description}</div>
+                  <div className="type-caption"><span className="font-semibold">Clothes：</span>{analysis.clothes_description}</div>
+                  <div className="type-caption"><span className="font-semibold">Shoes：</span>{analysis.shoes_description}</div>
+                  <div className="type-caption"><span className="font-semibold">Headwear：</span>{analysis.headwear_description}</div>
+                  <div className="type-caption"><span className="font-semibold">Handheld：</span>{analysis.handheld_description}</div>
+                  <div className="type-caption"><span className="font-semibold">Accessory：</span>{analysis.accessory_description}</div>
+                  <div className="type-caption"><span className="font-semibold">Style Summary：</span>{analysis.style_summary}</div>
+                </div>
+              )}
+
+              {finalPrompt && (
+                <div className="space-y-1">
+                  <div className="type-label">Gemini final_prompt_en</div>
+                  <pre className="whitespace-pre-wrap break-words rounded-xl border-2 border-[var(--color-line)] bg-[var(--color-cream)] p-3 text-xs leading-6 text-[var(--color-brown)]">
+                    {finalPrompt}
+                  </pre>
+                </div>
+              )}
+
+              {isGenerating && (
+                <div className="type-caption text-[var(--color-muted)]">正在生成寵物…</div>
+              )}
+            </div>
+          )}
+
+          {generatedImageUrl ? (
             <div className="mb-6 flex flex-col items-center">
               <div className="w-48 h-48 border-4 border-dashed border-[var(--color-brown)] rounded-xl bg-white p-2 shadow-[4px_4px_0_var(--color-caramel)] relative overflow-hidden">
                 {imgLoading && (
@@ -773,7 +851,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                   </div>
                 )}
                 <img
-                  src={generatedPetImage}
+                  src={generatedImageUrl}
                   alt="Generated Pet"
                   className="w-full h-full object-contain relative z-0"
                   onLoad={() => {
@@ -786,7 +864,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                     setImgLoadError(true);
                     setImgLoaded(false);
                   }}
-              />
+                />
               </div>
 
               {imgLoaded && !imgLoadError && (
@@ -797,22 +875,22 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
               <div className="mt-4 w-full">
                 <Button
-                  onClick={generateWeeklyPetImage}
+                  onClick={analyzeAndGeneratePet}
                   className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 border-blue-700"
-                  disabled={isGenerating}
+                  disabled={isAnalyzing || isGenerating}
                 >
-                  {isGenerating ? "正在生成本週音樂寵物，可能需要幾秒鐘。" : "重新生成本週音樂寵物"}
+                  {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "重新分析並生成"}
                 </Button>
               </div>
             </div>
           ) : (
             <div className="mb-4">
               <Button
-                onClick={generateWeeklyPetImage}
+                onClick={analyzeAndGeneratePet}
                 className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 border-blue-700"
-                disabled={isGenerating}
+                disabled={isAnalyzing || isGenerating}
               >
-                {isGenerating ? "正在生成本週音樂寵物，可能需要幾秒鐘。" : "生成本週音樂寵物"}
+                {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "分析並生成"}
               </Button>
             </div>
           )}
@@ -822,7 +900,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       <Button
         onClick={handleDeployToMap}
         className="w-full py-3"
-        disabled={!generatedPetImage || isGenerating}
+        disabled={!generatedImageUrl || isAnalyzing || isGenerating}
       >
         放到地圖上
       </Button>
