@@ -249,7 +249,7 @@ async function createGeneration(options: {
     },
     body: JSON.stringify({
       prompt: options.prompt,
-      negative_prompt: "text, watermark, logo, signature, collage, pasted items, photorealistic render, 3d render",
+      negative_prompt: "text, watermark, logo, signature, collage, pasted items, photorealistic render, 3d render, portrait crop, bust crop, close-up only",
       modelId: LEONARDO_LIGHTNING_XL_MODEL_ID,
       presetStyle: "ILLUSTRATION",
       alchemy: true,
@@ -259,9 +259,9 @@ async function createGeneration(options: {
       guidance_scale: 8,
       num_inference_steps: 30,
       init_image_id: options.baseImageId,
-      init_strength: 0.42,
+      init_strength: 0.34,
       imagePrompts: options.itemImageIds,
-      imagePromptWeight: 0.55,
+      imagePromptWeight: 0.72,
       controlnets: [
         {
           initImageId: options.baseImageId,
@@ -269,11 +269,11 @@ async function createGeneration(options: {
           preprocessorId: SDXL_CHARACTER_REFERENCE_PREPROCESSOR_ID,
           strengthType: "High",
         },
-        ...options.itemImageIds.slice(0, 4).map((imageId) => ({
+        ...options.itemImageIds.map((imageId) => ({
           initImageId: imageId,
           initImageType: "UPLOADED",
           preprocessorId: SDXL_STYLE_REFERENCE_PREPROCESSOR_ID,
-          strengthType: "Mid",
+          strengthType: "High",
         })),
       ],
     }),
