@@ -49,7 +49,7 @@ const LEONARDO_API_BASE = "https://cloud.leonardo.ai/api/rest/v1";
 const LEONARDO_LIGHTNING_XL_MODEL_ID = "b24e16ff-06e3-43eb-8d33-4416c2d75876";
 const SDXL_STYLE_REFERENCE_PREPROCESSOR_ID = 67;
 const SDXL_CHARACTER_REFERENCE_PREPROCESSOR_ID = 133;
-const MAX_PROMPT_LENGTH = 2600;
+const MAX_PROMPT_LENGTH = 1450;
 const PUBLIC_DIR = path.join(process.cwd(), "public");
 const POLL_INTERVAL_MS = 2500;
 const MAX_POLL_ATTEMPTS = 24;
@@ -117,15 +117,11 @@ async function readPublicAsset(assetPath: string): Promise<{
 function buildLeonardoPrompt(prompt: string): string {
   const normalizedPrompt = prompt.replace(/\s+/g, " ").trim();
   const requirements = [
-    "preserve the base character silhouette and proportions",
-    "preserve the front-facing pose",
-    "use selected item images as outfit/accessory references",
-    "redesign the items naturally onto the base character",
-    "do not paste or collage raw item images",
-    "generate one cohesive full-body pixel-art character",
-    "no text, no watermark",
+    "keep the base body solid and fully rendered",
+    "preserve the front-facing pose and proportions",
+    "use the item images as slot references only",
+    "no collage, no hollow body, no black gaps",
     "soft pixel art, warm creamy colors, dark brown outlines",
-    "keep the same cute music pet identity as the base image",
   ].join(". ");
 
   return `${normalizedPrompt}\n\nRequired output behavior:\n${requirements}.`

@@ -98,32 +98,16 @@ function buildFinalPetPrompt(
 
   const findGenreByPart = (part: string) => weekItems.find((item) => item?.part === part)?.genre || "Unknown genre";
 
-  return `Redraw one final weekly music pet using the provided base character image and selected weekly item images.
-
-Weekly music identity:
-Main genre: ${mainGenre}
-Secondary genre: ${secondGenre}
-Random base reference: ${baseKey}
-
-Selected item references:
-Day 1 clothes: ${findGenreByPart("clothes")} inspired main outfit
-Day 1 shoes: ${findGenreByPart("shoes")} inspired secondary footwear
-Day 2 headwear: ${findGenreByPart("headwear")} inspired headwear
-Day 2 handheld: ${findGenreByPart("handheld")} inspired handheld object
-Day 3 accessory: ${findGenreByPart("accessory")} inspired accessory with a subtle integrated music aura
-
-Instructions:
-preserve the base character silhouette and proportions.
-Preserve the front-facing pose.
-Use selected item images as outfit and accessory references.
-Redraw them naturally onto the character.
-Do not collage or paste raw images.
-Keep the same cute pet identity as the base character.
-Keep the lower body readable and let both shoes stay clearly visible.
-Keep the handheld object beside the body instead of blocking the feet.
-Output one cohesive full-body pixel-art character.
-Soft pixel art, warm creamy colors, dark brown outlines.
-Centered front view, no text, no watermark.`;
+  return [
+    "Redraw one final weekly music pet from the provided base image.",
+    `Main genre: ${mainGenre}. Secondary genre: ${secondGenre}. Base: ${baseKey}.`,
+    `Slots: clothes=${findGenreByPart("clothes")}, shoes=${findGenreByPart("shoes")}, headwear=${findGenreByPart("headwear")}, handheld=${findGenreByPart("handheld")}, accessory=${findGenreByPart("accessory")}.`,
+    "Keep the same cute identity, body shape, proportions, and front-facing pose.",
+    "Use each item in the correct slot.",
+    "Clothes on torso, shoes on both feet, headwear on head, handheld beside one hand, accessory on face/chest/collar/waist.",
+    "Keep both shoes visible and keep the handheld away from the feet.",
+    "Do not collage raw images. One cohesive full-body pixel-art character. No text or watermark.",
+  ].join(" ");
 }
 
 export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") => void }> = ({ navigateTo }) => {
