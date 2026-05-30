@@ -115,16 +115,8 @@ async function readPublicAsset(assetPath: string): Promise<{
 }
 
 function buildLeonardoPrompt(prompt: string): string {
-  const normalizedPrompt = prompt.replace(/\s+/g, " ").trim();
-  const requirements = [
-    "keep the base body solid and fully rendered",
-    "preserve the front-facing pose and proportions",
-    "use the item images as slot references only",
-    "no collage, no hollow body, no black gaps",
-    "soft pixel art, warm creamy colors, dark brown outlines",
-  ].join(". ");
-
-  return `${normalizedPrompt}\n\nRequired output behavior:\n${requirements}.`
+  return prompt
+    .replace(/\s+/g, " ")
     .slice(0, MAX_PROMPT_LENGTH)
     .trim();
 }

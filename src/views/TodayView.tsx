@@ -99,14 +99,17 @@ function buildFinalPetPrompt(
   const findGenreByPart = (part: string) => weekItems.find((item) => item?.part === part)?.genre || "Unknown genre";
 
   return [
-    "Redraw one final weekly music pet from the provided base image.",
-    `Main genre: ${mainGenre}. Secondary genre: ${secondGenre}. Base: ${baseKey}.`,
-    `Slots: clothes=${findGenreByPart("clothes")}, shoes=${findGenreByPart("shoes")}, headwear=${findGenreByPart("headwear")}, handheld=${findGenreByPart("handheld")}, accessory=${findGenreByPart("accessory")}.`,
-    "Keep the same cute identity, body shape, proportions, and front-facing pose.",
-    "Use each item in the correct slot.",
-    "Clothes on torso, shoes on both feet, headwear on head, handheld beside one hand, accessory on face/chest/collar/waist.",
-    "Keep both shoes visible and keep the handheld away from the feet.",
-    "Do not collage raw images. One cohesive full-body pixel-art character. No text or watermark.",
+    "Redraw one final weekly music pet using the provided base character image as the strict body reference.",
+    `Weekly identity: main genre ${mainGenre}, secondary genre ${secondGenre}, random base ${baseKey}.`,
+    `Slot references: clothes=${findGenreByPart("clothes")}, shoes=${findGenreByPart("shoes")}, headwear=${findGenreByPart("headwear")}, handheld=${findGenreByPart("handheld")}, accessory=${findGenreByPart("accessory")}.`,
+    "Keep the same base character identity, silhouette, proportions, body shape, and front-facing pose.",
+    "The base character must remain a complete solid character with full head, face, torso, belly, arms, legs, and feet.",
+    "Do not leave hollow, empty, transparent, or black gaps inside the character, and do not render the outfit as an empty shell.",
+    "Install every selected item in the correct slot: clothes on the torso, shoes on both feet, headwear on top or side of the head, handheld in one hand or beside the body, accessory on the face, chest, collar, or waist depending on the item type.",
+    "Do not confuse item categories, turn one item into a different object, merge unrelated items, remove important items, or let the handheld block the shoes.",
+    "Keep the composition vertically balanced, keep the face readable and cute, keep the lower body readable, and keep both shoes clearly visible.",
+    "Redesign the selected items naturally onto the base character. Do not paste or collage raw images.",
+    "Generate one cohesive full-body pixel-art character with soft pixel art, warm creamy colors, dark brown outlines, a simple clean background, no text, and no watermark.",
   ].join(" ");
 }
 
