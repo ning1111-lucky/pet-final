@@ -7,6 +7,8 @@ import generatePetHandler from "./api/generate-pet";
 import generateWeeklyPetHandler from "./api/generate-weekly-pet";
 import musicTodayHandler from "./api/music/today";
 import notionReferenceHandler from "./api/notion/reference";
+import notionSyncUserHandler from "./api/notion/sync-user";
+import notionWeeklyRunHandler from "./api/notion/weekly-run";
 import spotifyAuthHandler from "./api/spotify/auth";
 import spotifyCallbackHandler from "./api/spotify/callback";
 import spotifyLogoutHandler from "./api/spotify/logout";
@@ -85,6 +87,8 @@ const routeHandlers: Record<string, (req: { method?: string; url?: string; heade
   "/api/generate-weekly-pet": generateWeeklyPetHandler,
   "/api/music/today": musicTodayHandler,
   "/api/notion/reference": notionReferenceHandler,
+  "/api/notion/sync-user": notionSyncUserHandler,
+  "/api/notion/weekly-run": notionWeeklyRunHandler,
   "/api/spotify/auth": spotifyAuthHandler,
   "/api/spotify/callback": spotifyCallbackHandler,
   "/api/spotify/session": spotifySessionHandler,

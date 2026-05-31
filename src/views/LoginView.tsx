@@ -4,6 +4,20 @@ import { Button, Card } from "../components/UI";
 import { motion } from "motion/react";
 import { MusicProvider } from "../types";
 
+async function readApiJsonResponse(response: Response): Promise<Record<string, unknown>> {
+  const rawText = await response.text().catch(() => "");
+  if (!rawText.trim()) {
+    return { error: "同步失敗，請重試" };
+  }
+
+  try {
+    const parsed = JSON.parse(rawText);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : { error: "同步失敗，請重試" };
+  } catch {
+    return { error: rawText.trim() || "同步失敗，請重試" };
+  }
+}
+
 export const LoginView: React.FC = () => {
   const { login } = useApp();
   const [name, setName] = useState("");
@@ -14,12 +28,44 @@ export const LoginView: React.FC = () => {
   const [musicProvider, setMusicProvider] = useState<MusicProvider>("spotify");
   const [lastfmUsername, setLastfmUsername] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const needsLastFmUsername = musicProvider === "lastfm";
     if (name && email && country && city && agreed && (!needsLastFmUsername || lastfmUsername.trim())) {
-      login({ name, email, country, city, style, musicProvider, lastfmUsername, agreed });
+      setSubmitError(null);
+      setIsSubmitting(true);
+
+      try {
+        const response = await fetch("/api/notion/sync-user", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            country,
+            city,
+            style,
+            musicProvider,
+            lastfmUsername,
+          }),
+        });
+
+        const data = await readApiJsonResponse(response);
+        if (!response.ok || data.ok !== true) {
+          throw new Error(typeof data.error === "string" ? data.error : "Notion 使用者同步失敗");
+        }
+
+        login({ name, email, country, city, style, musicProvider, lastfmUsername, agreed });
+      } catch (error) {
+        setSubmitError(error instanceof Error ? error.message : "Notion 使用者同步失敗");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -194,13 +240,19 @@ export const LoginView: React.FC = () => {
               <span className="type-caption opacity-90 leading-relaxed">我同意將音樂紀錄用於生成音樂寵物與研究展示。</span>
             </label>
 
+            {submitError && (
+              <div className="type-caption text-red-600 rounded-[18px] border border-red-200 bg-red-50 px-3 py-3">
+                {submitError}
+              </div>
+            )}
+
             <div className="pt-2">
               <Button
                 type="submit"
                 className="w-full !py-4 !text-[1rem] bg-[#d4ff4d] !text-[var(--color-brown)]"
-                disabled={!name || !email || !country || !city || !agreed || (musicProvider === "lastfm" && !lastfmUsername.trim())}
+                disabled={isSubmitting || !name || !email || !country || !city || !agreed || (musicProvider === "lastfm" && !lastfmUsername.trim())}
               >
-                開始音樂旅程
+                {isSubmitting ? "正在建立音樂護照..." : "開始音樂旅程"}
               </Button>
             </div>
           </form>

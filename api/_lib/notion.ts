@@ -9,6 +9,12 @@ type NotionQueryResult = {
   properties?: unknown;
 };
 
+type NotionDatabaseDetails = {
+  id?: unknown;
+  title?: unknown;
+  properties?: unknown;
+};
+
 export type NotionGenreRule = {
   id: string;
   displayName: string;
@@ -35,9 +41,47 @@ export type NotionGenreReferenceContext = {
   } | null;
 };
 
+export type NotionUserSyncInput = {
+  name: string;
+  email: string;
+  musicSource: string;
+  lastfmUsername?: string;
+  spotifyConnected: boolean;
+  country: string;
+  city: string;
+  styleNote?: string;
+};
+
+export type NotionWeeklyRunInput = {
+  sessionName: string;
+  userName: string;
+  musicSource: string;
+  lastfmUsername?: string;
+  mainGenreKey: string;
+  secondaryGenreKey: string;
+  analysisType: string;
+  listenCount: number;
+  day1ClothesKey: string;
+  day1ShoesKey: string;
+  day2HeadwearKey: string;
+  day2HandheldKey: string;
+  day3AccessoryKey: string;
+  baseKey: string;
+  finalPrompt: string;
+  petImageUrl: string;
+  status: string;
+};
+
+type NotionDatabaseSource = {
+  id: string;
+  title: string;
+};
+
 const NOTION_API_BASE = "https://api.notion.com/v1";
 const NOTION_VERSION = "2022-06-28";
 const DEFAULT_DB_NAME = "Genre Rules";
+const DEFAULT_USERS_DB_NAME = "users";
+const DEFAULT_WEEKLY_RUNS_DB_NAME = "weekly-runs";
 
 function createHeaders(token: string) {
   return {
@@ -201,6 +245,159 @@ function extractSearchTitle(result: NotionSearchResult): string {
   return plainTitle(result.title);
 }
 
+function getNotionToken(): string {
+  const token = (process.env.NOTION_ACCESS_TOKEN || process.env.NOTION_API_KEY || "").trim();
+  if (!token) {
+    throw new Error("Missing NOTION_ACCESS_TOKEN");
+  }
+
+  return token;
+}
+
+function normalizeNotionName(value: string): string {
+  return value.trim().toLowerCase().replace(/[_\s]+/g, "-");
+}
+
+async function searchDatabaseByName(
+  token: string,
+  name: string,
+  explicitDatabaseId: string
+): Promise<NotionDatabaseSource> {
+  if (explicitDatabaseId.trim()) {
+    return {
+      id: explicitDatabaseId.trim(),
+      title: name,
+    };
+  }
+
+  const searchResponse = await notionRequest<{ results?: NotionSearchResult[] }>(token, "/search", {
+    method: "POST",
+    body: JSON.stringify({
+      query: name,
+      filter: {
+        property: "object",
+        value: "database",
+      },
+    }),
+  });
+
+  const results = Array.isArray(searchResponse.results) ? searchResponse.results : [];
+  const exactMatch =
+    results.find((result) => normalizeNotionName(extractSearchTitle(result)) === normalizeNotionName(name)) ||
+    results.find((result) => extractSearchTitle(result).toLowerCase() === name.toLowerCase()) ||
+    results[0];
+
+  if (!exactMatch || typeof exactMatch.id !== "string" || !exactMatch.id) {
+    throw new Error(`No accessible Notion database found for "${name}". Share the database with your integration or set an explicit database ID.`);
+  }
+
+  return {
+    id: exactMatch.id,
+    title: extractSearchTitle(exactMatch) || name,
+  };
+}
+
+async function getDatabaseDetails(token: string, databaseId: string): Promise<NotionDatabaseDetails> {
+  return notionRequest<NotionDatabaseDetails>(token, `/databases/${databaseId}`);
+}
+
+async function queryDatabasePages(token: string, databaseId: string): Promise<NotionQueryResult[]> {
+  const response = await notionRequest<{ results?: NotionQueryResult[] }>(token, `/databases/${databaseId}/query`, {
+    method: "POST",
+    body: JSON.stringify({
+      page_size: 100,
+    }),
+  });
+
+  return Array.isArray(response.results) ? response.results : [];
+}
+
+function toRichText(value: string) {
+  return value ? [{ type: "text", text: { content: value.slice(0, 1900) } }] : [];
+}
+
+function buildPropertyPayload(
+  schema: Record<string, unknown>,
+  values: Record<string, string | number | boolean | undefined>
+): Record<string, unknown> {
+  const properties: Record<string, unknown> = {};
+
+  for (const [name, rawValue] of Object.entries(values)) {
+    if (!(name in schema) || rawValue === undefined) continue;
+
+    const definition = schema[name];
+    if (!definition || typeof definition !== "object") continue;
+    const type = typeof (definition as Record<string, unknown>).type === "string" ? ((definition as Record<string, string>).type || "") : "";
+
+    switch (type) {
+      case "title":
+        properties[name] = { title: toRichText(String(rawValue)) };
+        break;
+      case "rich_text":
+        properties[name] = { rich_text: toRichText(String(rawValue)) };
+        break;
+      case "email":
+        properties[name] = { email: String(rawValue || "") || null };
+        break;
+      case "checkbox":
+        properties[name] = { checkbox: Boolean(rawValue) };
+        break;
+      case "number":
+        properties[name] = { number: Number(rawValue) || 0 };
+        break;
+      case "select":
+        properties[name] = String(rawValue).trim() ? { select: { name: String(rawValue).trim() } } : { select: null };
+        break;
+      case "status":
+        properties[name] = String(rawValue).trim() ? { status: { name: String(rawValue).trim() } } : { status: null };
+        break;
+      case "url":
+        properties[name] = { url: String(rawValue || "") || null };
+        break;
+      case "multi_select":
+        properties[name] = {
+          multi_select: String(rawValue)
+            .split(/[;,]/)
+            .map((item) => item.trim())
+            .filter(Boolean)
+            .map((name) => ({ name })),
+        };
+        break;
+      default:
+        break;
+    }
+  }
+
+  return properties;
+}
+
+async function createPageInDatabase(
+  token: string,
+  databaseId: string,
+  properties: Record<string, unknown>
+): Promise<{ id?: unknown }> {
+  return notionRequest<{ id?: unknown }>(token, "/pages", {
+    method: "POST",
+    body: JSON.stringify({
+      parent: { database_id: databaseId },
+      properties,
+    }),
+  });
+}
+
+async function updatePageProperties(
+  token: string,
+  pageId: string,
+  properties: Record<string, unknown>
+): Promise<{ id?: unknown }> {
+  return notionRequest<{ id?: unknown }>(token, `/pages/${pageId}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      properties,
+    }),
+  });
+}
+
 async function discoverReferenceContainer(token: string) {
   const explicitDataSourceId = (process.env.NOTION_DATA_SOURCE_ID || "").trim();
   if (explicitDataSourceId) {
@@ -289,10 +486,7 @@ function normalizeGenreRule(page: NotionQueryResult): NotionGenreRule | null {
 }
 
 export async function getGenreRules(): Promise<{ rules: NotionGenreRule[]; source: NotionGenreReferenceContext["source"] }> {
-  const token = (process.env.NOTION_ACCESS_TOKEN || process.env.NOTION_API_KEY || "").trim();
-  if (!token) {
-    throw new Error("Missing NOTION_ACCESS_TOKEN");
-  }
+  const token = getNotionToken();
 
   const source = await discoverReferenceContainer(token);
   const pages = await queryGenreRulePages(token, source);
@@ -335,5 +529,101 @@ export async function buildGenreReferenceContext(mainGenre: string, subGenre: st
     subRule,
     promptContext: segments.join("\n"),
     source,
+  };
+}
+
+function findPageByPropertyValue(
+  pages: NotionQueryResult[],
+  propertyName: string,
+  expectedValue: string
+): NotionQueryResult | null {
+  const normalizedExpected = expectedValue.trim().toLowerCase();
+  if (!normalizedExpected) return null;
+
+  return (
+    pages.find((page) => {
+      const properties = page.properties && typeof page.properties === "object" ? (page.properties as Record<string, unknown>) : null;
+      if (!properties || !(propertyName in properties)) return false;
+      return propertyToString(properties[propertyName]).trim().toLowerCase() === normalizedExpected;
+    }) || null
+  );
+}
+
+export async function syncUserProfileToNotion(input: NotionUserSyncInput): Promise<{ pageId: string; database: NotionDatabaseSource }> {
+  const token = getNotionToken();
+  const database = await searchDatabaseByName(
+    token,
+    (process.env.NOTION_USERS_DB_NAME || DEFAULT_USERS_DB_NAME).trim(),
+    process.env.NOTION_USERS_DATABASE_ID || ""
+  );
+  const databaseDetails = await getDatabaseDetails(token, database.id);
+  const schema = databaseDetails.properties && typeof databaseDetails.properties === "object"
+    ? (databaseDetails.properties as Record<string, unknown>)
+    : {};
+  const pages = await queryDatabasePages(token, database.id);
+
+  const existingPage =
+    findPageByPropertyValue(pages, "email", input.email) ||
+    findPageByPropertyValue(pages, "display_name", input.name);
+
+  const properties = buildPropertyPayload(schema, {
+    display_name: input.name,
+    email: input.email,
+    music_source: input.musicSource,
+    lastfm_username: input.lastfmUsername || "",
+    spotify_connected: input.spotifyConnected,
+    country: input.country,
+    city: input.city,
+    style_note: input.styleNote || "",
+    is_active: true,
+  });
+
+  const response =
+    existingPage && typeof existingPage.id === "string" && existingPage.id
+      ? await updatePageProperties(token, existingPage.id, properties)
+      : await createPageInDatabase(token, database.id, properties);
+
+  return {
+    pageId: typeof response.id === "string" ? response.id : "",
+    database,
+  };
+}
+
+export async function createWeeklyRunInNotion(input: NotionWeeklyRunInput): Promise<{ pageId: string; database: NotionDatabaseSource }> {
+  const token = getNotionToken();
+  const database = await searchDatabaseByName(
+    token,
+    (process.env.NOTION_WEEKLY_RUNS_DB_NAME || DEFAULT_WEEKLY_RUNS_DB_NAME).trim(),
+    process.env.NOTION_WEEKLY_RUNS_DATABASE_ID || ""
+  );
+  const databaseDetails = await getDatabaseDetails(token, database.id);
+  const schema = databaseDetails.properties && typeof databaseDetails.properties === "object"
+    ? (databaseDetails.properties as Record<string, unknown>)
+    : {};
+
+  const properties = buildPropertyPayload(schema, {
+    session_name: input.sessionName,
+    user_name: input.userName,
+    music_source: input.musicSource,
+    lastfm_username: input.lastfmUsername || "",
+    main_genre_key: normalizeGenreKey(input.mainGenreKey),
+    secondary_genre_key: normalizeGenreKey(input.secondaryGenreKey),
+    analysis_type: input.analysisType,
+    listen_count: input.listenCount,
+    day1_clothes_key: input.day1ClothesKey,
+    day1_shoes_key: input.day1ShoesKey,
+    day2_headwear_key: input.day2HeadwearKey,
+    day2_handheld_key: input.day2HandheldKey,
+    day3_accessory_key: input.day3AccessoryKey,
+    base_key: input.baseKey,
+    final_prompt: input.finalPrompt,
+    pet_image_url: input.petImageUrl,
+    status: input.status,
+  });
+
+  const response = await createPageInDatabase(token, database.id, properties);
+  return {
+    pageId: typeof response.id === "string" ? response.id : "",
+    database,
   };
 }

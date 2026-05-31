@@ -106,6 +106,36 @@ async function appendImageAssetToFormData(formData: FormData, fieldName: string,
   }
 }
 
+function extractAssetKeyFromPath(value: string | null | undefined): string {
+  if (!value) return "";
+  const cleanPath = value.split("?")[0] || "";
+  const filename = cleanPath.split("/").pop() || "";
+  return filename.replace(/\.[a-z0-9]+$/i, "");
+}
+
+async function syncUserProfileToNotion(profile: {
+  name: string;
+  email: string;
+  country: string;
+  city: string;
+  style?: string;
+  musicProvider: string;
+  lastfmUsername?: string;
+}) {
+  const response = await fetch("/api/notion/sync-user", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(profile),
+  });
+
+  const data = await readApiJsonResponse(response);
+  if (!response.ok || data.ok !== true) {
+    throw new Error(typeof data.error === "string" ? data.error : "Notion 使用者同步失敗");
+  }
+}
+
 export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") => void }> = ({ navigateTo }) => {
   const {
     currentMockDay,
@@ -402,6 +432,46 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       } catch {
         // Ignore quota errors so the generated image can still be displayed.
       }
+
+      try {
+        const weeklyRunResponse = await fetch("/api/notion/weekly-run", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sessionName: `${userProfile?.name || "Anonymous"} - ${mainGenre} Week`,
+            userName: userProfile?.name || "Anonymous",
+            musicSource: activeMusicProvider,
+            lastfmUsername: userProfile?.lastfmUsername || "",
+            mainGenreKey: mainGenre,
+            secondaryGenreKey: subGenre,
+            analysisType:
+              mockMusic?.mainGenre === "Mixed"
+                ? "mixed"
+                : mockMusic?.mainGenre === "Hidden"
+                  ? "hidden"
+                  : "pure",
+            listenCount: mockMusic?.songCount || 0,
+            day1ClothesKey: extractAssetKeyFromPath(selectedClothes),
+            day1ShoesKey: extractAssetKeyFromPath(selectedShoes),
+            day2HeadwearKey: extractAssetKeyFromPath(selectedHeadwear),
+            day2HandheldKey: extractAssetKeyFromPath(selectedHandheld),
+            day3AccessoryKey: extractAssetKeyFromPath(selectedAccessory),
+            baseKey: currentBaseKey,
+            finalPrompt: parsedAnalysis.final_prompt_en || "",
+            petImageUrl: generateData.imageUrl,
+            status: "generated",
+          }),
+        });
+
+        const weeklyRunData = await readApiJsonResponse(weeklyRunResponse);
+        if (!weeklyRunResponse.ok || weeklyRunData.ok !== true) {
+          throw new Error(typeof weeklyRunData.error === "string" ? weeklyRunData.error : "Notion 生成紀錄同步失敗");
+        }
+      } catch (syncError) {
+        setError(syncError instanceof Error ? `寵物已生成，但同步到 Notion 失敗：${syncError.message}` : "寵物已生成，但同步到 Notion 失敗");
+      }
     } catch (error) {
       const message = error instanceof Error && error.message ? error.message : "生成失敗，請重試";
       setError(message);
@@ -471,16 +541,43 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   const handleProviderChange = (provider: "mock" | "spotify" | "lastfm") => {
     updateUserProfile({ musicProvider: provider });
+    if (userProfile) {
+      syncUserProfileToNotion({
+        name: userProfile.name,
+        email: userProfile.email,
+        country: userProfile.country,
+        city: userProfile.city,
+        style: userProfile.style,
+        musicProvider: provider,
+        lastfmUsername: provider === "lastfm" ? userProfile.lastfmUsername : "",
+      }).catch(() => {
+        // Keep source switching responsive even if Notion sync fails.
+      });
+    }
     if (provider !== "lastfm") {
       setShowMusicSourcePanel(false);
     }
   };
 
   const handleSaveLastfmUsername = () => {
-    updateUserProfile({
+    const nextProfile = {
       musicProvider: "lastfm",
       lastfmUsername: draftLastfmUsername.trim(),
-    });
+    } as const;
+    updateUserProfile(nextProfile);
+    if (userProfile) {
+      syncUserProfileToNotion({
+        name: userProfile.name,
+        email: userProfile.email,
+        country: userProfile.country,
+        city: userProfile.city,
+        style: userProfile.style,
+        musicProvider: "lastfm",
+        lastfmUsername: draftLastfmUsername.trim(),
+      }).catch(() => {
+        // Keep Last.fm save responsive even if Notion sync fails.
+      });
+    }
     setShowMusicSourcePanel(false);
   };
 
