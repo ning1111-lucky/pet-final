@@ -112,11 +112,9 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     currentBaseKey,
     currentWeekItems,
     generateItem,
-    advanceDay,
     resetWeek,
     generateWeeklyPet,
     addToMap,
-    autoFillWeek,
     userProfile,
     updateUserProfile,
   } = useApp();
@@ -445,16 +443,6 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     clearGeneratedWeeklyPetImage();
     resetWeek();
     navigateTo("map");
-  };
-
-  const handleResetWeek = () => {
-    clearGeneratedWeeklyPetImage();
-    resetWeek();
-  };
-
-  const handleAutoFillWeek = async () => {
-    clearGeneratedWeeklyPetImage();
-    await autoFillWeek();
   };
 
   const handleConnectSpotify = () => {
@@ -904,24 +892,6 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       >
         放到地圖上
       </Button>
-
-      <div className="section-divider pt-4 flex flex-wrap gap-2 justify-center mt-8">
-        <div className="w-full text-center type-label mb-1">DEV TOOLS</div>
-        <Button
-          variant="secondary"
-          onClick={advanceDay}
-          className="!p-2"
-          disabled={safeDay >= TOTAL_DAYS}
-        >
-          模擬下一天
-        </Button>
-        <Button variant="secondary" onClick={handleResetWeek} className="!p-2">
-          重置本週
-        </Button>
-        <Button variant="secondary" onClick={handleAutoFillWeek} className="!p-2 opacity-80">
-          一鍵生成三天
-        </Button>
-      </div>
     </div>
   );
 };
