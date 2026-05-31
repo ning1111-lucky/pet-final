@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { getRequestContentType, getRequestRawBody, parseMultipartFormData, resolveMultipartImageField, type ApiLikeRequest } from "./_lib/multipart.js";
+import { buildGenreReferenceContext } from "./_lib/notion.js";
 
 type ApiResponse = {
   setHeader?: (name: string, value: string | string[]) => void;
@@ -86,6 +87,19 @@ Return JSON only in this exact structure:
 "negative_prompt_en": ""
 }`;
 
+function buildGeminiPrompt(referenceContext: string): string {
+  if (!referenceContext.trim()) {
+    return GEMINI_PROMPT;
+  }
+
+  return `${GEMINI_PROMPT}
+
+Additional Notion genre references:
+${referenceContext.trim()}
+
+Use these Notion references only as style guidance. The uploaded images still have the highest priority.`;
+}
+
 function jsonResponse(res: ApiResponse, statusCode: number, body: Record<string, unknown>) {
   return res.status(statusCode).json(body);
 }
@@ -168,7 +182,12 @@ function toInlineData(image: { buffer: Buffer; mimeType: string }) {
   };
 }
 
-async function callGemini(model: string, apiKey: string, images: Array<{ buffer: Buffer; mimeType: string }>) {
+async function callGemini(
+  model: string,
+  apiKey: string,
+  images: Array<{ buffer: Buffer; mimeType: string }>,
+  promptText: string
+) {
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`, {
     method: "POST",
     headers: {
@@ -178,7 +197,7 @@ async function callGemini(model: string, apiKey: string, images: Array<{ buffer:
       contents: [
         {
           role: "user",
-          parts: [{ text: GEMINI_PROMPT }, ...images.map((image) => toInlineData(image))],
+          parts: [{ text: promptText }, ...images.map((image) => toInlineData(image))],
         },
       ],
       generationConfig: {
@@ -236,14 +255,41 @@ export default async function handler(req: ApiLikeRequest & { method?: string },
       resolveMultipartImageField(fields, "accessory"),
     ]);
 
-    const rawText = await callGemini(process.env.GEMINI_MODEL || "gemini-2.5-flash", apiKey, images);
+    const mainGenre = typeof fields.mainGenre === "string" ? fields.mainGenre.trim() : "";
+    const subGenre = typeof fields.subGenre === "string" ? fields.subGenre.trim() : "";
+    let notionReferenceContext = "";
+    let notionSource: Record<string, unknown> | null = null;
+
+    if (mainGenre) {
+      try {
+        const reference = await buildGenreReferenceContext(mainGenre, subGenre || mainGenre);
+        notionReferenceContext = reference.promptContext;
+        notionSource = reference.source ? { ...reference.source } : null;
+      } catch {
+        notionReferenceContext = "";
+        notionSource = null;
+      }
+    }
+
+    const rawText = await callGemini(
+      process.env.GEMINI_MODEL || "gemini-2.5-flash",
+      apiKey,
+      images,
+      buildGeminiPrompt(notionReferenceContext)
+    );
     const parsed = parseGeminiJson(rawText);
 
     if ("error" in parsed) {
       return jsonResponse(res, 502, parsed);
     }
 
-    return jsonResponse(res, 200, { analysis: parsed });
+    return jsonResponse(res, 200, {
+      analysis: parsed,
+      notion: {
+        source: notionSource,
+        promptContext: notionReferenceContext,
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Gemini analysis failed";
     return jsonResponse(res, 502, { error: message });

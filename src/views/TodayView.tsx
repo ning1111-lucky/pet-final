@@ -131,6 +131,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const [generatedPetProvider, setGeneratedPetProvider] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<GeminiAssetAnalysis | null>(null);
   const [finalPrompt, setFinalPrompt] = useState("");
+  const [notionPromptContext, setNotionPromptContext] = useState("");
   const [musicLoadError, setMusicLoadError] = useState<string | null>(null);
   const [musicLoadCode, setMusicLoadCode] = useState<string | null>(null);
   const [spotifyConnected, setSpotifyConnected] = useState<boolean | null>(null);
@@ -335,6 +336,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     setError(null);
     setAnalysis(null);
     setFinalPrompt("");
+    setNotionPromptContext("");
     setGeneratedImageUrl(null);
     setGeneratedPetProvider(null);
     setImgLoading(false);
@@ -352,6 +354,8 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
         appendImageAssetToFormData(formData, "handheld", selectedHandheld),
         appendImageAssetToFormData(formData, "accessory", selectedAccessory),
       ]);
+      formData.append("mainGenre", mainGenre);
+      formData.append("subGenre", subGenre);
 
       const analyzeResponse = await fetch("/api/analyze-assets", {
         method: "POST",
@@ -366,6 +370,11 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       const parsedAnalysis = analyzeData.analysis as unknown as GeminiAssetAnalysis;
       setAnalysis(parsedAnalysis);
       setFinalPrompt(parsedAnalysis.final_prompt_en || "");
+      setNotionPromptContext(
+        analyzeData.notion && typeof analyzeData.notion === "object" && typeof (analyzeData.notion as Record<string, unknown>).promptContext === "string"
+          ? (((analyzeData.notion as Record<string, unknown>).promptContext as string) || "").trim()
+          : ""
+      );
       setIsAnalyzing(false);
 
       setIsGenerating(true);
@@ -797,6 +806,15 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                 <div className="type-label">素材分析結果</div>
                 {isAnalyzing && <div className="type-caption text-[var(--color-muted)]">正在分析素材…</div>}
               </div>
+
+              {notionPromptContext && (
+                <div className="space-y-1">
+                  <div className="type-label">Notion 風格參考</div>
+                  <div className="type-caption text-[var(--color-muted)] whitespace-pre-wrap">
+                    {notionPromptContext}
+                  </div>
+                </div>
+              )}
 
               {analysis && (
                 <div className="space-y-2">
