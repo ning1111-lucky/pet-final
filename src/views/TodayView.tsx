@@ -142,9 +142,11 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     currentBaseKey,
     currentWeekItems,
     generateItem,
+    advanceDay,
     resetWeek,
     generateWeeklyPet,
     addToMap,
+    autoFillWeek,
     userProfile,
     updateUserProfile,
   } = useApp();
@@ -174,6 +176,8 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const [selectedHeadwear, setSelectedHeadwear] = useState<string | null>(null);
   const [selectedHandheld, setSelectedHandheld] = useState<string | null>(null);
   const [selectedAccessory, setSelectedAccessory] = useState<string | null>(null);
+  const [showDevTools, setShowDevTools] = useState(false);
+  const [titleTapCount, setTitleTapCount] = useState(0);
 
   const safeDay = Math.min(Math.max(Number(currentMockDay) || 1, 1), TOTAL_DAYS);
   const safeWeekItems = Array.isArray(currentWeekItems) ? currentWeekItems : [];
@@ -532,6 +536,37 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     window.location.href = "/api/spotify/logout";
   };
 
+  const handleResetWeek = () => {
+    clearGeneratedWeeklyPetImage();
+    resetWeek();
+  };
+
+  const handleAutoFillWeek = async () => {
+    clearGeneratedWeeklyPetImage();
+    await autoFillWeek();
+  };
+
+  const handleSecretTitleTap = () => {
+    setTitleTapCount((count) => {
+      const nextCount = count + 1;
+      if (nextCount >= 5) {
+        setShowDevTools((value) => !value);
+        return 0;
+      }
+      return nextCount;
+    });
+  };
+
+  useEffect(() => {
+    if (titleTapCount === 0) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setTitleTapCount(0);
+    }, 1200);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [titleTapCount]);
+
   const providerLabel =
     activeMusicProvider === "spotify"
       ? "Spotify 直連"
@@ -587,7 +622,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   return (
     <div className="p-4 space-y-6 pb-24">
-      <div className="page-title-group">
+      <div className="page-title-group" onClick={handleSecretTitleTap}>
         <h2 className="page-title">
           {isPetGenerationStage ? "音樂寵物生成" : "今日音樂分析"}
         </h2>
@@ -1007,6 +1042,26 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       >
         放到地圖上
       </Button>
+
+      {showDevTools && (
+        <div className="section-divider pt-4 flex flex-wrap gap-2 justify-center mt-8">
+          <div className="w-full text-center type-label mb-1">DEV TOOLS</div>
+          <Button
+            variant="secondary"
+            onClick={advanceDay}
+            className="!p-2"
+            disabled={safeDay >= TOTAL_DAYS}
+          >
+            模擬下一天
+          </Button>
+          <Button variant="secondary" onClick={handleResetWeek} className="!p-2">
+            重置本週
+          </Button>
+          <Button variant="secondary" onClick={handleAutoFillWeek} className="!p-2 opacity-80">
+            一鍵生成三天
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
