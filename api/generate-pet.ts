@@ -41,6 +41,7 @@ const DEFAULT_LEONARDO_API_BASE = "https://cloud.leonardo.ai/api/rest/v1";
 const DEFAULT_NEGATIVE_PROMPT = "floating items, separate item preview, UI layout, interface card, text label, border frame, split screen, collage, empty costume shell, hollow body, missing clothes, missing shoes, missing accessory, missing headwear, missing handheld item, distorted body, extra limbs, cropped feet, cropped head, realistic photo, 3d render, blurry, low quality, messy background";
 const MAX_POLL_ATTEMPTS = 20;
 const POLL_INTERVAL_MS = 3000;
+const MAX_LEONARDO_PROMPT_LENGTH = 1450;
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -75,25 +76,34 @@ function extractApiError(body: Record<string, unknown> | null, fallback: string)
   return fallback;
 }
 
+function compactWhitespace(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function trimToLength(value: string, maxLength: number): string {
+  if (value.length <= maxLength) return value;
+
+  const trimmed = value.slice(0, maxLength - 1).trimEnd();
+  return `${trimmed}\u2026`;
+}
+
 function wrapLeonardoPrompt(finalPrompt: string): string {
-  return [
+  const wrappedPrompt = compactWhitespace([
     "Create one final full-body cute pixel-art music pet character.",
     "Use the provided analyzed asset descriptions as strict design requirements.",
     finalPrompt.trim(),
-    "Critical composition rules:",
-    "* Generate only one complete character.",
-    "* Do not generate a UI screen.",
-    "* Do not show item cards or separate item previews.",
-    "* Do not place the clothes, shoes, headwear, handheld item, or accessory outside the character.",
-    "* All selected items must be naturally integrated into the character design.",
-    "* Keep the base character identity, body shape, silhouette, proportions, and front-facing pose.",
-    "* Keep the character fully rendered with no hollow gaps.",
-    "* The shoes must be visible on both feet.",
-    "* The face must remain readable.",
-    "* The lower body and feet must remain readable.",
-    "* Use clean soft pixel art, warm creamy colors, clear outlines, and a polished game-character asset style.",
-    "* Center the character on a simple clean background.",
-  ].join("\n");
+    "Generate only one complete character.",
+    "Do not generate a UI screen, cards, previews, labels, or floating items.",
+    "All selected items must be naturally integrated into the character design.",
+    "Keep the base character identity, body shape, silhouette, proportions, and front-facing pose.",
+    "Keep the character fully rendered with no hollow gaps.",
+    "The shoes must be visible on both feet.",
+    "The face, lower body, and feet must remain readable.",
+    "Use clean soft pixel art, warm creamy colors, clear outlines, and a polished game-character asset style.",
+    "Center the character on a simple clean background.",
+  ].join(" "));
+
+  return trimToLength(wrappedPrompt, MAX_LEONARDO_PROMPT_LENGTH);
 }
 
 async function createGeneration(options: { apiKey: string; prompt: string; negativePrompt: string }): Promise<string> {
