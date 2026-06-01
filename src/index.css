@@ -54,10 +54,9 @@
     color: var(--color-text);
     font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
     background:
-      radial-gradient(circle at 12% 10%, rgba(255,255,255,0.18) 0 2px, transparent 2px 100%),
-      radial-gradient(circle at 82% 8%, rgba(183,255,94,0.28) 0 3px, transparent 3px 100%),
-      linear-gradient(180deg, var(--color-page) 0%, var(--color-page-dark) 100%);
-    background-size: 48px 48px, 72px 72px, 100% 100%;
+      radial-gradient(circle at 24px 24px, rgba(255,255,255,0.18) 0 1.5px, transparent 1.5px),
+      linear-gradient(180deg, #2F7BFF 0%, #2F7BFF 100%);
+    background-size: 56px 56px, 100% 100%;
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -118,40 +117,16 @@
 .page-wrapper {
   width: 100%;
   background:
-    radial-gradient(circle at 20px 20px, rgba(255,255,255,0.28) 0 2px, transparent 2px),
-    linear-gradient(180deg, #3483ff 0%, #2a72eb 100%);
-  background-size: 40px 40px, 100% 100%;
+    radial-gradient(circle at 18px 18px, rgba(255,255,255,0.16) 0 1.5px, transparent 1.5px),
+    linear-gradient(180deg, #2F7BFF 0%, #2F7BFF 100%);
+  background-size: 60px 60px, 100% 100%;
   color: var(--color-text);
   position: relative;
 }
 
 .page-wrapper::before,
 .page-wrapper::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.page-wrapper::before {
-  width: 120px;
-  height: 120px;
-  right: -22px;
-  top: 102px;
-  background:
-    radial-gradient(circle, rgba(255,255,255,0.72) 0 8px, transparent 8px 100%),
-    radial-gradient(circle, rgba(255,122,217,0.68) 0 4px, transparent 4px 100%);
-  background-size: 56px 56px, 28px 28px;
-  opacity: 0.35;
-}
-
-.page-wrapper::after {
-  left: -14px;
-  bottom: 108px;
-  width: 104px;
-  height: 52px;
-  border-bottom: 6px dotted rgba(255,230,66,0.95);
-  opacity: 0.8;
+  display: none;
 }
 
 .page-wrapper > * {
@@ -168,21 +143,17 @@
 
 .page-title {
   font-size: clamp(2rem, 6.8vw, 2.65rem);
-  font-weight: 1000;
-  line-height: 0.95;
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  font-weight: 800;
+  line-height: 1;
   letter-spacing: -0.045em;
-  color: #fff;
-  text-shadow:
-    2px 0 var(--color-black),
-    -2px 0 var(--color-black),
-    0 2px var(--color-black),
-    0 -2px var(--color-black),
-    4px 4px 0 rgba(17,17,17,0.18);
+  color: #ffffff;
+  text-shadow: 2px 2px 0 rgba(17, 17, 17, 0.18);
 }
 
 .page-subtitle {
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5;
   letter-spacing: 0.01em;
   color: rgba(255,255,255,0.96);
@@ -284,15 +255,12 @@
   letter-spacing: -0.03em;
   color: white;
   text-shadow:
-    2px 0 var(--color-black),
-    -2px 0 var(--color-black),
-    0 2px var(--color-black),
-    0 -2px var(--color-black);
+    2px 2px 0 var(--color-black);
 }
 
 .pixel-header p {
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--color-muted);
 }
 
