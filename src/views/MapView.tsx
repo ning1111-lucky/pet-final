@@ -157,9 +157,9 @@ export const MapView: React.FC = () => {
   return (
     <div className="page-stack">
       <div className="page-title-group pixel-dot-trail">
-        <div className="type-caption uppercase tracking-[0.18em] text-white/90">WORLD MAP</div>
-        <h2 className="page-title text-white drop-shadow-[0_3px_0_rgba(17,17,17,0.14)]">世界地圖</h2>
-        <p className="page-subtitle text-white/85">探索不同曲風區域，查看已上傳的音樂寵物與推薦世界。</p>
+        <div className="type-caption uppercase tracking-[0.18em]">WORLD MAP</div>
+        <h2 className="page-title">世界地圖</h2>
+        <p className="page-subtitle">探索不同曲風區域，查看已上傳的音樂寵物與推薦世界。</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -168,7 +168,7 @@ export const MapView: React.FC = () => {
         ))}
       </div>
 
-      <div className="single-column-flow">
+      <div className="page-stack">
       <div className="relative w-full aspect-square overflow-hidden rounded-[32px] border border-[rgba(17,17,17,0.06)] shadow-[var(--shadow-soft-lg)] bg-white p-2">
         <img
           src="/genre-map.png"
@@ -243,7 +243,7 @@ export const MapView: React.FC = () => {
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            className="fixed bottom-0 left-1/2 z-[60] w-[calc(100%-24px)] max-w-[560px] -translate-x-1/2 rounded-t-[32px] bg-[var(--color-card)] px-6 pb-12 pt-6 shadow-[0_-18px_38px_rgba(15,23,42,0.14)] md:bottom-6 md:rounded-[32px]"
+            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[60] bg-[var(--color-card)] rounded-t-[32px] shadow-[0_-18px_38px_rgba(15,23,42,0.14)] pb-12 pt-6 px-6"
             style={{ maxHeight: "80vh", overflowY: "auto" }}
           >
             <button

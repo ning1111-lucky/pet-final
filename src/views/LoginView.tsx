@@ -164,7 +164,7 @@ export const LoginView: React.FC = () => {
               className="items-start text-left"
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               {providerOptions.map((option) => {
                 const selected = musicProvider === option.value;
 
@@ -221,7 +221,7 @@ export const LoginView: React.FC = () => {
 
             <PixelSectionTitle eyebrow="STEP 2" title="建立你的音樂護照" variant="dark" className="items-start text-left" />
 
-            <div className="responsive-two-up">
+            <div className="grid gap-4">
               <div className="flex flex-col space-y-1">
                 <label className="type-label text-[var(--color-text)]">姓名 / 暱稱</label>
                 <input required value={name} onChange={e => setName(e.target.value)} className="pixel-input" />
@@ -231,7 +231,7 @@ export const LoginView: React.FC = () => {
                 <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="pixel-input" />
               </div>
             </div>
-            <div className="responsive-two-up">
+            <div className="grid gap-4">
               <div className="flex flex-col space-y-1 min-w-0">
                 <label className="type-label text-[var(--color-text)]">國家 / 地區</label>
                 <input required value={country} onChange={e => setCountry(e.target.value)} className="pixel-input" />

@@ -22,9 +22,9 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
   return (
     <div className="page-stack">
       <div className="page-title-group pixel-dot-trail">
-        <div className="type-caption uppercase tracking-[0.18em] text-white/90">MY COLLECTION</div>
-        <h2 className="page-title text-white drop-shadow-[0_3px_0_rgba(17,17,17,0.14)]">今日收錄物品</h2>
-        <p className="page-subtitle text-white/85">把本週掉落的服裝、鞋子與配件整理成你的收藏頁。</p>
+        <div className="type-caption uppercase tracking-[0.18em]">MY COLLECTION</div>
+        <h2 className="page-title">今日收錄物品</h2>
+        <p className="page-subtitle">把本週掉落的服裝、鞋子與配件整理成你的收藏頁。</p>
       </div>
 
       <div className="section-surface">

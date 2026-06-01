@@ -35,7 +35,7 @@ const getInitialActiveTab = (): ActiveTab => {
 };
 
 const BottomNavIcon = ({ type, active }: { type: string, active: boolean }) => {
-  const color = active ? "var(--color-text)" : "rgba(255,255,255,0.78)";
+  const color = active ? "var(--color-text)" : "rgba(17,17,17,0.62)";
 
   const NoteIcon = () => (
     <svg width="18" height="18" viewBox="0 0 20 20" fill={color} xmlns="http://www.w3.org/2000/svg">
@@ -91,35 +91,9 @@ const AppContent: React.FC = () => {
     return <LoginView />;
   }
 
-  const desktopTabs = (
-    <div className="desktop-nav hidden sm:flex">
-      {[
-        { key: "today" as const, label: "今日" },
-        { key: "items" as const, label: "物品" },
-        { key: "map" as const, label: "世界地圖" },
-      ].map((tab) => (
-        <button
-          key={tab.key}
-          type="button"
-          onClick={() => setActiveTab(tab.key)}
-          className={`desktop-nav-tab ${
-            activeTab === tab.key
-              ? "desktop-nav-tab-active"
-              : ""
-          }`}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-  );
-
   return (
-    <main className="page-wrapper relative flex flex-col">
+    <main className="page-wrapper app-shell relative flex flex-col">
        <PixelHeader />
-       <div className="px-4 pt-4 sm:px-6 lg:px-8">
-         {desktopTabs}
-       </div>
        
        <div className="page-content">
          {activeTab === "today" && <TodayView navigateTo={setActiveTab} />}
@@ -127,7 +101,7 @@ const AppContent: React.FC = () => {
          {activeTab === "map" && <MapView />}
        </div>
 
-       <nav className="pixel-nav-shell sm:hidden fixed bottom-4 left-4 right-4 z-50 flex items-center py-2 px-2 max-w-[calc(100%-2rem)] mx-auto">
+       <nav className="pixel-nav-shell fixed bottom-0 left-1/2 z-50 flex w-full max-w-[430px] -translate-x-1/2 items-center px-2 py-2">
           <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
              <BottomNavIcon type="today" active={activeTab === "today"} />
              <span className="pixel-nav-tab-label mt-1">今日</span>
