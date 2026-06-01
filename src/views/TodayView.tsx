@@ -621,19 +621,19 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   }
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       <div className="page-title-group pixel-dot-trail" onClick={handleSecretTitleTap}>
-        <div className="type-caption uppercase tracking-[0.18em] text-white/95">Melody Pet Map</div>
+        <div className="type-caption uppercase tracking-[0.18em]">MELODY PET MAP</div>
         <h2 className="page-title">
           {isPetGenerationStage ? "音樂寵物生成" : "今日音樂分析"}
         </h2>
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          <span className="info-chip bg-[var(--color-green)]">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="info-chip bg-[var(--color-primary)]">
             Day {safeDay}/{TOTAL_DAYS}
           </span>
-          <PixelBadge>Source: {providerLabel}</PixelBadge>
+          <PixelBadge>來源：{providerLabel}</PixelBadge>
           {activeMusicProvider === "spotify" && spotifyConnected && spotifyDisplayName && (
-            <PixelBadge className="bg-white">Connected: {spotifyDisplayName}</PixelBadge>
+            <PixelBadge className="bg-white">已連線：{spotifyDisplayName}</PixelBadge>
           )}
         </div>
       </div>
@@ -650,7 +650,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                   : "目前是體驗模式，使用隨機示範資料。"}
             </div>
           </div>
-          <PixelBadge className="bg-[var(--color-green)]">{providerLabel}</PixelBadge>
+          <PixelBadge className="bg-[var(--color-primary)]">{providerLabel}</PixelBadge>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -673,7 +673,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               <button
                 type="button"
                 onClick={() => handleProviderChange("spotify")}
-                className={`text-left rounded-xl border-[2px] px-4 py-3 ${activeMusicProvider === "spotify" ? "border-[var(--color-caramel)] bg-[var(--color-cream)]" : "border-[var(--color-line)] bg-white"}`}
+                className={`text-left rounded-[18px] border px-4 py-3 ${activeMusicProvider === "spotify" ? "border-[rgba(17,17,17,0.08)] bg-[var(--color-primary)]" : "border-[var(--color-line)] bg-white"}`}
               >
                 <div className="type-label">Spotify</div>
                 <div className="type-caption text-[var(--color-muted)] mt-1">Spotify 直連，授權後直接讀最近播放與常聽風格。</div>
@@ -681,7 +681,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               <button
                 type="button"
                 onClick={() => handleProviderChange("lastfm")}
-                className={`text-left rounded-xl border-[2px] px-4 py-3 ${activeMusicProvider === "lastfm" ? "border-[var(--color-caramel)] bg-[var(--color-cream)]" : "border-[var(--color-line)] bg-white"}`}
+                className={`text-left rounded-[18px] border px-4 py-3 ${activeMusicProvider === "lastfm" ? "border-[rgba(17,17,17,0.08)] bg-[var(--color-primary)]" : "border-[var(--color-line)] bg-white"}`}
               >
                 <div className="type-label">通用同步模式</div>
                 <div className="type-caption text-[var(--color-muted)] mt-1">適合 YouTube Music、Apple Music、網易雲與其他可同步到 Last.fm 的平台。</div>
@@ -694,7 +694,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                 <input
                   value={draftLastfmUsername}
                   onChange={(event) => setDraftLastfmUsername(event.target.value)}
-                  className="w-full min-w-0 pixel-border p-2 bg-[var(--color-cream)] outline-none focus:border-[var(--color-caramel)]"
+                  className="pixel-input"
                   placeholder="例如：musiclover123"
                 />
                 <div className="flex justify-end">
@@ -742,7 +742,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
       {mockMusic && (
         <section className="section-surface flex flex-col space-y-4">
-          <PixelSectionTitle title="相關數據" subtitle="把今天的聽歌紀錄整理成像素寵物分析資料。" variant="dark" />
+          <PixelSectionTitle title="相關數據" subtitle="把今天的聽歌紀錄整理成清楚的分析資料。" variant="dark" />
 
           <div className="metric-row">
             <div className="type-label">聽歌數量</div>
@@ -758,12 +758,12 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
           <div className="metric-row">
             <div className="type-label">推薦主風格</div>
-            <div className="type-h2">{normalizeGenre((mockMusic.assetGenre || mockMusic.mainGenre) as string).toUpperCase()}</div>
+            <div className="type-h2">{normalizeGenre((mockMusic.assetGenre || mockMusic.mainGenre) as string)}</div>
           </div>
 
           <div className="metric-row">
             <div className="type-label">推薦次風格</div>
-            <div className="type-h2">{normalizeGenre((mockMusic.subGenre || "Pop") as string).toUpperCase()}</div>
+            <div className="type-h2">{normalizeGenre((mockMusic.subGenre || "Pop") as string)}</div>
           </div>
 
           <div className="section-plain">
@@ -863,7 +863,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                   imageSrc={item.imageSrc}
                   className="w-32 h-32"
                 />
-                <div className="type-caption text-[var(--color-caramel)]">
+                <div className="type-caption text-[var(--color-text-secondary)]">
                   已收錄至本週收藏
                 </div>
               </div>
@@ -879,12 +879,12 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           <div className="mb-4">
             <div className="type-h2">{mainGenre} 音樂精靈</div>
             <div className="flex justify-center gap-2 mt-2 flex-wrap">
-              <span className="info-chip bg-[var(--color-green)]">主：{mainGenre}</span>
+              <span className="info-chip bg-[var(--color-primary)]">主：{mainGenre}</span>
               <span className="info-chip bg-white">副：{subGenre}</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mb-4 section-plain bg-[var(--color-panel)]">
+          <div className="grid grid-cols-3 gap-2 mb-4 section-plain bg-[var(--color-card-secondary)]">
             {[
               { key: "base", src: selectedBase, label: "base" },
               { key: "clothes", src: selectedClothes, label: "clothes" },
@@ -895,7 +895,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             ].map((item) => (
               <div
                 key={item.key}
-                className="aspect-square bg-white border-[3px] border-[var(--color-black)] flex items-center justify-center p-1 rounded-[14px]"
+                className="aspect-square bg-white border border-[rgba(17,17,17,0.08)] flex items-center justify-center p-1 rounded-[16px] shadow-[var(--shadow-soft)]"
               >
                 <img
                   src={item.src || undefined}
@@ -945,7 +945,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               {finalPrompt && (
                 <div className="space-y-1">
                   <div className="type-label">Gemini final_prompt_en</div>
-                  <pre className="whitespace-pre-wrap break-words rounded-xl border-[3px] border-[var(--color-black)] bg-[var(--color-card)] p-3 text-xs leading-6 text-[var(--color-text)]">
+                  <pre className="whitespace-pre-wrap break-words rounded-[18px] border border-[rgba(17,17,17,0.08)] bg-[var(--color-card)] p-3 text-xs leading-6 text-[var(--color-text)]">
                     {finalPrompt}
                   </pre>
                 </div>
@@ -959,7 +959,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
           {generatedImageUrl ? (
             <div className="mb-6 flex flex-col items-center">
-              <div className="w-48 h-48 border-[4px] border-[var(--color-black)] rounded-[22px] bg-white p-2 shadow-[6px_6px_0_var(--color-black)] relative overflow-hidden">
+              <div className="w-48 h-48 border border-[rgba(17,17,17,0.08)] rounded-[24px] bg-white p-2 shadow-[var(--shadow-soft)] relative overflow-hidden">
                 {imgLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 type-caption text-[var(--color-muted)] text-center px-2 border-2 border-dashed border-gray-300">
                     正在載入圖片...

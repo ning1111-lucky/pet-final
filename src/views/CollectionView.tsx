@@ -20,30 +20,40 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
   };
 
   return (
-    <div className="space-y-5">
+    <div className="page-stack">
       <div className="page-title-group pixel-dot-trail">
-        <div className="type-caption uppercase tracking-[0.18em] text-white/95">ITEM REWARD</div>
-        <h2 className="page-title">本週收集</h2>
-        <p className="page-subtitle">像素奖励会按天掉落，先收齐五个关键部件，再完成本周音乐宠物。</p>
+        <div className="type-caption uppercase tracking-[0.18em]">MY COLLECTION</div>
+        <h2 className="page-title">今日收錄物品</h2>
+        <p className="page-subtitle">把本週掉落的服裝、鞋子與配件整理成你的收藏頁。</p>
       </div>
 
       <div className="section-surface">
-        <PixelSectionTitle title="COLLECTED ITEMS" subtitle="已收錄的素材會在這裡像遊戲獎勵一樣排列。" variant="dark" />
+        <div className="flex flex-wrap gap-2 mb-4">
+          <PixelBadge className="bg-[var(--color-primary)]">全部</PixelBadge>
+          <PixelBadge className="bg-white">服裝</PixelBadge>
+          <PixelBadge className="bg-white">鞋子</PixelBadge>
+          <PixelBadge className="bg-white">配飾</PixelBadge>
+        </div>
+        <PixelSectionTitle title="本週收藏" subtitle="已收錄的素材會在這裡像收藏卡一樣排列。" variant="dark" />
         <div className="grid grid-cols-2 gap-4 mt-4">
         {collectedItems.map((item, index) => {
           if (!item) {
             return (
-              <div key={index} className="aspect-square bg-white pixel-border pixel-shadow flex items-center justify-center text-[var(--color-text)] opacity-50 relative border-dashed">
+              <div key={index} className="aspect-square bg-white pixel-border pixel-shadow flex items-center justify-center text-[var(--color-text)] opacity-50 relative border-dashed rounded-[24px]">
                 <div className="absolute top-1 left-2 font-bold opacity-40">D{index + 1}</div>
                 <div className="text-4xl">❓</div>
               </div>
             );
           }
           return (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} key={index} className="aspect-square bg-white pixel-border pixel-shadow flex flex-col items-center justify-center p-2 relative">
-               <div className="absolute top-1 left-2 text-xs font-bold bg-[var(--color-green)] border-2 border-[var(--color-black)] px-1 rounded-md">D{index + 1}</div>
-               <div className="absolute right-2 top-2"><PixelBadge className="bg-white">COLLECTED</PixelBadge></div>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} key={index} className="aspect-square bg-white pixel-border pixel-shadow flex flex-col items-center justify-center p-3 relative rounded-[24px]">
+               <div className="absolute top-3 left-3 text-xs font-bold bg-[var(--color-primary)] px-2 py-1 rounded-full">D{index + 1}</div>
+               <div className="absolute right-3 top-3"><PixelBadge className="bg-white">COLLECTED</PixelBadge></div>
                <PixelItemPlaceholder genre={item.genre} part={item.part} imageSrc={item.imageSrc} className="w-full h-full border-none shadow-none bg-transparent" />
+               <div className="mt-2 text-center">
+                 <div className="type-label">{item.label || `${item.genre} ${item.part}`}</div>
+                 <div className="type-caption mt-1">已收錄至本週收藏</div>
+               </div>
             </motion.div>
           );
         })}
@@ -51,9 +61,9 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
       </div>
 
       {isWeekFull && (
-        <div className="section-surface text-center mt-2">
+        <div className="section-surface text-center">
            <h3 className="type-h2 mb-2">收集完成</h3>
-           <p className="type-body mb-4">你已經集滿本週五件物品，可以前往 Day 3 直接生成音樂寵物。</p>
+           <p className="type-body mb-4">你已經集滿本週五件物品，可以回到今日分析完成最終寵物生成。</p>
            <Button onClick={handleGenPet} className="w-full">✨ 切換至今日（D3）確認生成音樂寵物 ✨</Button>
         </div>
       )}

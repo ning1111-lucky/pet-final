@@ -9,7 +9,9 @@ export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttrib
       ref={ref}
       className={cn(
         "pixel-button type-button px-4 py-3 select-none text-center",
-        variant === "primary" ? "bg-[var(--color-green)] text-[var(--color-black)]" : "bg-[var(--color-card)] text-[var(--color-black)]",
+        variant === "primary"
+          ? "bg-[var(--color-primary)] text-[var(--color-text)]"
+          : "bg-[var(--color-card)] text-[var(--color-text)]",
         className
       )}
       {...props}
@@ -27,7 +29,7 @@ export const Card = ({ children, className }: { children: React.ReactNode; class
 };
 
 export const PixelBadge = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <span className={cn("info-chip type-caption uppercase tracking-[0.08em]", className)}>{children}</span>
+  <span className={cn("info-chip", className)}>{children}</span>
 );
 
 export const PixelSectionTitle = ({
@@ -60,7 +62,7 @@ export const PixelProgressBar = ({
       {segments.map((segment, index) => (
         <div
           key={`${segment.label}-${index}`}
-          className="h-full flex items-center justify-center overflow-hidden whitespace-nowrap text-[8px] font-black text-[var(--color-black)]"
+          className="h-full flex items-center justify-center overflow-hidden whitespace-nowrap text-[8px] font-black text-[var(--color-text)]"
           style={{ width: `${segment.percentage}%`, backgroundColor: segment.color }}
         >
           {segment.percentage > 12 ? segment.label : ""}
@@ -104,7 +106,7 @@ export const PixelItemPlaceholder: React.FC<{
   }, [imagePath]);
 
   return (
-    <div className={cn("flex flex-col items-center justify-center p-2 bg-[var(--color-cream)] border-2 border-dashed border-[var(--color-brown)] rounded-sm overflow-hidden relative group", className)}>
+    <div className={cn("flex flex-col items-center justify-center p-2 bg-[var(--color-card-secondary)] border border-[rgba(17,17,17,0.08)] rounded-[18px] overflow-hidden relative group", className)}>
       {imagePath && !imageFailed ? (
         <div className="flex flex-col items-center">
           <img
@@ -126,7 +128,7 @@ export const PixelItemPlaceholder: React.FC<{
         <div className="flex flex-col items-center">
           <div className="text-3xl relative">
             <span>{getPartIcon(part)}</span>
-            <span className="absolute bottom-[-4px] right-[-4px] text-lg bg-[var(--color-cream)] rounded-full pt-1">{getGenreIcon(genre)}</span>
+            <span className="absolute bottom-[-4px] right-[-4px] text-lg bg-white rounded-full pt-1">{getGenreIcon(genre)}</span>
           </div>
           <div className="type-caption mt-2 text-center text-red-500">缺少素材：{genre} {part}</div>
         </div>
@@ -148,19 +150,19 @@ export const PetPlaceholder: React.FC<{
 
   return (
     <div className={cn("flex items-center justify-center p-4", className)}>
-      <div className={cn("bg-[var(--color-cream)] border-[4px] border-[var(--color-brown)] relative shadow-inner overflow-hidden flex items-center justify-center", shapeClass)}>
+      <div className={cn("bg-white border border-[rgba(17,17,17,0.08)] relative shadow-inner overflow-hidden flex items-center justify-center", shapeClass)}>
         {/* Eyes */}
         <div className="absolute top-[35%] flex w-full justify-center space-x-6">
-          <div className="w-2 h-2 bg-[var(--color-brown)] rounded-full"></div>
-          <div className="w-2 h-2 bg-[var(--color-brown)] rounded-full"></div>
+          <div className="w-2 h-2 bg-[var(--color-text)] rounded-full"></div>
+          <div className="w-2 h-2 bg-[var(--color-text)] rounded-full"></div>
         </div>
         {/* Blush */}
         <div className="absolute top-[45%] flex w-full justify-center space-x-8 opacity-60">
-          <div className="w-3 h-1.5 bg-[var(--color-blush)] rounded-full"></div>
-          <div className="w-3 h-1.5 bg-[var(--color-blush)] rounded-full"></div>
+          <div className="w-3 h-1.5 bg-[var(--color-pink)] rounded-full"></div>
+          <div className="w-3 h-1.5 bg-[var(--color-pink)] rounded-full"></div>
         </div>
         {/* Mouth */}
-        <div className="absolute top-[45%] w-3 h-2 border-b-2 border-r-2 border-[var(--color-brown)] rounded-br-full transform rotate-45"></div>
+        <div className="absolute top-[45%] w-3 h-2 border-b-2 border-r-2 border-[var(--color-text)] rounded-br-full transform rotate-45"></div>
       </div>
     </div>
   );

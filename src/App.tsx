@@ -35,64 +35,47 @@ const getInitialActiveTab = (): ActiveTab => {
 };
 
 const BottomNavIcon = ({ type, active }: { type: string, active: boolean }) => {
-  const color = "var(--color-black)";
-  const bg = active ? "var(--color-green)" : "var(--color-card)";
-  const shadow = active ? "2px 2px 0 var(--color-black)" : "4px 4px 0 rgba(17,17,17,0.18)";
-  const transform = active ? "translateY(2px)" : "none";
+  const color = active ? "var(--color-text)" : "rgba(255,255,255,0.78)";
 
   const NoteIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill={color} xmlns="http://www.w3.org/2000/svg" style={{ shapeRendering: "crispEdges" }}>
-      <rect x="5" y="11" width="5" height="4" />
-      <rect x="8" y="4" width="2" height="7" />
-      <rect x="8" y="3" width="7" height="2" />
-      <rect x="14" y="4" width="2" height="3" />
+    <svg width="18" height="18" viewBox="0 0 20 20" fill={color} xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.5 3.5v8.2a2.8 2.8 0 1 1-1.4-2.44V6.3L7.9 7.4v5.3a2.8 2.8 0 1 1-1.4-2.44V5.7a1 1 0 0 1 .75-.97l5.2-1.3a1 1 0 0 1 1.05.07Z" />
     </svg>
   );
 
   const BoxIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" strokeWidth="2" stroke={color} xmlns="http://www.w3.org/2000/svg" style={{ shapeRendering: "crispEdges" }}>
-      <rect x="6" y="5" width="8" height="3" fill="transparent" />
-      <rect x="4" y="8" width="12" height="7" fill="transparent" />
-      <rect x="9" y="8" width="2" height="3" fill={color} />
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" strokeWidth="1.8" stroke={color} xmlns="http://www.w3.org/2000/svg">
+      <path d="M4.8 6.3 10 3.8l5.2 2.5v7.4L10 16.2l-5.2-2.5V6.3Z" />
+      <path d="M4.8 6.3 10 8.8l5.2-2.5" />
+      <path d="M10 8.8v7.4" />
     </svg>
   );
 
   const MapIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" strokeWidth="2" stroke={color} xmlns="http://www.w3.org/2000/svg" style={{ shapeRendering: "crispEdges" }}>
-      <rect x="3" y="4" width="14" height="12" fill="transparent" />
-      <line x1="8" y1="4" x2="8" y2="16" strokeDasharray="2 2" />
-      <line x1="13" y1="4" x2="13" y2="16" strokeDasharray="2 2" />
-      <rect x="5" y="8" width="2" height="2" fill={color} stroke="none" />
-    </svg>
-  );
-
-  const BookIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" strokeWidth="2" stroke={color} xmlns="http://www.w3.org/2000/svg" style={{ shapeRendering: "crispEdges" }}>
-      <rect x="4" y="3" width="12" height="14" fill="transparent" />
-      <rect x="5" y="3" width="2" height="14" fill={color} stroke="none" />
-      <rect x="10" y="6" width="3" height="2" fill={color} stroke="none" />
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" strokeWidth="1.8" stroke={color} xmlns="http://www.w3.org/2000/svg">
+      <path d="M3.6 5.4 8 3.8l4 2 4.4-2v10.8L12 16.2l-4-2-4.4 1.6V5.4Z" />
+      <path d="M8 3.8v10.4" />
+      <path d="M12 5.8v10.4" />
     </svg>
   );
 
   return (
-    <div style={{ backgroundColor: bg, boxShadow: shadow, transform: transform }}
-         className="w-10 h-10 border-[3px] border-[var(--color-black)] flex items-center justify-center rounded-[14px] transition-all">
+    <div className="modern-tab-icon">
       {type === "today" && <NoteIcon />}
       {type === "items" && <BoxIcon />}
       {type === "map" && <MapIcon />}
-      {type === "pokedex" && <BookIcon />}
     </div>
   );
 };
 
 const PixelHeader = () => (
   <header className="pixel-header">
-    <div className="logo-chip">♫</div>
+    <div className="logo-chip">♪</div>
     <div className="page-title-group">
-      <h1>PLAYLIST PET</h1>
-      <p>連接你的音樂，孵化風格寵物</p>
+      <h1>Playlist Pet</h1>
+      <p>把你的聽歌紀錄孵化成音樂寵物</p>
     </div>
-    <div className="logo-chip" style={{ background: "var(--color-yellow)" }}>✦</div>
+    <div className="logo-chip" style={{ background: "linear-gradient(180deg, #fff6fb 0%, #ffe4f2 100%)" }}>♡</div>
   </header>
 );
 
@@ -109,7 +92,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <main className="page-wrapper relative flex flex-col shadow-2xl">
+    <main className="page-wrapper relative flex flex-col">
        <PixelHeader />
        
        <div className="page-content">
@@ -118,7 +101,7 @@ const AppContent: React.FC = () => {
          {activeTab === "map" && <MapView />}
        </div>
 
-       <nav className="pixel-nav-shell absolute bottom-0 left-0 right-0 z-50 flex items-center py-2 px-2">
+       <nav className="pixel-nav-shell absolute bottom-4 left-4 right-4 z-50 flex items-center py-2 px-2">
           <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
              <BottomNavIcon type="today" active={activeTab === "today"} />
              <span className="pixel-nav-tab-label mt-1">今日</span>
