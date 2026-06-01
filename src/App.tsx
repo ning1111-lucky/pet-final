@@ -109,7 +109,7 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="page-wrapper w-full max-w-[430px] mx-auto min-h-[100dvh] relative flex flex-col shadow-2xl overflow-x-hidden">
+    <main className="page-wrapper relative flex flex-col shadow-2xl">
        <PixelHeader />
        
        <div className="flex-1 overflow-y-auto pb-24">
@@ -132,7 +132,7 @@ const AppContent: React.FC = () => {
              <span className="pixel-nav-tab-label mt-1">世界地圖</span>
           </button>
        </nav>
-    </div>
+    </main>
   );
 };
 
