@@ -157,9 +157,9 @@ export const MapView: React.FC = () => {
   return (
     <div className="page-stack">
       <div className="page-title-group pixel-dot-trail">
-        <div className="type-caption uppercase tracking-[0.18em]">WORLD MAP</div>
-        <h2 className="page-title">世界地圖</h2>
-        <p className="page-subtitle">探索不同曲風區域，查看已上傳的音樂寵物與推薦世界。</p>
+        <div className="type-caption uppercase tracking-[0.18em] text-white/90">WORLD MAP</div>
+        <h2 className="page-title text-white drop-shadow-[0_3px_0_rgba(17,17,17,0.14)]">世界地圖</h2>
+        <p className="page-subtitle text-white/85">探索不同曲風區域，查看已上傳的音樂寵物與推薦世界。</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -168,7 +168,7 @@ export const MapView: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+      <div className="single-column-flow">
       <div className="relative w-full aspect-square overflow-hidden rounded-[32px] border border-[rgba(17,17,17,0.06)] shadow-[var(--shadow-soft-lg)] bg-white p-2">
         <img
           src="/genre-map.png"

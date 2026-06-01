@@ -623,8 +623,8 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   return (
     <div className="page-stack">
       <div className="page-title-group pixel-dot-trail" onClick={handleSecretTitleTap}>
-        <div className="type-caption uppercase tracking-[0.18em]">MELODY PET MAP</div>
-        <h2 className="page-title">
+        <div className="type-caption uppercase tracking-[0.18em] text-white/90">MELODY PET MAP</div>
+        <h2 className="page-title text-white drop-shadow-[0_3px_0_rgba(17,17,17,0.14)]">
           {isPetGenerationStage ? "音樂寵物生成" : "今日音樂分析"}
         </h2>
         <div className="flex items-center gap-2 flex-wrap">
@@ -638,7 +638,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="single-column-flow">
       <section className="section-surface space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
