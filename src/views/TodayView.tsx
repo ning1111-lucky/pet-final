@@ -638,6 +638,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
         </div>
       </div>
 
+      <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
       <section className="section-surface space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -712,6 +713,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
         )}
       </section>
 
+      <div className="space-y-5">
       {musicLoadError && (
         <section className="section-surface text-center space-y-4">
           <div>
@@ -787,12 +789,14 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           </div>
         </section>
       )}
+      </div>
+      </div>
 
       {mockMusic && !hasGeneratedToday && (
         <section className="section-surface text-center">
           <PixelSectionTitle title="今日生成組合" subtitle="今天會同时使用主风格与次风格来掉落像素奖励。" variant="dark" />
 
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
             {todaysPreviewItems.map((item) => (
               <div key={item.id} className="section-plain bg-white text-center">
                 <div className="type-caption mb-2 text-[var(--color-text)] uppercase">{item.label}</div>
@@ -852,7 +856,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className={`grid gap-3 ${todaysGeneratedItems.length > 1 ? "grid-cols-2" : "grid-cols-1"} items-start`}
+            className={`grid gap-3 ${todaysGeneratedItems.length > 1 ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-1"} items-start`}
           >
             {todaysGeneratedItems.map((item) => (
               <div key={item.id} className="section-plain flex flex-col items-center justify-center space-y-3 min-h-[160px] bg-white">
@@ -884,7 +888,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mb-4 section-plain bg-[var(--color-card-secondary)]">
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4 section-plain bg-[var(--color-card-secondary)]">
             {[
               { key: "base", src: selectedBase, label: "base" },
               { key: "clothes", src: selectedClothes, label: "clothes" },

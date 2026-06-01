@@ -35,7 +35,7 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
           <PixelBadge className="bg-white">配飾</PixelBadge>
         </div>
         <PixelSectionTitle title="本週收藏" subtitle="已收錄的素材會在這裡像收藏卡一樣排列。" variant="dark" />
-        <div className="grid grid-cols-2 gap-4 mt-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         {collectedItems.map((item, index) => {
           if (!item) {
             return (

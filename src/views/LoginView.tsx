@@ -95,11 +95,11 @@ export const LoginView: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="page-stack">
       <div className="w-full space-y-5">
-        <section className="pixel-card relative overflow-hidden bg-white px-6 pt-6 pb-6">
+        <section className="pixel-card relative overflow-hidden bg-white px-6 pt-6 pb-6 lg:grid lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:items-center">
           <div className="absolute top-4 right-4 text-[18px] leading-none text-[var(--color-pink)] opacity-80">♡</div>
           <div className="absolute bottom-5 right-6 text-[16px] leading-none text-[var(--color-primary-strong)] opacity-70">✦</div>
 
-          <div className="grid grid-cols-[1fr_112px] gap-4 items-start">
+          <div className="grid grid-cols-[1fr_112px] gap-4 items-start lg:grid-cols-1">
             <div className="space-y-4">
               <div className="space-y-2">
                 <PixelBadge className="bg-[var(--color-primary)] text-[var(--color-text)]">MUSIC PET HATCH</PixelBadge>
@@ -135,7 +135,7 @@ export const LoginView: React.FC = () => {
               </div>
             </div>
 
-            <div className="relative h-[182px]">
+            <div className="relative h-[182px] lg:hidden">
               <div className="absolute left-0 top-8 w-[84px] rounded-[22px] bg-[var(--color-card-secondary)] p-2 shadow-[var(--shadow-soft)] rotate-[-8deg]">
                 <img src="/base-1.png" alt="music pet card" className="w-full rounded-[18px] bg-[#ffe9f2] p-2" />
                 <div className="type-caption mt-2">Pet Seed</div>
@@ -152,6 +152,17 @@ export const LoginView: React.FC = () => {
               </div>
             </div>
           </div>
+          <div className="hidden lg:flex items-center justify-center">
+            <div className="relative h-[280px] w-full max-w-[340px] rounded-[32px] bg-[var(--color-card-secondary)] shadow-[var(--shadow-soft-lg)] overflow-hidden p-6">
+              <div className="absolute inset-x-6 top-6 rounded-[24px] bg-white p-5 shadow-[var(--shadow-soft)]">
+                <img src="/base-3.png" alt="music pet visual" className="w-full h-[180px] object-contain" />
+              </div>
+              <div className="absolute left-5 bottom-5 rounded-[18px] bg-[var(--color-primary)] px-4 py-3 shadow-[var(--shadow-soft)]">
+                <div className="type-label">Collect 3 days</div>
+                <div className="type-caption mt-1">Generate your own pet</div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <Card className="w-full px-5 py-5 space-y-5 bg-white">
@@ -164,7 +175,7 @@ export const LoginView: React.FC = () => {
               className="items-start text-left"
             />
 
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {providerOptions.map((option) => {
                 const selected = musicProvider === option.value;
 
@@ -221,15 +232,17 @@ export const LoginView: React.FC = () => {
 
             <PixelSectionTitle eyebrow="STEP 2" title="建立你的音樂護照" variant="dark" className="items-start text-left" />
 
-            <div className="flex flex-col space-y-1">
-              <label className="type-label text-[var(--color-text)]">姓名 / 暱稱</label>
-              <input required value={name} onChange={e => setName(e.target.value)} className="pixel-input" />
+            <div className="responsive-two-up">
+              <div className="flex flex-col space-y-1">
+                <label className="type-label text-[var(--color-text)]">姓名 / 暱稱</label>
+                <input required value={name} onChange={e => setName(e.target.value)} className="pixel-input" />
+              </div>
+              <div className="flex flex-col space-y-1">
+                <label className="type-label text-[var(--color-text)]">Email</label>
+                <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="pixel-input" />
+              </div>
             </div>
-            <div className="flex flex-col space-y-1">
-              <label className="type-label text-[var(--color-text)]">Email</label>
-              <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="pixel-input" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="responsive-two-up">
               <div className="flex flex-col space-y-1 min-w-0">
                 <label className="type-label text-[var(--color-text)]">國家 / 地區</label>
                 <input required value={country} onChange={e => setCountry(e.target.value)} className="pixel-input" />

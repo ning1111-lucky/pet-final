@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useApp } from "../AppContext";
-import { PetPlaceholder } from "../components/UI";
+import { PetPlaceholder, PixelSectionTitle } from "../components/UI";
 import { Genre, MapEntry, MusicItem } from "../types";
 import { motion, AnimatePresence } from "motion/react";
 import { getBaseType, MOCK_MAP_ENTRIES } from "../mockData";
@@ -168,6 +168,7 @@ export const MapView: React.FC = () => {
         ))}
       </div>
 
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
       <div className="relative w-full aspect-square overflow-hidden rounded-[32px] border border-[rgba(17,17,17,0.06)] shadow-[var(--shadow-soft-lg)] bg-white p-2">
         <img
           src="/genre-map.png"
@@ -205,6 +206,7 @@ export const MapView: React.FC = () => {
         })}
       </div>
 
+      <div className="space-y-5">
       <div className="section-surface grid grid-cols-3 gap-3 text-center">
         <div className="section-plain bg-white">
           <div className="type-caption text-[var(--color-muted)]">世界寵物數</div>
@@ -219,6 +221,21 @@ export const MapView: React.FC = () => {
           <div className="type-label mt-1 line-clamp-1">{latestCity}</div>
         </div>
       </div>
+      <div className="section-surface">
+        <PixelSectionTitle title="推薦區域" subtitle="目前已解鎖的曲風會優先出現在對應世界區塊中。" variant="dark" />
+        <div className="flex flex-wrap gap-2 mt-4">
+          {Object.entries(genreCounts)
+            .sort((a, b) => Number(b[1]) - Number(a[1]))
+            .slice(0, 6)
+            .map(([genre, count], index) => (
+              <span key={genre} className={`info-chip ${index === 0 ? "bg-[var(--color-primary)]" : "bg-white"}`}>
+                {genre} · {count}
+              </span>
+            ))}
+        </div>
+      </div>
+      </div>
+      </div>
 
       <AnimatePresence>
         {selectedEntry && (
@@ -226,7 +243,7 @@ export const MapView: React.FC = () => {
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[60] bg-[var(--color-card)] rounded-t-[32px] shadow-[0_-18px_38px_rgba(15,23,42,0.14)] pb-12 pt-6 px-6"
+            className="fixed bottom-0 left-1/2 z-[60] w-[calc(100%-24px)] max-w-[560px] -translate-x-1/2 rounded-t-[32px] bg-[var(--color-card)] px-6 pb-12 pt-6 shadow-[0_-18px_38px_rgba(15,23,42,0.14)] md:bottom-6 md:rounded-[32px]"
             style={{ maxHeight: "80vh", overflowY: "auto" }}
           >
             <button

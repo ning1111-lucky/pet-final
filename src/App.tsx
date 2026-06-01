@@ -91,9 +91,35 @@ const AppContent: React.FC = () => {
     return <LoginView />;
   }
 
+  const desktopTabs = (
+    <div className="desktop-nav hidden sm:flex">
+      {[
+        { key: "today" as const, label: "今日" },
+        { key: "items" as const, label: "物品" },
+        { key: "map" as const, label: "世界地圖" },
+      ].map((tab) => (
+        <button
+          key={tab.key}
+          type="button"
+          onClick={() => setActiveTab(tab.key)}
+          className={`desktop-nav-tab ${
+            activeTab === tab.key
+              ? "desktop-nav-tab-active"
+              : ""
+          }`}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <main className="page-wrapper relative flex flex-col">
        <PixelHeader />
+       <div className="px-4 pt-4 sm:px-6 lg:px-8">
+         {desktopTabs}
+       </div>
        
        <div className="page-content">
          {activeTab === "today" && <TodayView navigateTo={setActiveTab} />}
@@ -101,7 +127,7 @@ const AppContent: React.FC = () => {
          {activeTab === "map" && <MapView />}
        </div>
 
-       <nav className="pixel-nav-shell absolute bottom-4 left-4 right-4 z-50 flex items-center py-2 px-2">
+       <nav className="pixel-nav-shell sm:hidden fixed bottom-4 left-4 right-4 z-50 flex items-center py-2 px-2 max-w-[calc(100%-2rem)] mx-auto">
           <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
              <BottomNavIcon type="today" active={activeTab === "today"} />
              <span className="pixel-nav-tab-label mt-1">今日</span>
