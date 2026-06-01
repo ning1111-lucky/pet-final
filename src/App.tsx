@@ -76,7 +76,7 @@ const BottomNavIcon = ({ type, active }: { type: string, active: boolean }) => {
 
   return (
     <div style={{ backgroundColor: bg, boxShadow: shadow, transform: transform }}
-         className="w-11 h-11 border-[3px] border-[var(--color-black)] flex items-center justify-center rounded-[14px] transition-all">
+         className="w-10 h-10 border-[3px] border-[var(--color-black)] flex items-center justify-center rounded-[14px] transition-all">
       {type === "today" && <NoteIcon />}
       {type === "items" && <BoxIcon />}
       {type === "map" && <MapIcon />}
@@ -112,13 +112,13 @@ const AppContent: React.FC = () => {
     <main className="page-wrapper relative flex flex-col shadow-2xl">
        <PixelHeader />
        
-       <div className="flex-1 overflow-y-auto pb-24">
+       <div className="page-content">
          {activeTab === "today" && <TodayView navigateTo={setActiveTab} />}
          {activeTab === "items" && <CollectionView navigateTo={setActiveTab} />}
          {activeTab === "map" && <MapView />}
        </div>
 
-       <nav className="pixel-nav-shell fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 flex items-center py-3 px-2">
+       <nav className="pixel-nav-shell absolute bottom-0 left-0 right-0 z-50 flex items-center py-2 px-2">
           <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
              <BottomNavIcon type="today" active={activeTab === "today"} />
              <span className="pixel-nav-tab-label mt-1">今日</span>

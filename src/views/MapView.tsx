@@ -155,7 +155,7 @@ export const MapView: React.FC = () => {
   }, [allEntries]);
 
   return (
-    <div className="p-4 space-y-6 pb-24">
+    <div className="space-y-5">
       <div className="page-title-group pixel-dot-trail">
         <div className="type-caption uppercase tracking-[0.18em] text-white/95">WORLD MAP</div>
         <h2 className="page-title">世界音樂寵物地圖</h2>

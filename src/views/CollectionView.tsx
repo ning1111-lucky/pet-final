@@ -20,7 +20,7 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
   };
 
   return (
-    <div className="p-4 space-y-6 pb-24">
+    <div className="space-y-5">
       <div className="page-title-group pixel-dot-trail">
         <div className="type-caption uppercase tracking-[0.18em] text-white/95">ITEM REWARD</div>
         <h2 className="page-title">本週收集</h2>

@@ -621,7 +621,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   }
 
   return (
-    <div className="p-4 space-y-6 pb-24">
+    <div className="space-y-5">
       <div className="page-title-group pixel-dot-trail" onClick={handleSecretTitleTap}>
         <div className="type-caption uppercase tracking-[0.18em] text-white/95">Melody Pet Map</div>
         <h2 className="page-title">
