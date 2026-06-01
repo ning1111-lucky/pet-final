@@ -9,7 +9,7 @@ export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttrib
       ref={ref}
       className={cn(
         "pixel-button type-button px-4 py-3 select-none text-center",
-        variant === "primary" ? "bg-[var(--color-caramel)] text-[var(--color-cream)]" : "bg-[var(--color-sand)] text-[var(--color-brown)]",
+        variant === "primary" ? "bg-[var(--color-green)] text-[var(--color-black)]" : "bg-[var(--color-card)] text-[var(--color-black)]",
         className
       )}
       {...props}
@@ -20,11 +20,55 @@ Button.displayName = "Button";
 
 export const Card = ({ children, className }: { children: React.ReactNode; className?: string }) => {
   return (
-    <div className={cn("bg-[var(--color-card)] pixel-border pixel-shadow p-4 rounded-2xl", className)}>
+    <div className={cn("pixel-card p-4", className)}>
       {children}
     </div>
   );
 };
+
+export const PixelBadge = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <span className={cn("info-chip type-caption uppercase tracking-[0.08em]", className)}>{children}</span>
+);
+
+export const PixelSectionTitle = ({
+  eyebrow,
+  title,
+  subtitle,
+  className,
+  variant = "light",
+}: {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  className?: string;
+  variant?: "light" | "dark";
+}) => (
+  <div className={cn("page-title-group", className)}>
+    {eyebrow ? <div className={cn("type-caption uppercase tracking-[0.18em]", variant === "light" ? "text-white/90" : "text-[var(--color-muted)]")}>{eyebrow}</div> : null}
+    <h2 className={cn(variant === "light" ? "page-title" : "type-h2 text-[var(--color-text)]")}>{title}</h2>
+    {subtitle ? <p className={cn(variant === "light" ? "page-subtitle" : "type-body text-[var(--color-muted)]")}>{subtitle}</p> : null}
+  </div>
+);
+
+export const PixelProgressBar = ({
+  segments,
+}: {
+  segments: Array<{ label: string; percentage: number; color: string }>;
+}) => (
+  <div className="pixel-progress">
+    <div className="flex h-full">
+      {segments.map((segment, index) => (
+        <div
+          key={`${segment.label}-${index}`}
+          className="h-full flex items-center justify-center overflow-hidden whitespace-nowrap text-[8px] font-black text-[var(--color-black)]"
+          style={{ width: `${segment.percentage}%`, backgroundColor: segment.color }}
+        >
+          {segment.percentage > 12 ? segment.label : ""}
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 // Map genre to emoji to act as placeholder until PNGs
 const getGenreIcon = (genre: Genre): string => {

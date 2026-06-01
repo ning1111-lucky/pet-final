@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useApp } from "../AppContext";
-import { Button, PixelItemPlaceholder } from "../components/UI";
+import { Button, PixelBadge, PixelItemPlaceholder, PixelProgressBar, PixelSectionTitle } from "../components/UI";
 import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, TOTAL_DAYS } from "../mockData";
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet, GeminiAssetAnalysis } from "../types";
 import { generateId } from "../utils";
@@ -622,17 +622,18 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   return (
     <div className="p-4 space-y-6 pb-24">
-      <div className="page-title-group" onClick={handleSecretTitleTap}>
+      <div className="page-title-group pixel-dot-trail" onClick={handleSecretTitleTap}>
+        <div className="type-caption uppercase tracking-[0.18em] text-white/95">Melody Pet Map</div>
         <h2 className="page-title">
           {isPetGenerationStage ? "音樂寵物生成" : "今日音樂分析"}
         </h2>
         <div className="flex items-center justify-center gap-2 flex-wrap">
-          <span className="info-chip">
+          <span className="info-chip bg-[var(--color-green)]">
             Day {safeDay}/{TOTAL_DAYS}
           </span>
-          <span className="type-caption text-[var(--color-muted)]">Data Source: {providerLabel}</span>
+          <PixelBadge>Source: {providerLabel}</PixelBadge>
           {activeMusicProvider === "spotify" && spotifyConnected && spotifyDisplayName && (
-            <span className="type-caption text-[var(--color-muted)]">Connected: {spotifyDisplayName}</span>
+            <PixelBadge className="bg-white">Connected: {spotifyDisplayName}</PixelBadge>
           )}
         </div>
       </div>
@@ -649,7 +650,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                   : "目前是體驗模式，使用隨機示範資料。"}
             </div>
           </div>
-          <div className="info-chip">{providerLabel}</div>
+          <PixelBadge className="bg-[var(--color-green)]">{providerLabel}</PixelBadge>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -741,9 +742,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
       {mockMusic && (
         <section className="section-surface flex flex-col space-y-4">
-          <div>
-            <h3 className="type-h2 text-center">相關數據</h3>
-          </div>
+          <PixelSectionTitle title="相關數據" subtitle="把今天的聽歌紀錄整理成像素寵物分析資料。" variant="dark" />
 
           <div className="metric-row">
             <div className="type-label">聽歌數量</div>
@@ -769,28 +768,21 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
           <div className="section-plain">
             <div className="type-label mb-2">音樂風格分佈</div>
-            <div className="flex h-4 bg-[var(--color-cream)] pixel-border overflow-hidden">
-              {distribution.map((item, index) => (
-                <div
-                  key={item.genre}
-                  className="h-full border-r-2 border-[var(--color-brown)] last:border-r-0 flex items-center justify-center text-[8px] font-bold overflow-hidden whitespace-nowrap text-[var(--color-cream)]"
-                  style={{
-                    width: `${item.percentage}%`,
-                    backgroundColor:
-                      index === 0
-                        ? "var(--color-caramel)"
-                        : index === 1
-                          ? "var(--color-blush)"
-                          : "var(--color-sand)",
-                  }}
-                >
-                  {item.percentage > 10 ? item.genre : ""}
-                </div>
-              ))}
-            </div>
+            <PixelProgressBar
+              segments={distribution.map((item, index) => ({
+                label: item.genre,
+                percentage: item.percentage,
+                color:
+                  index === 0
+                    ? "var(--color-green)"
+                    : index === 1
+                      ? "var(--color-pink)"
+                      : "var(--color-yellow)",
+              }))}
+            />
           </div>
 
-          <div className="section-plain bg-[var(--color-cream)] text-center italic">
+          <div className="section-plain bg-white text-center italic">
             "{mockMusic.quote}"
           </div>
         </section>
@@ -798,17 +790,12 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
       {mockMusic && !hasGeneratedToday && (
         <section className="section-surface text-center">
-          <h3 className="type-h2 mb-3">
-            今日生成組合
-          </h3>
-          <p className="type-body mb-4">
-            今天會同時使用主風格與次風格來生成素材。
-          </p>
+          <PixelSectionTitle title="今日生成組合" subtitle="今天會同时使用主风格与次风格来掉落像素奖励。" variant="dark" />
 
           <div className="grid grid-cols-2 gap-3 mb-4">
             {todaysPreviewItems.map((item) => (
-              <div key={item.id} className="section-plain bg-white">
-                <div className="type-caption mb-2 text-[var(--color-brown)]">{item.label}</div>
+              <div key={item.id} className="section-plain bg-white text-center">
+                <div className="type-caption mb-2 text-[var(--color-text)] uppercase">{item.label}</div>
                 <PixelItemPlaceholder
                   genre={item.genre}
                   part={item.part}
@@ -861,9 +848,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
       {hasGeneratedToday && (
         <section className="section-surface text-center">
-          <h3 className="type-h2 mb-4">
-            Day {safeDay} 已收錄素材
-          </h3>
+          <PixelSectionTitle title={`Day ${safeDay} 已收錄素材`} subtitle="今天的掉落奖励已经加入本周背包。" variant="dark" />
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -889,15 +874,12 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
       {isPetGenerationStage && (
         <section className="section-surface text-center">
-          <h3 className="type-h2 mb-2">確認生成音樂寵物</h3>
-          <p className="type-body mb-4">
-            系統會先將 base 與 5 個素材交給 Gemini 分析，再把整理好的 final prompt 交給 Leonardo 生成最終寵物圖。
-          </p>
+          <PixelSectionTitle title="確認生成音樂寵物" subtitle="QUEST CLEAR：先分析素材，再交给 Leonardo 生成最终角色。" variant="dark" />
 
           <div className="mb-4">
             <div className="type-h2">{mainGenre} 音樂精靈</div>
             <div className="flex justify-center gap-2 mt-2 flex-wrap">
-              <span className="info-chip">主：{mainGenre}</span>
+              <span className="info-chip bg-[var(--color-green)]">主：{mainGenre}</span>
               <span className="info-chip bg-white">副：{subGenre}</span>
             </div>
           </div>
@@ -913,7 +895,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             ].map((item) => (
               <div
                 key={item.key}
-                className="aspect-square bg-white border-2 border-[var(--color-line)] flex items-center justify-center p-1 rounded-md"
+                className="aspect-square bg-white border-[3px] border-[var(--color-black)] flex items-center justify-center p-1 rounded-[14px]"
               >
                 <img
                   src={item.src || undefined}
@@ -963,7 +945,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               {finalPrompt && (
                 <div className="space-y-1">
                   <div className="type-label">Gemini final_prompt_en</div>
-                  <pre className="whitespace-pre-wrap break-words rounded-xl border-2 border-[var(--color-line)] bg-[var(--color-cream)] p-3 text-xs leading-6 text-[var(--color-brown)]">
+                  <pre className="whitespace-pre-wrap break-words rounded-xl border-[3px] border-[var(--color-black)] bg-[var(--color-card)] p-3 text-xs leading-6 text-[var(--color-text)]">
                     {finalPrompt}
                   </pre>
                 </div>
@@ -977,7 +959,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
           {generatedImageUrl ? (
             <div className="mb-6 flex flex-col items-center">
-              <div className="w-48 h-48 border-4 border-dashed border-[var(--color-brown)] rounded-xl bg-white p-2 shadow-[4px_4px_0_var(--color-caramel)] relative overflow-hidden">
+              <div className="w-48 h-48 border-[4px] border-[var(--color-black)] rounded-[22px] bg-white p-2 shadow-[6px_6px_0_var(--color-black)] relative overflow-hidden">
                 {imgLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 type-caption text-[var(--color-muted)] text-center px-2 border-2 border-dashed border-gray-300">
                     正在載入圖片...
@@ -1014,7 +996,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               <div className="mt-4 w-full">
                 <Button
                   onClick={analyzeAndGeneratePet}
-                  className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 border-blue-700"
+                  className="w-full py-3"
                   disabled={isAnalyzing || isGenerating}
                 >
                   {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "重新分析並生成"}
@@ -1025,7 +1007,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             <div className="mb-4">
               <Button
                 onClick={analyzeAndGeneratePet}
-                className="w-full py-3 text-white bg-blue-500 hover:bg-blue-600 border-blue-700"
+                className="w-full py-3"
                 disabled={isAnalyzing || isGenerating}
               >
                 {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "分析並生成"}

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../AppContext";
-import { Button, PixelItemPlaceholder } from "../components/UI";
+import { Button, PixelBadge, PixelItemPlaceholder, PixelSectionTitle } from "../components/UI";
 import { Pet } from "../types";
 import { motion } from "motion/react";
 
@@ -21,28 +21,33 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
 
   return (
     <div className="p-4 space-y-6 pb-24">
-      <div className="page-title-group">
+      <div className="page-title-group pixel-dot-trail">
+        <div className="type-caption uppercase tracking-[0.18em] text-white/95">ITEM REWARD</div>
         <h2 className="page-title">本週收集</h2>
-        <p className="page-subtitle">先收齊五個關鍵部件，再完成本週音樂寵物。</p>
+        <p className="page-subtitle">像素奖励会按天掉落，先收齐五个关键部件，再完成本周音乐宠物。</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="section-surface">
+        <PixelSectionTitle title="COLLECTED ITEMS" subtitle="已收錄的素材會在這裡像遊戲獎勵一樣排列。" variant="dark" />
+        <div className="grid grid-cols-2 gap-4 mt-4">
         {collectedItems.map((item, index) => {
           if (!item) {
             return (
-              <div key={index} className="aspect-square bg-[var(--color-card)] pixel-border pixel-shadow flex items-center justify-center text-[var(--color-brown)] opacity-50 relative border-dashed">
-                <div className="absolute top-1 left-2 font-bold opacity-30">D{index + 1}</div>
+              <div key={index} className="aspect-square bg-white pixel-border pixel-shadow flex items-center justify-center text-[var(--color-text)] opacity-50 relative border-dashed">
+                <div className="absolute top-1 left-2 font-bold opacity-40">D{index + 1}</div>
                 <div className="text-4xl">❓</div>
               </div>
             );
           }
           return (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} key={index} className="aspect-square bg-[var(--color-cream)] pixel-border pixel-shadow flex flex-col items-center justify-center p-2 relative">
-               <div className="absolute top-1 left-2 text-xs font-bold bg-[var(--color-sand)] px-1">D{index + 1}</div>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} key={index} className="aspect-square bg-white pixel-border pixel-shadow flex flex-col items-center justify-center p-2 relative">
+               <div className="absolute top-1 left-2 text-xs font-bold bg-[var(--color-green)] border-2 border-[var(--color-black)] px-1 rounded-md">D{index + 1}</div>
+               <div className="absolute right-2 top-2"><PixelBadge className="bg-white">COLLECTED</PixelBadge></div>
                <PixelItemPlaceholder genre={item.genre} part={item.part} imageSrc={item.imageSrc} className="w-full h-full border-none shadow-none bg-transparent" />
             </motion.div>
           );
         })}
+        </div>
       </div>
 
       {isWeekFull && (

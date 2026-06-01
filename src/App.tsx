@@ -35,9 +35,9 @@ const getInitialActiveTab = (): ActiveTab => {
 };
 
 const BottomNavIcon = ({ type, active }: { type: string, active: boolean }) => {
-  const color = active ? "var(--color-cream)" : "var(--color-brown)";
-  const bg = active ? "var(--color-caramel)" : "var(--color-cream)";
-  const shadow = active ? "none" : "2px 2px 0 var(--color-brown)";
+  const color = "var(--color-black)";
+  const bg = active ? "var(--color-green)" : "var(--color-card)";
+  const shadow = active ? "2px 2px 0 var(--color-black)" : "4px 4px 0 rgba(17,17,17,0.18)";
   const transform = active ? "translateY(2px)" : "none";
 
   const NoteIcon = () => (
@@ -76,7 +76,7 @@ const BottomNavIcon = ({ type, active }: { type: string, active: boolean }) => {
 
   return (
     <div style={{ backgroundColor: bg, boxShadow: shadow, transform: transform }}
-         className="w-10 h-10 border-[2px] border-[var(--color-brown)] flex items-center justify-center rounded-[8px] transition-all">
+         className="w-11 h-11 border-[3px] border-[var(--color-black)] flex items-center justify-center rounded-[14px] transition-all">
       {type === "today" && <NoteIcon />}
       {type === "items" && <BoxIcon />}
       {type === "map" && <MapIcon />}
@@ -87,12 +87,12 @@ const BottomNavIcon = ({ type, active }: { type: string, active: boolean }) => {
 
 const PixelHeader = () => (
   <header className="pixel-header">
-    <div className="logo-chip">♪</div>
+    <div className="logo-chip">♫</div>
     <div className="page-title-group">
-      <h1>Melody Pet Map</h1>
-      <p>音樂寵物地圖</p>
+      <h1>PLAYLIST PET</h1>
+      <p>連接你的音樂，孵化風格寵物</p>
     </div>
-    <div className="logo-chip">✦</div>
+    <div className="logo-chip" style={{ background: "var(--color-yellow)" }}>✦</div>
   </header>
 );
 
@@ -110,29 +110,26 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="page-wrapper w-full max-w-[430px] mx-auto min-h-[100dvh] relative flex flex-col shadow-2xl overflow-x-hidden">
-       {/* Pixel Header */}
        <PixelHeader />
        
-       {/* Main Content Area */}
        <div className="flex-1 overflow-y-auto pb-24">
          {activeTab === "today" && <TodayView navigateTo={setActiveTab} />}
          {activeTab === "items" && <CollectionView navigateTo={setActiveTab} />}
          {activeTab === "map" && <MapView />}
        </div>
 
-       {/* Bottom Navigation */}
-       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-[var(--color-sand)] border-t-[3px] border-[var(--color-brown)] rounded-t-xl z-50 flex items-center py-3">
-          <button onClick={() => setActiveTab("today")} className="flex-1 flex flex-col items-center">
+       <nav className="pixel-nav-shell fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 flex items-center py-3 px-2">
+          <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
              <BottomNavIcon type="today" active={activeTab === "today"} />
-             <span className="type-caption mt-1 text-[var(--color-brown)]">今日</span>
+             <span className="pixel-nav-tab-label mt-1">今日</span>
           </button>
-          <button onClick={() => setActiveTab("items")} className="flex-1 flex flex-col items-center">
+          <button onClick={() => setActiveTab("items")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "items" ? "pixel-nav-tab-active" : ""}`}>
              <BottomNavIcon type="items" active={activeTab === "items"} />
-             <span className="type-caption mt-1 text-[var(--color-brown)]">物品</span>
+             <span className="pixel-nav-tab-label mt-1">物品</span>
           </button>
-          <button onClick={() => setActiveTab("map")} className="flex-1 flex flex-col items-center">
+          <button onClick={() => setActiveTab("map")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "map" ? "pixel-nav-tab-active" : ""}`}>
              <BottomNavIcon type="map" active={activeTab === "map"} />
-             <span className="type-caption mt-1 text-[var(--color-brown)]">世界地圖</span>
+             <span className="pixel-nav-tab-label mt-1">世界地圖</span>
           </button>
        </nav>
     </div>

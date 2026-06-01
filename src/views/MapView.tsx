@@ -156,12 +156,13 @@ export const MapView: React.FC = () => {
 
   return (
     <div className="p-4 space-y-6 pb-24">
-      <div className="page-title-group">
+      <div className="page-title-group pixel-dot-trail">
+        <div className="type-caption uppercase tracking-[0.18em] text-white/95">WORLD MAP</div>
         <h2 className="page-title">世界音樂寵物地圖</h2>
-        <p className="page-subtitle">直接使用你提供的像素地圖，生成的寵物會縮小後放到對應音樂區域上。</p>
+        <p className="page-subtitle">在像素曲風世界裡查看已上傳的音樂寵物，探索每一個風格區域。</p>
       </div>
 
-      <div className="relative w-full aspect-square overflow-hidden rounded-[32px] border-[3px] border-[var(--color-brown)] shadow-[6px_6px_0_var(--color-caramel)] bg-[#73baf3]">
+      <div className="relative w-full aspect-square overflow-hidden rounded-[32px] border-[4px] border-[var(--color-black)] shadow-[6px_6px_0_var(--color-black)] bg-[#73baf3]">
         <img
           src="/genre-map.png"
           alt="Music genre map"
@@ -185,7 +186,7 @@ export const MapView: React.FC = () => {
                 style={{ left: slot.left, top: slot.top }}
                 onClick={() => setSelectedEntry(entry)}
               >
-                <div className="w-12 h-12 rounded-2xl border-[3px] border-[var(--color-brown)] bg-white/92 p-1 shadow-[0_4px_0_rgba(88,56,34,0.24)] hover:-translate-y-1 transition-transform overflow-hidden">
+                  <div className="w-12 h-12 rounded-2xl border-[3px] border-[var(--color-black)] bg-white/92 p-1 shadow-[0_4px_0_rgba(17,17,17,0.24)] hover:-translate-y-1 transition-transform overflow-hidden">
                   {entry.petImage ? (
                     <img src={entry.petImage} alt={entry.petName} className="w-full h-full object-contain scale-[0.82]" />
                   ) : (
@@ -199,15 +200,15 @@ export const MapView: React.FC = () => {
       </div>
 
       <div className="section-surface grid grid-cols-3 gap-3 text-center">
-        <div className="section-plain bg-[var(--color-cream)]">
+        <div className="section-plain bg-white">
           <div className="type-caption text-[var(--color-muted)]">世界寵物數</div>
           <div className="type-h2 mt-1">{totalPets}</div>
         </div>
-        <div className="section-plain bg-[var(--color-cream)]">
+        <div className="section-plain bg-white">
           <div className="type-caption text-[var(--color-muted)]">熱門風格</div>
           <div className="type-label mt-1 line-clamp-1">{topGenre}</div>
         </div>
-        <div className="section-plain bg-[var(--color-cream)]">
+        <div className="section-plain bg-white">
           <div className="type-caption text-[var(--color-muted)]">最新城市</div>
           <div className="type-label mt-1 line-clamp-1">{latestCity}</div>
         </div>
@@ -219,22 +220,22 @@ export const MapView: React.FC = () => {
             initial={{ y: "100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
-            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[60] bg-[var(--color-card)] border-t-4 border-[var(--color-brown)] rounded-t-3xl shadow-[0_-4px_0_rgba(0,0,0,0.1)] pb-12 pt-6 px-6"
+            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[60] bg-[var(--color-card)] border-t-4 border-[var(--color-black)] rounded-t-3xl shadow-[0_-6px_0_rgba(17,17,17,0.16)] pb-12 pt-6 px-6"
             style={{ maxHeight: "80vh", overflowY: "auto" }}
           >
             <button
-              className="absolute top-4 right-4 font-bold text-xl px-2 bg-[var(--color-cream)] border-2 border-[var(--color-brown)] rounded-md shadow-[2px_2px_0_var(--color-brown)] text-[var(--color-brown)] active:scale-95"
+              className="absolute top-4 right-4 font-bold text-xl px-2 bg-[var(--color-green)] border-[3px] border-[var(--color-black)] rounded-md shadow-[2px_2px_0_var(--color-black)] text-[var(--color-black)] active:scale-95"
               onClick={() => setSelectedEntry(null)}
             >
               ×
             </button>
 
             <div className="flex flex-col items-center">
-              <div className="type-caption text-[var(--color-cream)] bg-[var(--color-brown)] px-3 py-1 rounded-full mb-4">
+              <div className="type-caption text-[var(--color-black)] bg-[var(--color-green)] border-[3px] border-[var(--color-black)] px-3 py-1 rounded-full mb-4">
                 📍 {selectedEntry.city || "未知城市"}, {selectedEntry.country || "未知國家"}
               </div>
 
-              <div className="bg-white p-4 border-2 border-[var(--color-brown)] border-dashed rounded-xl mb-4 overflow-hidden">
+              <div className="bg-white p-4 border-[3px] border-[var(--color-black)] rounded-xl mb-4 overflow-hidden shadow-[4px_4px_0_rgba(17,17,17,0.12)]">
                 {selectedEntry.petImage ? (
                   <img src={selectedEntry.petImage} alt={selectedEntry.petName} className="w-32 h-32 object-contain rounded-md" />
                 ) : (
@@ -243,7 +244,7 @@ export const MapView: React.FC = () => {
               </div>
 
               <h3 className="type-h1 text-[var(--color-brown)] mb-1">{selectedEntry.petName}</h3>
-              <div className="type-caption text-[var(--color-caramel)] mb-4">
+              <div className="type-caption text-[var(--color-muted)] mb-4">
                 Owner: {selectedEntry.ownerName || "Anonymous"}
               </div>
 

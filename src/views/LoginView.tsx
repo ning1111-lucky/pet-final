@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useApp } from "../AppContext";
-import { Button, Card } from "../components/UI";
+import { Button, Card, PixelBadge, PixelSectionTitle } from "../components/UI";
 import { motion } from "motion/react";
 import { MusicProvider } from "../types";
 
@@ -95,46 +95,46 @@ export const LoginView: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 sm:p-6 flex flex-col items-center justify-center min-h-[100dvh]">
       <div className="w-full max-w-[390px] space-y-5">
-        <section className="relative overflow-hidden rounded-[32px] border-[3px] border-[var(--color-brown)] bg-[linear-gradient(135deg,#e6ff36_0%,#d4ff4d_46%,#f4f0e6_46%,#f4f0e6_100%)] px-5 pt-5 pb-6 shadow-[8px_8px_0_var(--color-brown)]">
-          <div className="absolute -top-2 left-3 text-[42px] leading-none">✳</div>
-          <div className="absolute top-4 right-4 text-[34px] leading-none">♡</div>
+        <section className="pixel-card pixel-cut relative overflow-hidden bg-[linear-gradient(140deg,var(--color-green)_0%,var(--color-green)_52%,var(--color-card)_52%,var(--color-card)_100%)] px-5 pt-5 pb-6">
+          <div className="absolute -top-1 left-2 text-[40px] leading-none text-[var(--color-black)]">✳</div>
+          <div className="absolute top-4 right-4 text-[30px] leading-none text-[var(--color-pink)]">♡</div>
+          <div className="absolute bottom-4 left-3 text-[28px] leading-none">♫</div>
+          <div className="absolute bottom-4 right-5 text-[26px] leading-none text-[var(--color-yellow)]">✦</div>
 
           <div className="grid grid-cols-[1fr_120px] gap-4 items-start">
             <div className="space-y-4 pt-8">
               <div className="space-y-2">
-                <div className="type-caption uppercase tracking-[0.18em] text-[var(--color-brown)]/70">
-                  Music Pet Hatch
-                </div>
-                <h1 className="type-h1 text-[44px] leading-[0.92]">
+                <PixelBadge className="bg-white">MUSIC PET HATCH</PixelBadge>
+                <h1 className="page-title text-left text-[42px] leading-[0.94]">
                   把你的
                   <br />
                   聽歌紀錄
                   <br />
                   孵化成寵物
                 </h1>
-                <p className="type-body max-w-[180px] opacity-80">
+                <p className="type-body max-w-[190px] text-[var(--color-text)] opacity-90">
                   連接音樂來源、收集 3 天素材，最後生成一隻屬於你的像素音樂寵物。
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <span className="info-chip bg-white/90">Spotify 直連</span>
-                <span className="info-chip bg-white/90">通用同步模式</span>
+                <PixelBadge className="bg-white/95">Spotify 直連</PixelBadge>
+                <PixelBadge className="bg-white/95">通用同步模式</PixelBadge>
               </div>
             </div>
 
             <div className="relative h-[196px]">
-              <div className="absolute left-1 top-7 w-[88px] rounded-[22px] border-[3px] border-[var(--color-brown)] bg-[#fff8ec] p-2 shadow-[4px_4px_0_var(--color-brown)] rotate-[-10deg]">
+              <div className="absolute left-1 top-7 w-[88px] rounded-[22px] border-[3px] border-[var(--color-black)] bg-[#fff8ec] p-2 shadow-[4px_4px_0_var(--color-black)] rotate-[-10deg]">
                 <img src="/base-1.png" alt="music pet card" className="w-full rounded-[16px] bg-[#ffe3d8] p-2" />
                 <div className="type-caption mt-2">Pet Seed</div>
                 <div className="type-label mt-1">Day 1-3</div>
               </div>
-              <div className="absolute right-0 top-0 w-[92px] rounded-[22px] border-[3px] border-[var(--color-brown)] bg-[#fff8ec] p-2 shadow-[4px_4px_0_var(--color-brown)] rotate-[8deg]">
+              <div className="absolute right-0 top-0 w-[92px] rounded-[22px] border-[3px] border-[var(--color-black)] bg-[#fff8ec] p-2 shadow-[4px_4px_0_var(--color-black)] rotate-[8deg]">
                 <img src="/base-2.png" alt="music pet companion" className="w-full rounded-[16px] bg-[#d8e9ff] p-2" />
                 <div className="type-caption mt-2">Source</div>
                 <div className="type-label mt-1">Connect</div>
               </div>
-              <div className="absolute right-3 bottom-2 w-[84px] rounded-[18px] border-[3px] border-[var(--color-brown)] bg-[#fff8ec] px-3 py-2 shadow-[4px_4px_0_var(--color-brown)]">
+              <div className="absolute right-3 bottom-2 w-[84px] rounded-[18px] border-[3px] border-[var(--color-black)] bg-[#fff8ec] px-3 py-2 shadow-[4px_4px_0_var(--color-black)]">
                 <div className="type-label">Ready</div>
                 <div className="type-caption mt-1">to hatch</div>
               </div>
@@ -142,13 +142,15 @@ export const LoginView: React.FC = () => {
           </div>
         </section>
 
-        <Card className="w-full rounded-[28px] px-5 py-5">
+        <Card className="w-full px-5 py-5 space-y-5">
           <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
-            <div className="space-y-1">
-              <div className="type-caption uppercase tracking-[0.16em] text-[var(--color-caramel)]">Step 1</div>
-              <h2 className="type-h2">選擇你的音樂入口</h2>
-              <p className="type-body opacity-80">正式版保留兩種方式：Spotify 直連，或透過 Last.fm 做通用同步。</p>
-            </div>
+            <PixelSectionTitle
+              eyebrow="STEP 1"
+              title="選擇你的音樂入口"
+              subtitle="正式版保留兩種方式：Spotify 直連，或透過 Last.fm 做通用同步。"
+              variant="dark"
+              className="items-start text-left"
+            />
 
             <div className="grid grid-cols-1 gap-3">
               {providerOptions.map((option) => {
@@ -160,15 +162,15 @@ export const LoginView: React.FC = () => {
                     type="button"
                     onClick={() => setMusicProvider(option.value)}
                     className={[
-                      "text-left rounded-[24px] border-[3px] p-4 transition-all bg-white",
+                      "text-left rounded-[24px] border-[4px] p-4 transition-all",
                       selected
-                        ? "border-[var(--color-brown)] shadow-[6px_6px_0_var(--color-caramel)] -translate-y-0.5"
-                        : "border-[var(--color-line)] shadow-[3px_3px_0_rgba(88,56,34,0.12)] hover:border-[var(--color-brown)]",
+                        ? "border-[var(--color-black)] shadow-[6px_6px_0_var(--color-black)] -translate-y-0.5 bg-[var(--color-green)]"
+                        : "border-[var(--color-black)] shadow-[4px_4px_0_rgba(17,17,17,0.14)] hover:-translate-y-0.5 bg-white",
                     ].join(" ")}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-2">
-                        <div className="inline-flex rounded-full border-[2px] border-[var(--color-brown)] bg-[var(--color-cream)] px-3 py-1 type-caption">
+                        <div className="inline-flex rounded-full border-[3px] border-[var(--color-black)] bg-white px-3 py-1 type-caption">
                           {option.badge}
                         </div>
                         <div className="type-label text-[18px]">{option.title}</div>
@@ -177,9 +179,7 @@ export const LoginView: React.FC = () => {
                       <div
                         className={[
                           "w-6 h-6 rounded-full border-[2px] flex-shrink-0 mt-1",
-                          selected
-                            ? "border-[var(--color-brown)] bg-[#d4ff4d] shadow-[inset_0_0_0_4px_white]"
-                            : "border-[var(--color-line)] bg-white",
+                          selected ? "border-[var(--color-black)] bg-[var(--color-yellow)] shadow-[inset_0_0_0_4px_white]" : "border-[var(--color-black)] bg-white",
                         ].join(" ")}
                       />
                     </div>
@@ -192,7 +192,7 @@ export const LoginView: React.FC = () => {
             </div>
 
             {musicProvider === "lastfm" && (
-              <div className="rounded-[22px] border-[3px] border-[var(--color-brown)] bg-white p-4 shadow-[4px_4px_0_rgba(88,56,34,0.12)]">
+              <div className="rounded-[22px] border-[4px] border-[var(--color-black)] bg-white p-4 shadow-[4px_4px_0_rgba(17,17,17,0.18)]">
                 <div className="type-label">通用同步模式帳號</div>
                 <p className="type-caption text-[var(--color-muted)] mt-2 leading-relaxed">
                   這個模式適合 YouTube Music、Apple Music、網易雲音樂，或任何能同步到 Last.fm 的播放器。
@@ -201,41 +201,38 @@ export const LoginView: React.FC = () => {
                   required
                   value={lastfmUsername}
                   onChange={e => setLastfmUsername(e.target.value)}
-                  className="w-full min-w-0 pixel-border p-3 mt-3 bg-[var(--color-cream)] outline-none focus:border-[var(--color-caramel)]"
+                  className="pixel-input mt-3"
                   placeholder="輸入你的 Last.fm 使用者名稱"
                 />
               </div>
             )}
 
-            <div className="space-y-1">
-              <div className="type-caption uppercase tracking-[0.16em] text-[var(--color-caramel)]">Step 2</div>
-              <h2 className="type-h2">建立你的音樂護照</h2>
-            </div>
+            <PixelSectionTitle eyebrow="STEP 2" title="建立你的音樂護照" variant="dark" className="items-start text-left" />
 
             <div className="flex flex-col space-y-1">
               <label className="type-label">姓名 / 暱稱</label>
-              <input required value={name} onChange={e => setName(e.target.value)} className="w-full min-w-0 pixel-border p-3 bg-[var(--color-cream)] outline-none focus:border-[var(--color-caramel)]" />
+              <input required value={name} onChange={e => setName(e.target.value)} className="pixel-input" />
             </div>
             <div className="flex flex-col space-y-1">
               <label className="type-label">Email</label>
-              <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full min-w-0 pixel-border p-3 bg-[var(--color-cream)] outline-none focus:border-[var(--color-caramel)]" />
+              <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="pixel-input" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex flex-col space-y-1 min-w-0">
                 <label className="type-label">國家 / 地區</label>
-                <input required value={country} onChange={e => setCountry(e.target.value)} className="w-full min-w-0 pixel-border p-3 bg-[var(--color-cream)] outline-none focus:border-[var(--color-caramel)]" />
+                <input required value={country} onChange={e => setCountry(e.target.value)} className="pixel-input" />
               </div>
               <div className="flex flex-col space-y-1 min-w-0">
                 <label className="type-label">城市</label>
-                <input required value={city} onChange={e => setCity(e.target.value)} className="w-full min-w-0 pixel-border p-3 bg-[var(--color-cream)] outline-none focus:border-[var(--color-caramel)]" />
+                <input required value={city} onChange={e => setCity(e.target.value)} className="pixel-input" />
               </div>
             </div>
             <div className="flex flex-col space-y-1">
               <label className="type-label">穿搭風格 (選填)</label>
-              <input value={style} onChange={e => setStyle(e.target.value)} className="w-full min-w-0 pixel-border p-3 bg-[var(--color-cream)] outline-none focus:border-[var(--color-caramel)]" placeholder="例：日系、Y2K" />
+              <input value={style} onChange={e => setStyle(e.target.value)} className="pixel-input" placeholder="例：日系、Y2K" />
             </div>
 
-            <label className="flex items-start space-x-2 cursor-pointer rounded-[18px] border-[2px] border-[var(--color-line)] bg-white px-3 py-3">
+            <label className="flex items-start space-x-2 cursor-pointer rounded-[18px] border-[3px] border-[var(--color-black)] bg-white px-3 py-3 shadow-[3px_3px_0_rgba(17,17,17,0.1)]">
               <input required type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-1 flex-shrink-0 w-4 h-4" />
               <span className="type-caption opacity-90 leading-relaxed">我同意將音樂紀錄用於生成音樂寵物與研究展示。</span>
             </label>
@@ -249,7 +246,7 @@ export const LoginView: React.FC = () => {
             <div className="pt-2">
               <Button
                 type="submit"
-                className="w-full !py-4 !text-[1rem] bg-[#d4ff4d] !text-[var(--color-brown)]"
+                className="w-full !py-4 !text-[1rem]"
                 disabled={isSubmitting || !name || !email || !country || !city || !agreed || (musicProvider === "lastfm" && !lastfmUsername.trim())}
               >
                 {isSubmitting ? "正在建立音樂護照..." : "開始音樂旅程"}

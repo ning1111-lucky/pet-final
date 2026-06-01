@@ -35,19 +35,19 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     }
 
     return (
-      <div className="min-h-screen px-6 py-12 flex items-center justify-center bg-[var(--color-cream)] text-[var(--color-brown)]">
-        <div className="w-full max-w-[430px] bg-[var(--color-card)] border-[3px] border-[var(--color-brown)] rounded-2xl p-6 text-center shadow-[4px_4px_0_var(--color-caramel)]">
+      <div className="min-h-screen px-6 py-12 flex items-center justify-center bg-[var(--color-page)] text-[var(--color-text)]">
+        <div className="w-full max-w-[430px] bg-[var(--color-card)] border-[4px] border-[var(--color-black)] rounded-[24px] p-6 text-center shadow-[6px_6px_0_var(--color-black)]">
           <div className="text-2xl font-bold mb-3">頁面資料有點混亂</div>
           <p className="text-sm font-bold mb-6">重置並重新開始</p>
           {import.meta.env.DEV && this.state.error?.message ? (
-            <div className="mb-6 text-left text-xs font-mono bg-white border-2 border-[var(--color-brown)] rounded-lg p-3 break-words">
+            <div className="mb-6 text-left text-xs font-mono bg-white border-[3px] border-[var(--color-black)] rounded-lg p-3 break-words">
               {this.state.error.message}
             </div>
           ) : null}
           <button
             type="button"
             onClick={this.handleReset}
-            className="pixel-button font-bold px-4 py-3 bg-[var(--color-caramel)] text-[var(--color-cream)]"
+            className="pixel-button font-bold px-4 py-3 bg-[var(--color-green)] text-[var(--color-black)]"
           >
             重置並重新開始
           </button>
