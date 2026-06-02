@@ -27,10 +27,10 @@
 }
 
 @layer base {
-  html, body, #root {
-    width: 100%;
-    min-height: 100%;
-  }
+html, body, #root {
+  width: 100%;
+  min-height: 100%;
+}
 
   * {
     box-sizing: border-box;
@@ -50,6 +50,12 @@
     overflow-x: hidden;
   }
 
+  #root {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
   h1, h2, h3, h4, p {
     margin: 0;
   }
@@ -59,26 +65,26 @@
   }
 }
 
-.page-wrapper {
+.webapp-outer {
   width: 100%;
-  max-width: 430px;
   min-height: 100dvh;
-  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  background: transparent;
+}
+
+.webapp-shell {
+  width: min(100vw, 430px);
+  min-height: 100dvh;
   background: var(--color-page);
   color: var(--color-text);
   position: relative;
   overflow-x: hidden;
+  box-sizing: border-box;
   padding-bottom: 110px;
 }
 
-@media (min-width: 481px) {
-  .page-wrapper {
-    max-width: 430px;
-    min-height: 100vh;
-  }
-}
-
-.page-content {
+.webapp-content {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -87,50 +93,15 @@
 }
 
 @media (max-width: 480px) {
-  .page-wrapper {
+  .webapp-shell {
     max-width: none;
+    width: 100vw;
   }
 
-  .page-content {
+  .webapp-content {
     padding-left: 16px;
     padding-right: 16px;
   }
-}
-
-.desktop-nav {
-  width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-.desktop-nav-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 92px;
-  border-radius: 999px;
-  padding: 0.7rem 1rem;
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--color-text-secondary);
-  border: 1px solid rgba(17, 17, 17, 0.06);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
-  font-family: var(--font-body);
-  font-size: 0.86rem;
-  font-weight: 800;
-  transition: transform 0.16s ease, background 0.18s ease, color 0.18s ease;
-}
-
-.desktop-nav-tab:hover {
-  transform: translateY(-1px);
-}
-
-.desktop-nav-tab-active {
-  background: var(--color-card);
-  color: var(--color-text);
-  box-shadow: var(--shadow-soft);
 }
 
 .type-h1 {
@@ -244,6 +215,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 100%;
 }
 
 .responsive-two-up {
@@ -400,6 +372,9 @@
   border-right: 4px solid var(--color-black);
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -4px 0 rgba(17, 17, 17, 0.95);
+  width: min(100vw, 430px);
+  max-width: 430px;
+  box-sizing: border-box;
 }
 
 .pixel-nav-tab {

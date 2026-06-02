@@ -110,7 +110,7 @@ export const LoginView: React.FC = () => {
                   <br />
                   孵化成寵物
                 </h1>
-                <p className="type-body max-w-[208px] text-[var(--color-text)] opacity-90">
+                <p className="type-body max-w-[212px] text-[var(--color-text)] opacity-90">
                   連接音樂來源、收集 3 天素材，最後生成一隻屬於你的像素音樂寵物。
                 </p>
               </div>

@@ -87,35 +87,43 @@ const AppContent: React.FC = () => {
     localStorage.setItem(ACTIVE_TAB_STORAGE_KEY, activeTab);
   }, [activeTab]);
 
-  if (!userProfile) {
-    return <LoginView />;
-  }
-
   return (
-    <main className="page-wrapper app-shell relative flex flex-col">
-       <PixelHeader />
-       
-       <div className="page-content">
-         {activeTab === "today" && <TodayView navigateTo={setActiveTab} />}
-         {activeTab === "items" && <CollectionView navigateTo={setActiveTab} />}
-         {activeTab === "map" && <MapView />}
-       </div>
+    <div className="webapp-outer">
+      <div className="webapp-shell">
+        <main className="relative flex min-h-[100dvh] flex-col">
+          <PixelHeader />
 
-       <nav className="pixel-nav-shell fixed bottom-0 left-1/2 z-50 flex w-full max-w-[430px] -translate-x-1/2 items-center px-2 py-2">
-          <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
-             <BottomNavIcon type="today" active={activeTab === "today"} />
-             <span className="pixel-nav-tab-label mt-1">今日</span>
-          </button>
-          <button onClick={() => setActiveTab("items")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "items" ? "pixel-nav-tab-active" : ""}`}>
-             <BottomNavIcon type="items" active={activeTab === "items"} />
-             <span className="pixel-nav-tab-label mt-1">物品</span>
-          </button>
-          <button onClick={() => setActiveTab("map")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "map" ? "pixel-nav-tab-active" : ""}`}>
-             <BottomNavIcon type="map" active={activeTab === "map"} />
-             <span className="pixel-nav-tab-label mt-1">世界地圖</span>
-          </button>
-       </nav>
-    </main>
+          <div className="webapp-content">
+            {!userProfile ? (
+              <LoginView />
+            ) : (
+              <>
+                {activeTab === "today" && <TodayView navigateTo={setActiveTab} />}
+                {activeTab === "items" && <CollectionView navigateTo={setActiveTab} />}
+                {activeTab === "map" && <MapView />}
+              </>
+            )}
+          </div>
+
+          {userProfile && (
+            <nav className="pixel-nav-shell fixed bottom-0 left-1/2 z-50 flex -translate-x-1/2 items-center px-2 py-2">
+              <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
+                <BottomNavIcon type="today" active={activeTab === "today"} />
+                <span className="pixel-nav-tab-label mt-1">今日</span>
+              </button>
+              <button onClick={() => setActiveTab("items")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "items" ? "pixel-nav-tab-active" : ""}`}>
+                <BottomNavIcon type="items" active={activeTab === "items"} />
+                <span className="pixel-nav-tab-label mt-1">物品</span>
+              </button>
+              <button onClick={() => setActiveTab("map")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "map" ? "pixel-nav-tab-active" : ""}`}>
+                <BottomNavIcon type="map" active={activeTab === "map"} />
+                <span className="pixel-nav-tab-label mt-1">世界地圖</span>
+              </button>
+            </nav>
+          )}
+        </main>
+      </div>
+    </div>
   );
 };
 
