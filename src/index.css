@@ -32,6 +32,8 @@
 html, body, #root {
   width: 100%;
   min-height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
   * {
@@ -39,23 +41,18 @@ html, body, #root {
   }
 
   body {
-    margin: 0;
     font-size: 16px;
     line-height: 1.55;
     color: var(--color-text);
     font-family: var(--font-body);
     min-height: 100vh;
     background: #E9EEF6;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
     overflow-x: hidden;
   }
 
   #root {
     width: 100%;
-    display: flex;
-    justify-content: center;
+    min-height: 100dvh;
   }
 
   h1, h2, h3, h4, p {
@@ -76,27 +73,24 @@ html, body, #root {
 }
 
 .webapp-shell {
-  width: min(100vw, 430px);
+  width: 100%;
+  max-width: 460px;
   min-height: 100dvh;
   background: var(--color-page);
   color: var(--color-text);
   position: relative;
   overflow-x: hidden;
   box-sizing: border-box;
-  padding-bottom: 110px;
 }
 
 .webapp-content {
   width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 20px 16px 104px;
+  padding: 20px 16px 116px;
   box-sizing: border-box;
 }
 
 @media (min-width: 481px) {
   .webapp-shell {
-    max-width: 430px;
     box-shadow:
       0 0 0 4px #111111,
       0 24px 80px rgba(0, 0, 0, 0.25);
@@ -385,7 +379,13 @@ html, body, #root {
   background: #E5E7EB;
 }
 
-.pixel-nav-shell {
+.mobile-bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 460px;
   height: 84px;
   padding: 10px 12px;
   background: var(--color-card-secondary);
@@ -394,12 +394,27 @@ html, body, #root {
   border-right: 4px solid var(--color-black);
   border-radius: 24px 24px 0 0;
   box-shadow: 0 -4px 0 rgba(17, 17, 17, 0.95);
-  width: min(100vw, 430px);
-  max-width: 430px;
   box-sizing: border-box;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+}
+
+@media (max-width: 480px) {
+  .mobile-bottom-nav {
+    width: 100vw;
+    max-width: none;
+    border-left: none;
+    border-right: none;
+  }
 }
 
 .pixel-nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 0.15rem 0.2rem;
   min-width: 0;
 }

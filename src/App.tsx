@@ -106,7 +106,7 @@ const AppContent: React.FC = () => {
           </main>
 
           {userProfile && (
-            <nav className="pixel-nav-shell fixed bottom-0 left-1/2 z-50 flex -translate-x-1/2 items-center px-2 py-2">
+            <nav className="mobile-bottom-nav">
               <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab flex-1 flex flex-col items-center ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
                 <BottomNavIcon type="today" active={activeTab === "today"} />
                 <span className="pixel-nav-tab-label mt-1">今日</span>
