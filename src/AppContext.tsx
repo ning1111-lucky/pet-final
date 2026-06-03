@@ -207,7 +207,7 @@ function normalizeMusicItem(value: unknown, fallbackDay: DayIndex, fallbackDate?
     part,
     genre,
     label: typeof value.label === "string" && value.label ? value.label : `${genre} ${part}`,
-    icon: typeof value.icon === "string" && value.icon ? value.icon : "✨",
+    icon: typeof value.icon === "string" ? value.icon : "",
     imageSrc: normalizeStoredAssetImage(
       genre,
       part,
@@ -671,7 +671,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           part: slot.part,
           genre: itemGenre,
           label: `${itemGenre} ${slot.part}`,
-          icon: "✨",
+          icon: "",
           imageSrc: resolveAssetImage(itemGenre, slot.part, `${itemGenre}-${slot.part}-${dayIndex}`),
         });
       });

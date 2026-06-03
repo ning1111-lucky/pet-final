@@ -204,7 +204,7 @@ const mockItemData = (id: string, name: string, genre: Genre): MusicItem => ({
   part: "clothes",
   genre,
   label: "Mock Item",
-  icon: "✨"
+  icon: ""
 });
 
 const mockPetData = (id: string, name: string, mainGenre: Genre, baseType: "O" | "G" | "B"): Pet => ({

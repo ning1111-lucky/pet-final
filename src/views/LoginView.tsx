@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useApp } from "../AppContext";
 import { MusicProvider } from "../types";
-import { PixelBadge, PixelButton, PixelLogoTitle, PixelStatusBar, RetroWindow } from "../components/UI";
+import { PixelBadge, PixelButton, PixelIcon, PixelIconType, PixelLogoTitle, PixelStatusBar, RetroWindow } from "../components/UI";
 
 type OnboardingStep = "home" | "source" | "passport";
 
@@ -12,7 +12,7 @@ const providerOptions: Array<{
   title: string;
   subtitle: string;
   hint: string;
-  icon: string;
+  icon: PixelIconType;
   buttonLabel: string;
 }> = [
   {
@@ -21,7 +21,7 @@ const providerOptions: Array<{
     title: "Spotify 直連",
     subtitle: "快速連結你的 Spotify 帳號，取得近期播放與常聽風格。",
     hint: "授權後即可開始每日素材孵化。",
-    icon: "🎧",
+    icon: "headphone",
     buttonLabel: "CONNECT SPOTIFY",
   },
   {
@@ -30,7 +30,7 @@ const providerOptions: Array<{
     title: "通用同步模式",
     subtitle: "透過 Last.fm 同步其他音樂平台資料。",
     hint: "適合 YouTube Music、Apple Music 與其他同步平台。",
-    icon: "🌍",
+    icon: "globe",
     buttonLabel: "SYNC MODE",
   },
 ];
@@ -70,7 +70,7 @@ function SourceSelectView({
           {providerOptions.map((option) => (
             <div key={option.value} className="source-window-card source-window-card-large">
               <div className="source-window-card-head">
-                <div className="source-window-icon">{option.icon}</div>
+                <div className="source-window-icon"><PixelIcon type={option.icon} size={28} /></div>
                 <div className="source-window-copy">
                   <div className="source-window-copy-row source-window-copy-row-start">
                     <PixelBadge tone={option.value === "spotify" ? "green" : "blue"}>{option.badge}</PixelBadge>
@@ -179,19 +179,19 @@ export const LoginView: React.FC = () => {
           />
 
           <section className="home-stage-screen">
-            <span className="home-stage-spark spark-a">✦</span>
-            <span className="home-stage-spark spark-b">♪</span>
-            <span className="home-stage-spark spark-c">✿</span>
-            <span className="home-stage-spark spark-d">★</span>
-            <span className="home-stage-spark spark-e">♫</span>
-            <div className="home-stage-icon icon-left-top">🎵</div>
-            <div className="home-stage-icon icon-right-top">🎧</div>
-            <div className="home-stage-icon icon-right-bottom">📼</div>
-            <div className="home-stage-pet is-left">🐱</div>
+            <span className="home-stage-spark spark-a"><PixelIcon type="spark" size={18} /></span>
+            <span className="home-stage-spark spark-b"><PixelIcon type="music-note" size={18} /></span>
+            <span className="home-stage-spark spark-c"><PixelIcon type="heart" size={18} /></span>
+            <span className="home-stage-spark spark-d"><PixelIcon type="star" size={18} /></span>
+            <span className="home-stage-spark spark-e"><PixelIcon type="music-note" size={18} /></span>
+            <div className="home-stage-icon icon-left-top"><PixelIcon type="music-note" size={24} /></div>
+            <div className="home-stage-icon icon-right-top"><PixelIcon type="headphone" size={26} /></div>
+            <div className="home-stage-icon icon-right-bottom"><PixelIcon type="cassette" size={24} /></div>
+            <div className="home-stage-pet is-left"><PixelIcon type="cat" size={64} /></div>
             <div className="home-stage-egg">
-              <div className="home-stage-egg-note">♪</div>
+              <div className="home-stage-egg-note"><PixelIcon type="music-note" size={18} /></div>
             </div>
-            <div className="home-stage-pet is-right">😺</div>
+            <div className="home-stage-pet is-right"><PixelIcon type="cat" size={64} /></div>
           </section>
 
           <RetroWindow title="開始音樂旅程" tone="pink">

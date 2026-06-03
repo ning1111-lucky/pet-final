@@ -2,6 +2,7 @@ import React from "react";
 import { MusicItem } from "../types";
 import { cn } from "../utils";
 import { getAssetErrorFallback } from "../assetMap";
+import { PixelIcon } from "./UI";
 
 export const defaultPlacementMap: Record<string, any> = {
   shoes: { zIndex: 2 },
@@ -35,7 +36,7 @@ export const LayeredWeeklyPet: React.FC<LayeredWeeklyPetProps> = ({ baseSrc, ite
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-6xl z-[1]">
-          ✨
+          <PixelIcon type="spark" size={48} />
         </div>
       )}
 

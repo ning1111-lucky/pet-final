@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { useApp } from "../AppContext";
-import { PetPlaceholder, PixelSectionTitle } from "../components/UI";
-import { Genre, MapEntry, MusicItem } from "../types";
-import { motion, AnimatePresence } from "motion/react";
 import { getBaseType, MOCK_MAP_ENTRIES } from "../mockData";
+import { Genre, MapEntry, MusicItem } from "../types";
+import { PetPlaceholder, PixelBadge, PixelIcon, PixelLogoTitle, PixelMap, PixelPetPreview, PixelProgress, PixelStatusBar, RetroWindow, getPartIconType } from "../components/UI";
 
 type SafeMapEntry = {
   id: string;
@@ -17,6 +17,7 @@ type SafeMapEntry = {
   items: MusicItem[];
   description: string;
   baseType: "O" | "G" | "B";
+  sourceDay?: number;
 };
 
 type GenreZoneKey = "kpop" | "classical" | "hiphop" | "country" | "jazz" | "indie" | "rnb" | "pop";
@@ -43,6 +44,7 @@ function normalizeMapEntryForView(entry: MapEntry): SafeMapEntry {
     items,
     description: entry.pet?.description || "這隻音樂寵物剛剛抵達世界地圖。",
     baseType: entry.pet?.baseType || getBaseType(mainGenre),
+    sourceDay: entry.sourceDay,
   };
 }
 
@@ -60,70 +62,14 @@ function getGenreZoneKey(genre: Genre): GenreZoneKey {
 }
 
 const zoneConfigs: ZoneConfig[] = [
-  {
-    key: "kpop",
-    slots: [
-      { left: "18%", top: "27%" },
-      { left: "24%", top: "34%" },
-      { left: "28%", top: "22%" },
-    ],
-  },
-  {
-    key: "classical",
-    slots: [
-      { left: "50%", top: "27%" },
-      { left: "43%", top: "34%" },
-      { left: "57%", top: "34%" },
-    ],
-  },
-  {
-    key: "hiphop",
-    slots: [
-      { left: "78%", top: "27%" },
-      { left: "72%", top: "34%" },
-      { left: "84%", top: "34%" },
-    ],
-  },
-  {
-    key: "country",
-    slots: [
-      { left: "20%", top: "58%" },
-      { left: "28%", top: "63%" },
-      { left: "13%", top: "65%" },
-    ],
-  },
-  {
-    key: "jazz",
-    slots: [
-      { left: "50%", top: "54%" },
-      { left: "43%", top: "61%" },
-      { left: "58%", top: "62%" },
-    ],
-  },
-  {
-    key: "indie",
-    slots: [
-      { left: "79%", top: "58%" },
-      { left: "71%", top: "64%" },
-      { left: "86%", top: "65%" },
-    ],
-  },
-  {
-    key: "rnb",
-    slots: [
-      { left: "32%", top: "84%" },
-      { left: "23%", top: "78%" },
-      { left: "41%", top: "79%" },
-    ],
-  },
-  {
-    key: "pop",
-    slots: [
-      { left: "69%", top: "84%" },
-      { left: "61%", top: "78%" },
-      { left: "78%", top: "78%" },
-    ],
-  },
+  { key: "kpop", slots: [{ left: "18%", top: "28%" }, { left: "24%", top: "34%" }, { left: "28%", top: "22%" }] },
+  { key: "classical", slots: [{ left: "50%", top: "28%" }, { left: "43%", top: "35%" }, { left: "57%", top: "35%" }] },
+  { key: "hiphop", slots: [{ left: "78%", top: "28%" }, { left: "72%", top: "35%" }, { left: "84%", top: "35%" }] },
+  { key: "country", slots: [{ left: "20%", top: "58%" }, { left: "28%", top: "63%" }, { left: "13%", top: "65%" }] },
+  { key: "jazz", slots: [{ left: "50%", top: "55%" }, { left: "43%", top: "61%" }, { left: "58%", top: "62%" }] },
+  { key: "indie", slots: [{ left: "79%", top: "58%" }, { left: "71%", top: "64%" }, { left: "86%", top: "65%" }] },
+  { key: "rnb", slots: [{ left: "32%", top: "84%" }, { left: "23%", top: "78%" }, { left: "41%", top: "79%" }] },
+  { key: "pop", slots: [{ left: "69%", top: "84%" }, { left: "61%", top: "78%" }, { left: "78%", top: "78%" }] },
 ];
 
 export const MapView: React.FC = () => {
@@ -132,14 +78,14 @@ export const MapView: React.FC = () => {
   const safeMapEntries = Array.isArray(mapEntries) ? mapEntries.filter(Boolean) : [];
 
   const allEntries = [...MOCK_MAP_ENTRIES, ...safeMapEntries].map(normalizeMapEntryForView);
-
   const totalPets = allEntries.length;
   const genreCounts = allEntries.reduce<Record<string, number>>((acc, entry) => {
     acc[entry.mainGenre] = (acc[entry.mainGenre] || 0) + 1;
     return acc;
   }, {});
   const topGenre = Object.entries(genreCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0]?.[0] || "POP";
-  const latestCity = allEntries[allEntries.length - 1]?.city || "未知";
+  const unlockedCount = Object.keys(genreCounts).length;
+  const latestEntry = allEntries[allEntries.length - 1] || null;
 
   const entriesByZone = useMemo(() => {
     const grouped = zoneConfigs.reduce<Record<GenreZoneKey, SafeMapEntry[]>>((acc, zone) => {
@@ -156,155 +102,120 @@ export const MapView: React.FC = () => {
 
   return (
     <div className="page-stack">
-      <div className="page-title-group pixel-dot-trail">
-        <div className="type-caption uppercase tracking-[0.18em]">WORLD MAP</div>
-        <h2 className="page-title">世界地圖</h2>
-        <p className="page-subtitle">探索不同曲風區域，查看已上傳的音樂寵物與推薦世界。</p>
-      </div>
+      <PixelStatusBar />
+      <PixelLogoTitle kicker="WORLD MAP" title="音樂地圖" subtitle="把已解鎖的風格寵物放進世界地圖，沿著音樂能量繼續探索下一塊區域。" />
 
-      <div className="flex flex-wrap gap-2">
-        {["KPOP", "CLASSICAL", "HIPHOP", "COUNTRY", "JAZZ", "INDIE", "RNB", "POP"].map((genre, index) => (
-          <span key={genre} className={`info-chip ${index === 0 ? "bg-[var(--color-primary)]" : "bg-white"}`}>{genre}</span>
-        ))}
-      </div>
+      <RetroWindow title="世界地圖" tone="blue">
+        <PixelMap>
+          <div className="relative w-full aspect-square overflow-hidden rounded-[18px] border-[3px] border-[var(--color-black)] bg-white shadow-[4px_4px_0_#111]">
+            <img src="/genre-map.png" alt="Music genre map" className="absolute inset-0 h-full w-full object-cover" />
+            {zoneConfigs.map((zone) =>
+              (entriesByZone[zone.key] || []).map((entry, index) => {
+                const slot = zone.slots[index % zone.slots.length];
+                return (
+                  <motion.button
+                    key={entry.id}
+                    type="button"
+                    initial={{ scale: 0.7, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", bounce: 0.32 }}
+                    className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: slot.left, top: slot.top }}
+                    onClick={() => setSelectedEntry(entry)}
+                  >
+                    <div className="map-pet-pin">
+                      {entry.petImage ? (
+                        <img src={entry.petImage} alt={entry.petName} className="h-full w-full object-contain scale-[0.82]" />
+                      ) : (
+                        <PetPlaceholder baseType={entry.baseType} className="h-full w-full scale-[0.78]" />
+                      )}
+                    </div>
+                  </motion.button>
+                );
+              })
+            )}
+          </div>
+        </PixelMap>
+      </RetroWindow>
 
-      <div className="page-stack">
-      <div className="relative w-full aspect-square overflow-hidden rounded-[32px] border border-[rgba(17,17,17,0.06)] shadow-[var(--shadow-soft-lg)] bg-white p-2">
-        <img
-          src="/genre-map.png"
-          alt="Music genre map"
-          className="absolute inset-2 w-[calc(100%-16px)] h-[calc(100%-16px)] object-cover rounded-[24px]"
-        />
-
-        {zoneConfigs.map((zone) => {
-          const zoneEntries = entriesByZone[zone.key] || [];
-
-          return zoneEntries.map((entry, index) => {
-            const slot = zone.slots[index % zone.slots.length];
-
-            return (
-              <motion.button
-                key={entry.id}
-                type="button"
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", bounce: 0.35 }}
-                className="absolute z-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-                style={{ left: slot.left, top: slot.top }}
-                onClick={() => setSelectedEntry(entry)}
-              >
-                  <div className="w-12 h-12 rounded-[18px] border border-[rgba(17,17,17,0.08)] bg-white/94 p-1 shadow-[var(--shadow-soft)] hover:-translate-y-1 transition-transform overflow-hidden">
-                  {entry.petImage ? (
-                    <img src={entry.petImage} alt={entry.petName} className="w-full h-full object-contain scale-[0.82]" />
-                  ) : (
-                    <PetPlaceholder baseType={entry.baseType} className="w-full h-full scale-[0.8]" />
-                  )}
-                </div>
-              </motion.button>
-            );
-          });
-        })}
-      </div>
-
-      <div className="space-y-5">
-      <div className="section-surface grid grid-cols-3 gap-3 text-center">
-        <div className="section-plain bg-white">
-          <div className="type-caption text-[var(--color-muted)]">世界寵物數</div>
-          <div className="type-h2 mt-1">{totalPets}</div>
+      <RetroWindow title="今日已放置" tone="pink">
+        <div className="window-stack-tight">
+          <div className="window-title-row">
+            <div>
+              <div className="window-mini-title">{latestEntry ? `Day ${latestEntry.sourceDay || 1}` : "尚未放置"}</div>
+              <p className="window-hint">{latestEntry ? `當前區域：${latestEntry.mainGenre}` : "完成今日孵化後，就能把寵物放進地圖世界。"}</p>
+            </div>
+            <PixelBadge tone="pink">{latestEntry?.mainGenre || "WAITING"}</PixelBadge>
+          </div>
         </div>
-        <div className="section-plain bg-white">
-          <div className="type-caption text-[var(--color-muted)]">熱門風格</div>
-          <div className="type-label mt-1 line-clamp-1">{topGenre}</div>
+      </RetroWindow>
+
+      <RetroWindow title="已解鎖區域" tone="yellow">
+        <div className="window-stack-tight">
+          <div className="window-title-row">
+            <div className="window-mini-title">{unlockedCount} / 8</div>
+            <PixelBadge tone="yellow">TOP：{topGenre}</PixelBadge>
+          </div>
+          <PixelProgress value={unlockedCount} max={8} color="var(--color-primary)" />
         </div>
-        <div className="section-plain bg-white">
-          <div className="type-caption text-[var(--color-muted)]">最新城市</div>
-          <div className="type-label mt-1 line-clamp-1">{latestCity}</div>
+      </RetroWindow>
+
+      <RetroWindow title="探索獎勵" tone="green">
+        <div className="reward-chip-grid">
+          <div className="reward-chip inline-flex items-center gap-2"><PixelIcon type="coin" size={16} /> +120</div>
+          <div className="reward-chip inline-flex items-center gap-2"><PixelIcon type="star" size={16} /> +10</div>
+          <div className="reward-chip inline-flex items-center gap-2"><PixelIcon type="gem" size={16} /> +5</div>
         </div>
-      </div>
-      <div className="section-surface">
-        <PixelSectionTitle title="推薦區域" subtitle="目前已解鎖的曲風會優先出現在對應世界區塊中。" variant="dark" />
-        <div className="flex flex-wrap gap-2 mt-4">
-          {Object.entries(genreCounts)
-            .sort((a, b) => Number(b[1]) - Number(a[1]))
-            .slice(0, 6)
-            .map(([genre, count], index) => (
-              <span key={genre} className={`info-chip ${index === 0 ? "bg-[var(--color-primary)]" : "bg-white"}`}>
-                {genre} · {count}
-              </span>
-            ))}
+      </RetroWindow>
+
+      <RetroWindow title="準備出發" tone="blue">
+        <div className="window-stack-tight">
+          <p className="window-copy">帶著你的音樂能量，前往新的音樂區域！點擊地圖上的寵物圖章，可以查看來自各地的 Playlist Pet。</p>
+          <PixelBadge tone="green">OPEN MAP</PixelBadge>
         </div>
-      </div>
-      </div>
-      </div>
+      </RetroWindow>
 
       <AnimatePresence>
-        {selectedEntry && (
+        {selectedEntry ? (
           <motion.div
-            initial={{ y: "100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "100%", opacity: 0 }}
-            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-[60] bg-[var(--color-card)] rounded-t-[32px] shadow-[0_-18px_38px_rgba(15,23,42,0.14)] pb-12 pt-6 px-6"
-            style={{ maxHeight: "80vh", overflowY: "auto" }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            className="map-detail-overlay"
           >
-            <button
-              className="absolute top-4 right-4 font-bold text-xl w-9 h-9 bg-[var(--color-card-secondary)] rounded-full shadow-[var(--shadow-soft)] text-[var(--color-text)] active:scale-95"
-              onClick={() => setSelectedEntry(null)}
-            >
-              ×
-            </button>
-
-            <div className="flex flex-col items-center">
-              <div className="type-caption text-[var(--color-text)] bg-[var(--color-primary)] px-3 py-1 rounded-full mb-4">
-                📍 {selectedEntry.city || "未知城市"}, {selectedEntry.country || "未知國家"}
-              </div>
-
-              <div className="bg-white p-4 border border-[rgba(17,17,17,0.08)] rounded-[24px] mb-4 overflow-hidden shadow-[var(--shadow-soft)]">
-                {selectedEntry.petImage ? (
-                  <img src={selectedEntry.petImage} alt={selectedEntry.petName} className="w-32 h-32 object-contain rounded-md" />
-                ) : (
-                  <PetPlaceholder baseType={selectedEntry.baseType} className="w-32 h-32" />
-                )}
-              </div>
-
-              <h3 className="type-h1 mb-1">{selectedEntry.petName}</h3>
-              <div className="type-caption text-[var(--color-muted)] mb-4">
-                Owner: {selectedEntry.ownerName || "Anonymous"}
-              </div>
-
-              <div className="flex space-x-2 mb-4 flex-wrap justify-center">
-                <div className="info-chip">
-                  主風格: {selectedEntry.mainGenre}
+            <RetroWindow title={selectedEntry.petName} tone="pink" className="map-detail-window">
+              <div className="window-stack-tight">
+                <div className="flex justify-center">
+                  <PixelPetPreview imageSrc={selectedEntry.petImage} title={selectedEntry.petName} subtitle={`${selectedEntry.city}, ${selectedEntry.country || "Unknown"}`} />
                 </div>
-                <div className="info-chip">
-                  次風格: {selectedEntry.secondGenre}
+
+                <div className="flex flex-wrap justify-center gap-2">
+                  <PixelBadge tone="green">主風格：{selectedEntry.mainGenre}</PixelBadge>
+                  <PixelBadge tone="yellow">次風格：{selectedEntry.secondGenre}</PixelBadge>
                 </div>
-              </div>
 
-              <div className="section-plain type-body mb-4 text-center bg-white w-full">
-                "{selectedEntry.description}"
-              </div>
+                <p className="window-copy text-center">"{selectedEntry.description}"</p>
 
-              <div className="w-full text-left type-label mb-2 border-b border-[rgba(17,17,17,0.08)] pb-2">
-                本週收集物品
+                <div className="day-collection-items justify-center">
+                  {selectedEntry.items.length > 0 ? (
+                    selectedEntry.items.map((item) => (
+                    <span key={item.id} className="day-collection-chip inline-flex items-center gap-2">
+                        <PixelIcon type={getPartIconType(item.part)} size={16} />
+                        {item.label || `${item.genre} ${item.part}`}
+                    </span>
+                    ))
+                  ) : (
+                    <span className="day-collection-chip locked">沒有穿戴物品</span>
+                  )}
+                </div>
+
+                <button type="button" className="pixel-button pixel-button-secondary w-full justify-center" onClick={() => setSelectedEntry(null)}>
+                  CLOSE
+                </button>
               </div>
-              <div className="flex flex-wrap gap-2 justify-start w-full section-plain bg-[var(--color-card-secondary)]">
-                {selectedEntry.items.length > 0 ? (
-                  selectedEntry.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="w-10 h-10 rounded-[14px] border border-[rgba(17,17,17,0.08)] flex items-center justify-center text-xl bg-white shadow-[var(--shadow-soft)]"
-                      title={`${item.genre} ${item.part}`}
-                    >
-                      {item.icon}
-                    </div>
-                  ))
-                ) : (
-                  <span className="type-caption text-[var(--color-muted)] p-2">沒有穿戴物品</span>
-                )}
-              </div>
-            </div>
+            </RetroWindow>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </div>
   );

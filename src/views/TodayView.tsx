@@ -1,54 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useApp } from "../AppContext";
-import { Button, Card, Input, ProgressBar } from "pixel-retroui";
-import { PixelBadge, PixelItemPlaceholder, PixelSectionTitle } from "../components/UI";
+import { Button, PixelBadge, PixelIcon, PixelItemCard, PixelLogoTitle, PixelProgress, PixelStatusBar, RetroWindow } from "../components/UI";
 import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, TOTAL_DAYS } from "../mockData";
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet, GeminiAssetAnalysis } from "../types";
 import { generateId } from "../utils";
 import { motion } from "motion/react";
 import { baseShapeMap, resolveAssetImage } from "../assetMap";
 import { getDayDate } from "../AppContext";
-
-const RetroButton = Button as unknown as React.ComponentType<React.PropsWithChildren<Record<string, unknown>>>;
-
-const retroCardProps = {
-  bg: "var(--color-card)",
-  textColor: "var(--color-text)",
-  borderColor: "var(--color-black)",
-  shadowColor: "var(--color-black)",
-  style: { fontFamily: "var(--font-body)" } as React.CSSProperties,
-};
-
-const retroInputProps = {
-  bg: "var(--color-card)",
-  textColor: "var(--color-text)",
-  borderColor: "var(--color-black)",
-  style: {
-    fontFamily: "var(--font-body)",
-    width: "100%",
-    "--input-custom-bg": "var(--color-card)",
-    "--input-custom-text": "var(--color-text)",
-    "--input-custom-border": "var(--color-black)",
-  } as React.CSSProperties & Record<string, string>,
-};
-
-function getButtonTheme(variant: "primary" | "secondary" = "primary") {
-  if (variant === "secondary") {
-    return {
-      bg: "var(--color-card)",
-      textColor: "var(--color-text)",
-      shadow: "var(--color-black)",
-      borderColor: "var(--color-black)",
-    } as const;
-  }
-
-  return {
-    bg: "var(--color-primary)",
-    textColor: "var(--color-text)",
-    shadow: "var(--color-black)",
-    borderColor: "var(--color-black)",
-  } as const;
-}
 
 const GENERATED_WEEKLY_PET_IMAGE_KEY = "generatedWeeklyPetImage";
 
@@ -270,7 +228,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       part: slot.part,
       genre,
       label: slot.title,
-      icon: "✨",
+      icon: "",
       imageSrc: resolveAssetImage(genre, slot.part, `${genre}-${slot.part}-${safeDay}`),
     } as MusicItem;
   });
@@ -660,7 +618,9 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       : activeMusicProvider === "lastfm"
         ? "通用同步模式"
         : "體驗模式";
-
+  const currentDayTrackCount = hatchSession?.days?.[safeDay]?.tracks?.length || 0;
+  const currentDayItemCount = hatchSession?.days?.[safeDay]?.items?.length || todaysGeneratedItems.length;
+  const currentDayXp = Math.min(300, currentDayTrackCount * 12 + currentDayItemCount * 40);
   const handleProviderChange = (provider: "mock" | "spotify" | "lastfm") => {
     updateUserProfile({ musicProvider: provider });
     if (userProfile) {
@@ -709,508 +669,320 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   return (
     <div className="page-stack">
-      <div className="page-title-group pixel-dot-trail" onClick={handleSecretTitleTap}>
-        <div className="type-caption uppercase tracking-[0.18em]">MELODY PET MAP</div>
-        <h2 className="page-title">
-          {isPetGenerationStage ? "音樂寵物生成" : "今日音樂分析"}
-        </h2>
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="info-chip bg-[var(--color-primary)]">
-            Day {safeDay}/{TOTAL_DAYS}
-          </span>
-          <PixelBadge>來源：{providerLabel}</PixelBadge>
-          {activeMusicProvider === "spotify" && spotifyConnected && spotifyDisplayName && (
-            <PixelBadge className="bg-white">已連線：{spotifyDisplayName}</PixelBadge>
-          )}
-        </div>
+      <PixelStatusBar />
+      <div onClick={handleSecretTitleTap}>
+        <PixelLogoTitle
+          kicker="DAILY QUEST"
+          title={isPetGenerationStage ? "音樂寵物生成" : "今日任務"}
+          subtitle="帶著今天的音樂資料與掉落素材，逐步孵化你的 Playlist Pet。"
+        />
       </div>
 
-      <div className="page-stack">
-      <Card {...retroCardProps} className="section-surface !m-0 space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="type-label">音樂來源</div>
-            <div className="type-body mt-1">
-              {activeMusicProvider === "spotify"
-                ? "Spotify 已連接後會直接讀近期播放與常聽風格。"
-                : activeMusicProvider === "lastfm"
-                  ? "目前使用通用同步模式，透過 Last.fm 讀取近期紀錄。"
-                  : "目前是體驗模式，使用隨機示範資料。"}
-            </div>
-          </div>
-          <PixelBadge className="bg-[var(--color-primary)]">{providerLabel}</PixelBadge>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <RetroButton
-            {...getButtonTheme("secondary")}
-            onClick={() => setShowMusicSourcePanel((value) => !value)}
-            className="!m-0"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            切換音樂來源
-          </RetroButton>
-          {activeMusicProvider === "spotify" && (
-            <RetroButton
-              {...getButtonTheme("primary")}
-              onClick={handleConnectSpotify}
-              className="!m-0"
-              style={{ fontFamily: "var(--font-body)" }}
-            >
-              {spotifyConnected ? "重新連接 Spotify" : "連接 Spotify"}
-            </RetroButton>
-          )}
-        </div>
-
-        {showMusicSourcePanel && (
-          <div className="section-plain bg-white space-y-3">
-            <div className="type-caption text-[var(--color-muted)]">
-              切換後，之後的音樂分析會改讀新的來源；目前已收集的素材不會被清掉。
-            </div>
-            <div className="grid grid-cols-1 gap-2">
-              <button
-                type="button"
-                onClick={() => handleProviderChange("spotify")}
-                className={`text-left rounded-[18px] border px-4 py-3 ${activeMusicProvider === "spotify" ? "border-[rgba(17,17,17,0.08)] bg-[var(--color-primary)]" : "border-[var(--color-line)] bg-white"}`}
-              >
-                <div className="type-label">Spotify</div>
-                <div className="type-caption text-[var(--color-muted)] mt-1">Spotify 直連，授權後直接讀最近播放與常聽風格。</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleProviderChange("lastfm")}
-                className={`text-left rounded-[18px] border px-4 py-3 ${activeMusicProvider === "lastfm" ? "border-[rgba(17,17,17,0.08)] bg-[var(--color-primary)]" : "border-[var(--color-line)] bg-white"}`}
-              >
-                <div className="type-label">通用同步模式</div>
-                <div className="type-caption text-[var(--color-muted)] mt-1">適合 YouTube Music、Apple Music、網易雲與其他可同步到 Last.fm 的平台。</div>
-              </button>
-            </div>
-
-            {(activeMusicProvider === "lastfm" || showMusicSourcePanel) && (
-              <div className="space-y-2 pt-1">
-                <label className="type-label">Last.fm 使用者名稱</label>
-                <Input
-                  {...retroInputProps}
-                  value={draftLastfmUsername}
-                  onChange={(event) => setDraftLastfmUsername(event.target.value)}
-                  className="w-full"
-                  placeholder="例如：musiclover123"
-                />
-                <div className="flex justify-end">
-                  <RetroButton
-                    {...getButtonTheme("secondary")}
-                    onClick={handleSaveLastfmUsername}
-                    disabled={!draftLastfmUsername.trim()}
-                    className="!m-0"
-                    style={{ fontFamily: "var(--font-body)" }}
-                  >
-                    儲存 Last.fm 帳號
-                  </RetroButton>
+      <RetroWindow title="冒險進度" tone="blue">
+        <div className="quest-day-strip">
+          {[1, 2, 3].map((day) => {
+            const summary = debugDaySummaries.find((item) => item.day === day);
+            const state = day < safeDay ? "done" : day === safeDay ? "active" : "locked";
+            return (
+              <div key={day} className={`quest-day-step is-${state}`}>
+                <div className="quest-day-dot">
+                  {state === "done" ? <PixelIcon type="check" size={18} /> : state === "locked" ? <PixelIcon type="lock" size={18} /> : day}
                 </div>
+                <div className="quest-day-text">Day {day}</div>
+                <div className="quest-day-meta">{summary?.songCount || 0} songs</div>
               </div>
-            )}
-          </div>
-        )}
-      </Card>
+            );
+          })}
+        </div>
+      </RetroWindow>
 
-      <div className="space-y-5">
-      {musicLoadError && (
-        <Card {...retroCardProps} className="section-surface !m-0 text-center space-y-4">
-          <div>
-            <h3 className="type-h2 mb-2">音樂資料尚未就緒</h3>
-            <p className="type-body text-red-600">{musicLoadError}</p>
+      <RetroWindow title="音樂來源" tone="yellow">
+        <div className="window-stack-tight">
+          <div className="window-title-row">
+            <div>
+              <div className="window-mini-title">音樂來源</div>
+              <p className="window-copy">
+                {activeMusicProvider === "spotify"
+                  ? "Spotify 已連接後會直接讀近期播放與常聽風格。"
+                  : activeMusicProvider === "lastfm"
+                    ? "目前使用通用同步模式，透過 Last.fm 讀取近期紀錄。"
+                    : "目前是體驗模式，使用示範資料。"}
+              </p>
+            </div>
+            <PixelBadge tone={activeMusicProvider === "spotify" ? "green" : activeMusicProvider === "lastfm" ? "blue" : "yellow"}>
+              {providerLabel}
+            </PixelBadge>
           </div>
 
-          {activeMusicProvider === "spotify" && (
-            <div className="flex flex-col gap-3">
-              <RetroButton
-                {...getButtonTheme("primary")}
-                onClick={handleConnectSpotify}
-                className="!m-0"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                連接 Spotify
-              </RetroButton>
-              {spotifyConnected && (
-                <RetroButton
-                  {...getButtonTheme("secondary")}
-                  onClick={handleDisconnectSpotify}
-                  className="!m-0"
-                  style={{ fontFamily: "var(--font-body)" }}
-                >
-                  解除 Spotify 連線
-                </RetroButton>
+          <div className="window-button-row">
+            <Button variant="secondary" className="w-full justify-center" onClick={() => setShowMusicSourcePanel((value) => !value)}>
+              切換音樂來源
+            </Button>
+            {activeMusicProvider === "spotify" ? (
+              <Button variant="primary" className="w-full justify-center" onClick={spotifyConnected ? handleDisconnectSpotify : handleConnectSpotify}>
+                {spotifyConnected ? "已連接 Spotify" : "連接 Spotify"}
+              </Button>
+            ) : null}
+          </div>
+
+          {showMusicSourcePanel && (
+            <div className="source-switch-panel">
+              <button type="button" className={`source-switch-card ${activeMusicProvider === "spotify" ? "is-active" : ""}`} onClick={() => handleProviderChange("spotify")}>
+                <div className="type-label">Spotify 直連</div>
+                <div className="type-caption">直接授權最近播放與常聽風格。</div>
+              </button>
+              <button type="button" className={`source-switch-card ${activeMusicProvider === "lastfm" ? "is-active" : ""}`} onClick={() => handleProviderChange("lastfm")}>
+                <div className="type-label">通用同步模式</div>
+                <div className="type-caption">透過 Last.fm 同步其他音樂平台。</div>
+              </button>
+              {(activeMusicProvider === "lastfm" || showMusicSourcePanel) && (
+                <div className="space-y-3">
+                  <label className="passport-field">
+                    <span className="window-label">Last.fm 使用者名稱</span>
+                    <input
+                      value={draftLastfmUsername}
+                      onChange={(event) => setDraftLastfmUsername(event.target.value)}
+                      className="pixel-input"
+                      placeholder="例如：musiclover123"
+                    />
+                  </label>
+                  <Button variant="secondary" className="w-full justify-center" onClick={handleSaveLastfmUsername} disabled={!draftLastfmUsername.trim()}>
+                    儲存 Last.fm 帳號
+                  </Button>
+                </div>
               )}
             </div>
           )}
+        </div>
+      </RetroWindow>
 
-          {activeMusicProvider === "lastfm" && musicLoadCode === "LASTFM_USERNAME_REQUIRED" && (
-            <div className="type-caption text-[var(--color-muted)]">
-              目前登入資料沒有 Last.fm 使用者名稱，請重新登入並填寫。
+      <RetroWindow title="主線任務" tone="pink">
+        <div className="quest-main-grid">
+          <div className="quest-main-visual">
+            <PixelIcon type="egg" size={42} />
+          </div>
+          <div className="window-stack-tight">
+            <div className="window-mini-title">孵化音樂寵物！</div>
+            <p className="window-copy">收集 3 天音樂素材，逐步孵化屬於你的音樂寵物。</p>
+            <PixelProgress label="XP" value={currentDayXp} max={300} color="var(--color-yellow)" />
+          </div>
+        </div>
+      </RetroWindow>
+
+      {musicLoadError ? (
+        <RetroWindow title="資料尚未就緒" tone="yellow">
+          <div className="window-stack-tight text-center">
+            <div className="window-mini-title">音樂資料尚未就緒</div>
+            <p className="window-error">{musicLoadError}</p>
+            {activeMusicProvider === "spotify" ? (
+              <Button variant="primary" className="w-full justify-center" onClick={handleConnectSpotify}>
+                連接 Spotify
+              </Button>
+            ) : null}
+            {activeMusicProvider === "lastfm" && musicLoadCode === "LASTFM_USERNAME_REQUIRED" ? (
+              <p className="window-hint">目前登入資料沒有 Last.fm 使用者名稱，請回到入口頁重新填寫。</p>
+            ) : null}
+          </div>
+        </RetroWindow>
+      ) : null}
+
+      {mockMusic ? (
+        <RetroWindow title="風格分析" tone="blue">
+          <div className="window-stack-tight">
+            <div className="stats-mini-grid">
+              <div className="stats-mini-card">
+                <div className="type-caption">聽歌數量</div>
+                <div className="window-mini-title">{currentDayTrackCount || mockMusic.songCount} 首</div>
+              </div>
+              <div className="stats-mini-card">
+                <div className="type-caption">分析類型</div>
+                <div className="window-mini-title">
+                  {mockMusic.mainGenre === "Mixed" ? "混合型" : mockMusic.mainGenre === "Hidden" ? "隱藏版" : "純粹型"}
+                </div>
+              </div>
             </div>
-          )}
-        </Card>
-      )}
 
-      {mockMusic && (
-        <Card {...retroCardProps} className="section-surface !m-0 flex flex-col space-y-4">
-          <PixelSectionTitle title="相關數據" subtitle="把今天的聽歌紀錄整理成清楚的分析資料。" variant="dark" />
-
-          <div className="metric-row">
-            <div className="type-label">聽歌數量</div>
-            <div className="type-h2">{mockMusic.songCount} 首</div>
-          </div>
-
-          <div className="metric-row">
-            <div className="type-label">分析類型</div>
-            <div className="info-chip">
-              {mockMusic.mainGenre === "Mixed" ? "混合型" : mockMusic.mainGenre === "Hidden" ? "隱藏版" : "純粹型"}
-            </div>
-          </div>
-
-          <div className="metric-row">
-            <div className="type-label">推薦主風格</div>
-            <div className="type-h2">{normalizeGenre((mockMusic.assetGenre || mockMusic.mainGenre) as string)}</div>
-          </div>
-
-          <div className="metric-row">
-            <div className="type-label">推薦次風格</div>
-            <div className="type-h2">{normalizeGenre((mockMusic.subGenre || "Pop") as string)}</div>
-          </div>
-
-          <div className="section-plain">
-            <div className="type-label mb-2">音樂風格分佈</div>
-            <div className="space-y-3">
+            <div className="window-label">風格分布</div>
+            <div className="quest-style-bars">
               {distribution.map((item, index) => (
-                <div key={`${item.genre}-${index}`} className="space-y-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="type-caption text-[var(--color-text)]">{item.genre}</span>
-                    <span className="type-caption">{item.percentage}%</span>
+                <div key={`${item.genre}-${index}`} className="quest-style-row">
+                  <div className="quest-style-copy">
+                    <span>{item.genre}</span>
+                    <span>{item.percentage}%</span>
                   </div>
-                  <ProgressBar
-                    progress={item.percentage}
-                    size="sm"
-                    color={
-                      index === 0
-                        ? "var(--color-green)"
-                        : index === 1
-                          ? "var(--color-pink)"
-                          : "var(--color-yellow)"
-                    }
-                    borderColor="var(--color-black)"
-                    className="w-full"
-                  />
+                  <PixelProgress value={item.percentage} max={100} color={index === 0 ? "var(--color-pink)" : index === 1 ? "var(--color-primary)" : "var(--color-yellow)"} />
                 </div>
               ))}
             </div>
+
+            <div className="quote-window">“{mockMusic.quote}”</div>
           </div>
+        </RetroWindow>
+      ) : null}
 
-          <div className="section-plain bg-white text-center italic">
-            "{mockMusic.quote}"
-          </div>
-        </Card>
-      )}
-      </div>
-      </div>
-
-      {mockMusic && !hasGeneratedToday && (
-        <Card {...retroCardProps} className="section-surface !m-0 text-center">
-          <PixelSectionTitle title="今日生成組合" subtitle="今天會同时使用主风格与次风格来掉落像素奖励。" variant="dark" />
-
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {todaysPreviewItems.map((item) => (
-              <div key={item.id} className="section-plain bg-white text-center">
-                <div className="type-caption mb-2 text-[var(--color-text)] uppercase">{item.label}</div>
-                <PixelItemPlaceholder
-                  genre={item.genre}
-                  part={item.part}
-                  imageSrc={item.imageSrc}
-                  className="w-full h-24 border-none shadow-none bg-transparent"
-                />
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col items-center justify-center space-y-4">
-            {showGenAnim ? (
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: [0, -10, 0], opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="grid grid-cols-2 gap-3 w-full"
-              >
+      {mockMusic ? (
+        <RetroWindow title="今日獎勵" tone="green">
+          {!hasGeneratedToday ? (
+            <div className="window-stack-tight">
+              <div className="quest-reward-grid">
                 {todaysPreviewItems.map((item) => (
-                  <PixelItemPlaceholder
-                    key={item.id}
-                    genre={item.genre}
-                    part={item.part}
-                    imageSrc={item.imageSrc}
-                    className="w-full h-24"
-                  />
+                  <PixelItemCard key={item.id} item={item} fallbackDay={safeDay} />
                 ))}
-              </motion.div>
-            ) : (
-              <div className="type-body text-[var(--color-muted)]">
+              </div>
+              <div className="quest-reward-meta">
                 Day {safeDay} 會生成 {daySlotConfigs.map((slot) => slot.part).join(" + ")}
               </div>
-            )}
-
-            {!showGenAnim ? (
-              <RetroButton
-                {...getButtonTheme("primary")}
-                onClick={handleGenerate}
-                className="w-full !m-0 !py-2"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
+              <Button variant="primary" className="w-full justify-center" onClick={handleGenerate}>
                 確認今日分析並生成素材
-              </RetroButton>
-            ) : (
-              <div className="min-h-[40px]" />
-            )}
-            {todaysPreviewItems.some((item) => !item.imageSrc) && !showGenAnim && (
-              <div className="type-caption text-red-600 mt-2">
-                有素材缺失，請檢查今日對應的圖片檔。
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
-
-      {hasGeneratedToday && (
-        <Card {...retroCardProps} className="section-surface !m-0 text-center">
-          <PixelSectionTitle title={`Day ${safeDay} 已收錄素材`} subtitle="今天的掉落奖励已经加入本周背包。" variant="dark" />
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className={`grid gap-3 ${todaysGeneratedItems.length > 1 ? "grid-cols-2" : "grid-cols-1"} items-start`}
-          >
-            {todaysGeneratedItems.map((item) => (
-              <div key={item.id} className="section-plain flex flex-col items-center justify-center space-y-3 min-h-[160px] bg-white">
-                <PixelItemPlaceholder
-                  genre={item.genre}
-                  part={item.part}
-                  label={item.label}
-                  imageSrc={item.imageSrc}
-                  className="w-32 h-32"
-                />
-                <div className="type-caption text-[var(--color-text-secondary)]">
-                  已收錄至本週收藏
-                </div>
-              </div>
-            ))}
-          </motion.div>
-        </Card>
-      )}
-
-      {isPetGenerationStage && (
-        <Card {...retroCardProps} className="section-surface !m-0 text-center">
-          <PixelSectionTitle title="確認生成音樂寵物" subtitle="QUEST CLEAR：先分析素材，再交给 Leonardo 生成最终角色。" variant="dark" />
-
-          <div className="mb-4">
-            <div className="type-h2">{mainGenre} 音樂精靈</div>
-            <div className="flex justify-center gap-2 mt-2 flex-wrap">
-              <span className="info-chip bg-[var(--color-primary)]">主：{mainGenre}</span>
-              <span className="info-chip bg-white">副：{subGenre}</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 mb-4 section-plain bg-[var(--color-card-secondary)]">
-            {[
-              { key: "base", src: selectedBase, label: "base" },
-              { key: "clothes", src: selectedClothes, label: "clothes" },
-              { key: "shoes", src: selectedShoes, label: "shoes" },
-              { key: "headwear", src: selectedHeadwear, label: "headwear" },
-              { key: "handheld", src: selectedHandheld, label: "handheld" },
-              { key: "accessory", src: selectedAccessory, label: "accessory" },
-            ].map((item) => (
-              <div
-                key={item.key}
-                className="aspect-square bg-white border border-[rgba(17,17,17,0.08)] flex items-center justify-center p-1 rounded-[16px] shadow-[var(--shadow-soft)]"
-              >
-                <img
-                  src={item.src || undefined}
-                  alt={item.label}
-                  className="w-full h-full object-contain"
-                  style={{ imageRendering: "pixelated" }}
-                  onError={(event) => ((event.currentTarget as HTMLImageElement).style.display = "none")}
-                />
-              </div>
-            ))}
-          </div>
-
-          {error && (
-            <div className="type-caption text-red-600 bg-red-50 border border-red-200 p-2 rounded mb-4">
-              {error}
-            </div>
-          )}
-
-          {(isAnalyzing || analysis || finalPrompt) && (
-            <div className="section-plain bg-white text-left mb-4 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="type-label">素材分析結果</div>
-                {isAnalyzing && <div className="type-caption text-[var(--color-muted)]">正在分析素材…</div>}
-              </div>
-
-              {notionPromptContext && (
-                <div className="space-y-1">
-                  <div className="type-label">Notion 風格參考</div>
-                  <div className="type-caption text-[var(--color-muted)] whitespace-pre-wrap">
-                    {notionPromptContext}
-                  </div>
-                </div>
-              )}
-
-              {analysis && (
-                <div className="space-y-2">
-                  <div className="type-caption"><span className="font-semibold">Base：</span>{analysis.base_description}</div>
-                  <div className="type-caption"><span className="font-semibold">Clothes：</span>{analysis.clothes_description}</div>
-                  <div className="type-caption"><span className="font-semibold">Shoes：</span>{analysis.shoes_description}</div>
-                  <div className="type-caption"><span className="font-semibold">Headwear：</span>{analysis.headwear_description}</div>
-                  <div className="type-caption"><span className="font-semibold">Handheld：</span>{analysis.handheld_description}</div>
-                  <div className="type-caption"><span className="font-semibold">Accessory：</span>{analysis.accessory_description}</div>
-                  <div className="type-caption"><span className="font-semibold">Style Summary：</span>{analysis.style_summary}</div>
-                </div>
-              )}
-
-              {finalPrompt && (
-                <div className="space-y-1">
-                  <div className="type-label">Gemini final_prompt_en</div>
-                  <pre className="whitespace-pre-wrap break-words rounded-[18px] border border-[rgba(17,17,17,0.08)] bg-[var(--color-card)] p-3 text-xs leading-6 text-[var(--color-text)]">
-                    {finalPrompt}
-                  </pre>
-                </div>
-              )}
-
-              {isGenerating && (
-                <div className="type-caption text-[var(--color-muted)]">正在生成寵物…</div>
-              )}
-            </div>
-          )}
-
-          {generatedImageUrl ? (
-            <div className="mb-6 flex flex-col items-center">
-              <div className="w-48 h-48 border border-[rgba(17,17,17,0.08)] rounded-[24px] bg-white p-2 shadow-[var(--shadow-soft)] relative overflow-hidden">
-                {imgLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 type-caption text-[var(--color-muted)] text-center px-2 border-2 border-dashed border-gray-300">
-                    正在載入圖片...
-                  </div>
-                )}
-                {imgLoadError && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-red-50 z-10 type-caption text-red-500 text-center p-2 border-2 border-dashed border-red-200">
-                    圖片暫時載入失敗，請重新生成或稍後再試。
-                  </div>
-                )}
-                <img
-                  src={generatedImageUrl}
-                  alt="Generated Pet"
-                  className="w-full h-full object-contain relative z-0"
-                  onLoad={() => {
-                    setImgLoading(false);
-                    setImgLoadError(false);
-                    setImgLoaded(true);
-                  }}
-                  onError={() => {
-                    setImgLoading(false);
-                    setImgLoadError(true);
-                    setImgLoaded(false);
-                  }}
-                />
-              </div>
-
-              {imgLoaded && !imgLoadError && (
-                <div className="type-caption text-green-600 mt-2 bg-green-50 px-2 py-1 rounded-sm border border-green-200">
-                  生成成功！
-                </div>
-              )}
-
-              <div className="mt-4 w-full">
-                <RetroButton
-                  {...getButtonTheme("primary")}
-                  onClick={analyzeAndGeneratePet}
-                  className="w-full !m-0 !py-3"
-                  disabled={isAnalyzing || isGenerating}
-                  style={{ fontFamily: "var(--font-body)" }}
-                >
-                  {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "重新分析並生成"}
-                </RetroButton>
-              </div>
+              </Button>
             </div>
           ) : (
-            <div className="mb-4">
-              <RetroButton
-                {...getButtonTheme("primary")}
-                onClick={analyzeAndGeneratePet}
-                className="w-full !m-0 !py-3"
-                disabled={isAnalyzing || isGenerating}
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "分析並生成"}
-              </RetroButton>
+            <div className="window-stack-tight">
+              <div className="quest-reward-grid">
+                {todaysGeneratedItems.map((item) => (
+                  <PixelItemCard key={item.id} item={item} fallbackDay={safeDay} />
+                ))}
+              </div>
+              <div className="window-hint text-center">今日掉落已收錄至本週收藏。</div>
             </div>
           )}
-        </Card>
-      )}
+        </RetroWindow>
+      ) : null}
 
-      <RetroButton
-        {...getButtonTheme("primary")}
-        onClick={handleDeployToMap}
-        className="w-full !m-0 !py-3"
-        disabled={!generatedImageUrl || isAnalyzing || isGenerating}
-        style={{ fontFamily: "var(--font-body)" }}
-      >
-        放到地圖上
-      </RetroButton>
+      {isPetGenerationStage ? (
+        <RetroWindow title="風格分析升級" tone="blue">
+          <div className="window-stack-tight">
+            <div className="window-title-row">
+              <div>
+                <div className="window-mini-title">{mainGenre} 音樂精靈</div>
+                <p className="window-copy">深入分析你的音樂素材，解鎖更完整的最終寵物！</p>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2">
+                <PixelBadge tone="pink">主：{mainGenre}</PixelBadge>
+                <PixelBadge tone="yellow">副：{subGenre}</PixelBadge>
+              </div>
+            </div>
 
-      {showDevTools && (
-        <div className="section-divider pt-4 flex flex-wrap gap-2 justify-center mt-8">
-          <div className="w-full text-center type-label mb-1">DEV TOOLS</div>
-          <div className="w-full section-plain text-left card-text space-y-2">
-            <div>
-              <strong>startDate:</strong> {hatchSession?.startDate || "-"}
-            </div>
-            <div>
-              <strong>currentDay:</strong> {hatchSession?.currentDay || safeDay}
-            </div>
-            <div className="space-y-1">
-              {debugDaySummaries.map((summary) => (
-                <div key={summary.day} className="flex items-center justify-between gap-3 text-sm">
-                  <span>
-                    Day {summary.day} · {summary.date || "-"}
-                  </span>
-                  <span>
-                    songs {summary.songCount} / items {summary.itemCount} / {summary.completed ? "done" : "pending"}
-                  </span>
+            <div className="analysis-asset-grid">
+              {[
+                { key: "base", src: selectedBase, label: "base" },
+                { key: "clothes", src: selectedClothes, label: "clothes" },
+                { key: "shoes", src: selectedShoes, label: "shoes" },
+                { key: "headwear", src: selectedHeadwear, label: "headwear" },
+                { key: "handheld", src: selectedHandheld, label: "handheld" },
+                { key: "accessory", src: selectedAccessory, label: "accessory" },
+              ].map((item) => (
+                <div key={item.key} className="analysis-asset-tile">
+                  {item.src ? <img src={item.src} alt={item.label} className="w-full h-full object-contain" style={{ imageRendering: "pixelated" }} /> : null}
                 </div>
               ))}
             </div>
+
+            {error ? <div className="window-error">{error}</div> : null}
+
+            {(isAnalyzing || analysis || finalPrompt) ? (
+              <div className="analysis-result-window">
+                <div className="window-title-row">
+                  <div className="window-mini-title">素材分析結果</div>
+                  {isAnalyzing ? <div className="window-hint">正在分析素材…</div> : null}
+                </div>
+
+                {notionPromptContext ? (
+                  <div className="analysis-copy-block">
+                    <div className="window-label">Notion 風格參考</div>
+                    <div className="window-hint whitespace-pre-wrap">{notionPromptContext}</div>
+                  </div>
+                ) : null}
+
+                {analysis ? (
+                  <div className="analysis-copy-block">
+                    <div className="window-hint"><strong>Base：</strong>{analysis.base_description}</div>
+                    <div className="window-hint"><strong>Clothes：</strong>{analysis.clothes_description}</div>
+                    <div className="window-hint"><strong>Shoes：</strong>{analysis.shoes_description}</div>
+                    <div className="window-hint"><strong>Headwear：</strong>{analysis.headwear_description}</div>
+                    <div className="window-hint"><strong>Handheld：</strong>{analysis.handheld_description}</div>
+                    <div className="window-hint"><strong>Accessory：</strong>{analysis.accessory_description}</div>
+                    <div className="window-hint"><strong>Style：</strong>{analysis.style_summary}</div>
+                  </div>
+                ) : null}
+
+                {finalPrompt ? (
+                  <div className="analysis-copy-block">
+                    <div className="window-label">Gemini final_prompt_en</div>
+                    <pre className="analysis-prompt-block">{finalPrompt}</pre>
+                  </div>
+                ) : null}
+
+                {isGenerating ? <div className="window-hint">正在生成寵物…</div> : null}
+              </div>
+            ) : null}
+
+            {generatedImageUrl ? (
+              <div className="window-stack-tight">
+                <div className="pixel-generated-frame">
+                  {imgLoading ? <div className="generated-overlay">正在載入圖片...</div> : null}
+                  {imgLoadError ? <div className="generated-overlay error">圖片暫時載入失敗，請重新生成或稍後再試。</div> : null}
+                  <img
+                    src={generatedImageUrl}
+                    alt="Generated Pet"
+                    className="w-full h-full object-contain"
+                    onLoad={() => {
+                      setImgLoading(false);
+                      setImgLoadError(false);
+                      setImgLoaded(true);
+                    }}
+                    onError={() => {
+                      setImgLoading(false);
+                      setImgLoadError(true);
+                      setImgLoaded(false);
+                    }}
+                  />
+                </div>
+                {imgLoaded && !imgLoadError ? <div className="window-success">生成成功！</div> : null}
+                <Button variant="blue" className="w-full justify-center" onClick={analyzeAndGeneratePet} disabled={isAnalyzing || isGenerating}>
+                  {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "ANALYZE NOW"}
+                </Button>
+              </div>
+            ) : (
+              <Button variant="blue" className="w-full justify-center" onClick={analyzeAndGeneratePet} disabled={isAnalyzing || isGenerating}>
+                {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "ANALYZE NOW"}
+              </Button>
+            )}
           </div>
-          <RetroButton
-            {...getButtonTheme("secondary")}
-            onClick={advanceDay}
-            className="!m-0 !p-2"
-            disabled={safeDay >= TOTAL_DAYS}
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            模擬下一天
-          </RetroButton>
-          <RetroButton
-            {...getButtonTheme("secondary")}
-            onClick={handleResetWeek}
-            className="!m-0 !p-2"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            重置本週
-          </RetroButton>
-          <RetroButton
-            {...getButtonTheme("secondary")}
-            onClick={handleAutoFillWeek}
-            className="!m-0 !p-2 opacity-80"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            一鍵生成三天
-          </RetroButton>
-        </div>
-      )}
+        </RetroWindow>
+      ) : null}
+
+      <Button variant="primary" className="w-full justify-center" onClick={handleDeployToMap} disabled={!generatedImageUrl || isAnalyzing || isGenerating}>
+        OPEN MAP
+      </Button>
+
+      {showDevTools ? (
+        <RetroWindow title="DEV TOOLS" tone="yellow">
+          <div className="window-stack-tight">
+            <div className="window-hint"><strong>startDate:</strong> {hatchSession?.startDate || "-"}</div>
+            <div className="window-hint"><strong>currentDay:</strong> {hatchSession?.currentDay || safeDay}</div>
+            <div className="space-y-1">
+              {debugDaySummaries.map((summary) => (
+                <div key={summary.day} className="window-hint flex items-center justify-between gap-2">
+                  <span>Day {summary.day} · {summary.date || "-"}</span>
+                  <span>songs {summary.songCount} / items {summary.itemCount} / {summary.completed ? "done" : "pending"}</span>
+                </div>
+              ))}
+            </div>
+            <div className="window-button-row">
+              <Button variant="secondary" className="w-full justify-center" onClick={advanceDay} disabled={safeDay >= TOTAL_DAYS}>
+                模擬下一天
+              </Button>
+              <Button variant="secondary" className="w-full justify-center" onClick={handleResetWeek}>
+                重置本週
+              </Button>
+            </div>
+            <Button variant="secondary" className="w-full justify-center" onClick={handleAutoFillWeek}>
+              一鍵生成三天
+            </Button>
+          </div>
+        </RetroWindow>
+      ) : null}
     </div>
   );
 };

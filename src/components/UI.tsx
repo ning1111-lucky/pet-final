@@ -3,6 +3,221 @@ import { cn } from "../utils";
 import { Genre, ItemPart, MusicItem } from "../types";
 import { getAssetErrorFallback, resolveAssetImage } from "../assetMap";
 
+export type PixelIconType =
+  | "cat"
+  | "egg"
+  | "music-note"
+  | "gem"
+  | "coin"
+  | "backpack"
+  | "map"
+  | "shoe"
+  | "jacket"
+  | "headphone"
+  | "cassette"
+  | "star"
+  | "heart"
+  | "lock"
+  | "check"
+  | "menu"
+  | "plus"
+  | "globe"
+  | "microphone"
+  | "ticket"
+  | "sunglasses"
+  | "spark"
+  | "cap";
+
+type PixelRect = {
+  x: number;
+  y: number;
+  w?: number;
+  h?: number;
+  fill: string;
+};
+
+const O = "#111111";
+const W = "#ffffff";
+const P = "#ff9dd6";
+const Y = "#ffd84d";
+const G = "#b7ff5e";
+const B = "#2f7bff";
+const LB = "#8ac6ff";
+const PP = "#c9b8ff";
+const C = "#f8f8f4";
+const DG = "#3d4f6b";
+const BR = "#8a5b33";
+const GR = "#8f96a3";
+
+const rect = (x: number, y: number, fill: string, w = 1, h = 1): PixelRect => ({ x, y, fill, w, h });
+
+const iconRects: Record<PixelIconType, PixelRect[]> = {
+  cat: [
+    rect(4, 1, O, 2, 1), rect(10, 1, O, 2, 1),
+    rect(3, 2, O, 1, 2), rect(6, 2, O, 1, 2), rect(9, 2, O, 1, 2), rect(12, 2, O, 1, 2),
+    rect(4, 2, DG, 2, 1), rect(10, 2, DG, 2, 1),
+    rect(4, 3, DG, 8, 1),
+    rect(2, 4, O, 1, 6), rect(13, 4, O, 1, 6),
+    rect(3, 4, DG, 10, 6),
+    rect(5, 5, W, 2, 2), rect(9, 5, W, 2, 2),
+    rect(5, 6, O, 1, 1), rect(10, 6, O, 1, 1),
+    rect(6, 7, P, 1, 1), rect(9, 7, P, 1, 1),
+    rect(7, 7, O, 2, 1), rect(7, 8, P, 2, 1),
+    rect(3, 10, O, 10, 1), rect(4, 11, O, 8, 1),
+  ],
+  egg: [
+    rect(6, 1, O, 4, 1), rect(4, 2, O, 2, 1), rect(10, 2, O, 2, 1),
+    rect(3, 3, O, 1, 2), rect(12, 3, O, 1, 2),
+    rect(2, 5, O, 1, 5), rect(13, 5, O, 1, 5),
+    rect(3, 10, O, 1, 2), rect(12, 10, O, 1, 2),
+    rect(4, 12, O, 2, 1), rect(10, 12, O, 2, 1),
+    rect(6, 13, O, 4, 1),
+    rect(4, 3, C, 8, 9), rect(3, 5, C, 10, 5), rect(5, 12, C, 6, 1),
+    rect(7, 4, P, 2, 2), rect(6, 6, P, 4, 1),
+  ],
+  "music-note": [
+    rect(9, 1, O, 2, 1), rect(9, 2, O, 2, 1), rect(9, 3, O, 2, 1), rect(9, 4, O, 2, 1), rect(9, 5, O, 2, 1),
+    rect(10, 1, LB, 3, 2), rect(10, 2, LB, 3, 1),
+    rect(5, 8, O, 3, 1), rect(4, 9, O, 1, 2), rect(8, 9, O, 1, 2), rect(5, 11, O, 3, 1),
+    rect(4, 10, LB, 4, 1), rect(10, 6, O, 3, 1), rect(9, 7, O, 1, 2), rect(13, 7, O, 1, 2), rect(10, 9, O, 3, 1),
+    rect(9, 8, PP, 4, 1),
+  ],
+  gem: [
+    rect(6, 1, O, 4, 1), rect(4, 2, O, 2, 1), rect(10, 2, O, 2, 1),
+    rect(3, 3, O, 1, 2), rect(12, 3, O, 1, 2),
+    rect(4, 5, O, 1, 2), rect(11, 5, O, 1, 2),
+    rect(5, 7, O, 1, 2), rect(10, 7, O, 1, 2),
+    rect(6, 9, O, 1, 2), rect(9, 9, O, 1, 2),
+    rect(7, 11, O, 2, 1),
+    rect(5, 2, P, 6, 2), rect(4, 4, P, 8, 2), rect(5, 6, PP, 6, 2), rect(6, 8, P, 4, 2), rect(7, 10, PP, 2, 1),
+    rect(9, 3, W, 1, 2), rect(8, 4, W, 1, 1),
+  ],
+  coin: [
+    rect(4, 2, O, 8, 1), rect(3, 3, O, 1, 8), rect(12, 3, O, 1, 8), rect(4, 11, O, 8, 1),
+    rect(4, 3, Y, 8, 8), rect(6, 5, O, 1, 4), rect(8, 4, O, 1, 6), rect(9, 4, O, 1, 1), rect(9, 7, O, 1, 1), rect(9, 9, O, 1, 1),
+  ],
+  backpack: [
+    rect(5, 1, O, 6, 1), rect(4, 2, O, 1, 2), rect(11, 2, O, 1, 2),
+    rect(3, 4, O, 1, 8), rect(12, 4, O, 1, 8), rect(4, 12, O, 8, 1),
+    rect(4, 4, G, 8, 8), rect(6, 3, G, 4, 1), rect(6, 5, O, 4, 1), rect(6, 6, GR, 4, 4), rect(7, 7, O, 2, 2),
+    rect(2, 5, O, 1, 4), rect(13, 5, O, 1, 4), rect(2, 6, G, 1, 2), rect(13, 6, G, 1, 2),
+  ],
+  map: [
+    rect(2, 3, O, 4, 1), rect(2, 4, O, 1, 8), rect(5, 4, O, 1, 8),
+    rect(7, 2, O, 4, 1), rect(7, 3, O, 1, 8), rect(10, 3, O, 1, 8),
+    rect(12, 3, O, 2, 1), rect(12, 4, O, 1, 8), rect(15, 4, O, 1, 8),
+    rect(3, 4, LB, 2, 7), rect(8, 3, G, 2, 7), rect(13, 4, Y, 2, 7),
+    rect(4, 6, O, 1, 1), rect(8, 5, O, 1, 1), rect(14, 8, O, 1, 1),
+  ],
+  shoe: [
+    rect(2, 9, O, 7, 1), rect(1, 10, O, 1, 2), rect(9, 10, O, 1, 2), rect(2, 12, O, 9, 1),
+    rect(2, 8, P, 5, 1), rect(2, 9, P, 6, 2), rect(3, 11, P, 4, 1),
+    rect(6, 7, O, 3, 1), rect(7, 8, O, 1, 1), rect(8, 8, W, 3, 3), rect(10, 11, O, 4, 1), rect(11, 9, O, 1, 2),
+    rect(9, 11, Y, 1, 1), rect(4, 9, W, 2, 1), rect(8, 9, W, 2, 1),
+  ],
+  jacket: [
+    rect(2, 3, O, 4, 1), rect(10, 3, O, 4, 1), rect(1, 4, O, 1, 6), rect(14, 4, O, 1, 6),
+    rect(2, 10, O, 4, 1), rect(10, 10, O, 4, 1), rect(6, 4, O, 1, 7), rect(9, 4, O, 1, 7),
+    rect(2, 4, B, 4, 6), rect(10, 4, B, 4, 6), rect(7, 4, C, 2, 7),
+    rect(3, 5, PP, 2, 1), rect(11, 5, PP, 2, 1), rect(7, 6, O, 2, 1), rect(7, 8, Y, 2, 1),
+  ],
+  headphone: [
+    rect(4, 2, O, 8, 1), rect(3, 3, O, 1, 4), rect(12, 3, O, 1, 4),
+    rect(4, 3, PP, 8, 3), rect(2, 7, O, 2, 4), rect(12, 7, O, 2, 4),
+    rect(3, 8, DG, 2, 3), rect(11, 8, DG, 2, 3), rect(5, 4, B, 2, 1), rect(9, 4, B, 2, 1),
+  ],
+  cassette: [
+    rect(2, 3, O, 12, 1), rect(1, 4, O, 1, 8), rect(14, 4, O, 1, 8), rect(2, 12, O, 12, 1),
+    rect(2, 4, DG, 12, 8), rect(4, 6, O, 3, 3), rect(9, 6, O, 3, 3), rect(5, 7, GR, 1, 1), rect(10, 7, GR, 1, 1),
+    rect(7, 6, O, 2, 3), rect(7, 7, P, 2, 1), rect(4, 10, O, 8, 1), rect(5, 5, PP, 6, 1),
+  ],
+  star: [
+    rect(7, 1, O, 2, 1), rect(7, 2, Y, 2, 2), rect(4, 4, Y, 8, 2), rect(6, 6, Y, 4, 2), rect(5, 8, Y, 2, 2), rect(9, 8, Y, 2, 2),
+    rect(6, 10, Y, 1, 2), rect(9, 10, Y, 1, 2),
+    rect(4, 4, O, 1, 1), rect(11, 4, O, 1, 1), rect(6, 11, O, 1, 1), rect(9, 11, O, 1, 1),
+  ],
+  heart: [
+    rect(4, 2, O, 3, 1), rect(9, 2, O, 3, 1), rect(3, 3, O, 1, 3), rect(7, 3, O, 1, 3), rect(8, 3, O, 1, 3), rect(12, 3, O, 1, 3),
+    rect(4, 3, P, 3, 3), rect(9, 3, P, 3, 3), rect(4, 6, P, 8, 2), rect(5, 8, P, 6, 2), rect(6, 10, P, 4, 2), rect(7, 12, P, 2, 1),
+  ],
+  lock: [
+    rect(5, 2, O, 6, 1), rect(4, 3, O, 1, 4), rect(11, 3, O, 1, 4), rect(5, 7, O, 6, 1),
+    rect(3, 8, O, 10, 1), rect(2, 9, O, 1, 5), rect(13, 9, O, 1, 5), rect(3, 14, O, 10, 1),
+    rect(3, 9, Y, 10, 5), rect(7, 10, O, 2, 3), rect(8, 12, O, 1, 1),
+  ],
+  check: [
+    rect(2, 8, O, 2, 2), rect(4, 10, O, 2, 2), rect(6, 8, O, 2, 2), rect(8, 6, O, 2, 2), rect(10, 4, O, 2, 2), rect(12, 2, O, 2, 2),
+    rect(2, 9, G, 2, 1), rect(4, 11, G, 2, 1), rect(6, 9, G, 2, 1), rect(8, 7, G, 2, 1), rect(10, 5, G, 2, 1), rect(12, 3, G, 2, 1),
+  ],
+  menu: [
+    rect(3, 4, O, 10, 2), rect(3, 7, O, 10, 2), rect(3, 10, O, 10, 2),
+  ],
+  plus: [
+    rect(7, 3, O, 2, 10), rect(3, 7, O, 10, 2), rect(7, 3, Y, 2, 10), rect(3, 7, Y, 10, 2),
+  ],
+  globe: [
+    rect(5, 2, O, 6, 1), rect(3, 3, O, 2, 1), rect(11, 3, O, 2, 1), rect(2, 5, O, 1, 6), rect(13, 5, O, 1, 6), rect(5, 11, O, 6, 1), rect(3, 10, O, 2, 1), rect(11, 10, O, 2, 1),
+    rect(4, 4, B, 8, 7), rect(7, 4, O, 1, 7), rect(8, 4, O, 1, 7), rect(4, 6, O, 8, 1), rect(4, 8, O, 8, 1),
+  ],
+  microphone: [
+    rect(6, 2, O, 4, 1), rect(5, 3, O, 1, 5), rect(10, 3, O, 1, 5), rect(6, 8, O, 4, 1),
+    rect(6, 3, P, 4, 5), rect(7, 9, O, 2, 3), rect(5, 12, O, 6, 1), rect(10, 10, O, 3, 1), rect(12, 11, O, 1, 3), rect(13, 14, O, 2, 1),
+    rect(6, 4, W, 1, 1), rect(8, 5, W, 1, 1),
+  ],
+  ticket: [
+    rect(2, 4, O, 12, 1), rect(1, 5, O, 1, 6), rect(14, 5, O, 1, 6), rect(2, 11, O, 12, 1),
+    rect(2, 5, C, 12, 6), rect(5, 5, O, 1, 6), rect(10, 5, O, 1, 6), rect(6, 7, Y, 3, 2), rect(11, 7, P, 2, 2),
+  ],
+  sunglasses: [
+    rect(2, 5, O, 5, 1), rect(9, 5, O, 5, 1), rect(2, 6, O, 1, 3), rect(6, 6, O, 1, 3), rect(9, 6, O, 1, 3), rect(13, 6, O, 1, 3),
+    rect(3, 6, DG, 3, 3), rect(10, 6, DG, 3, 3), rect(7, 6, O, 2, 1),
+  ],
+  spark: [
+    rect(7, 1, O, 2, 2), rect(6, 3, O, 4, 2), rect(4, 5, O, 8, 2), rect(6, 7, O, 4, 2), rect(7, 9, O, 2, 2),
+    rect(7, 2, Y, 2, 1), rect(6, 3, Y, 4, 1), rect(5, 5, Y, 6, 1), rect(6, 7, Y, 4, 1), rect(7, 9, Y, 2, 1),
+  ],
+  cap: [
+    rect(4, 4, O, 7, 1), rect(3, 5, O, 1, 3), rect(11, 5, O, 1, 3), rect(4, 8, O, 7, 1), rect(2, 8, O, 2, 1), rect(11, 8, O, 3, 1),
+    rect(4, 5, PP, 7, 3), rect(3, 8, PP, 9, 1), rect(10, 6, Y, 1, 1),
+  ],
+};
+
+export const PixelIcon = ({
+  type,
+  size = 20,
+  className,
+}: {
+  type: PixelIconType;
+  size?: number;
+  className?: string;
+}) => {
+  const shapes = iconRects[type] || iconRects.star;
+
+  return (
+    <svg
+      className={cn("pixel-svg-icon", className)}
+      width={size}
+      height={size}
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      shapeRendering="crispEdges"
+      aria-hidden="true"
+    >
+      {shapes.map((shape, index) => (
+        <rect
+          key={`${type}-${index}`}
+          x={shape.x}
+          y={shape.y}
+          width={shape.w || 1}
+          height={shape.h || 1}
+          fill={shape.fill}
+        />
+      ))}
+    </svg>
+  );
+};
+
 export const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: "primary" | "secondary" | "pink" | "blue" }>(({ className, variant = "primary", ...props }, ref) => {
   return (
     <button
@@ -74,7 +289,7 @@ export const PixelProgressBar = ({
 export const PixelStatusBar = ({ gems = 120, level = 1, progress = 32 }: { gems?: number; level?: number; progress?: number }) => (
   <div className="pixel-status-bar">
     <div className="pixel-status-left">
-      <div className="pixel-avatar-box">🐱</div>
+      <div className="pixel-avatar-box"><PixelIcon type="cat" size={24} /></div>
       <div className="pixel-level-stack">
         <div className="pixel-level-label">LV.{String(level).padStart(2, "0")}</div>
         <div className="pixel-mini-progress">
@@ -83,9 +298,9 @@ export const PixelStatusBar = ({ gems = 120, level = 1, progress = 32 }: { gems?
       </div>
     </div>
     <div className="pixel-status-right">
-      <div className="pixel-gem-chip">💎 {gems}</div>
-      <button type="button" className="pixel-icon-btn" aria-label="add gems">＋</button>
-      <button type="button" className="pixel-icon-btn" aria-label="menu">☰</button>
+      <div className="pixel-gem-chip"><PixelIcon type="gem" size={16} /> {gems}</div>
+      <button type="button" className="pixel-icon-btn" aria-label="add gems"><PixelIcon type="plus" size={16} /></button>
+      <button type="button" className="pixel-icon-btn" aria-label="menu"><PixelIcon type="menu" size={16} /></button>
     </div>
   </div>
 );
@@ -127,20 +342,39 @@ export const PixelProgress = ({ label, value, max, color = "var(--color-primary)
   );
 };
 
-const getGenreIcon = (genre: Genre): string => {
-  const map: Record<Genre | string, string> = {
-    Pop: "🎤", "Hip-hop": "🧢", "K-pop": "✨", EDM: "⚡",
-    Classical: "🎻", Jazz: "🎷", "R&B": "🍷", Country: "🤠",
-    Rock: "🎸", "Taiwan Indie": "🛵", Mixed: "🌀", Hidden: "🌟"
+export const getGenreIconType = (genre: Genre): PixelIconType => {
+  const map: Record<Genre | string, PixelIconType> = {
+    Pop: "microphone",
+    "Hip-hop": "cassette",
+    Hiphop: "cassette",
+    "K-pop": "heart",
+    Kpop: "heart",
+    EDM: "spark",
+    Classical: "music-note",
+    Jazz: "music-note",
+    "R&B": "headphone",
+    RnB: "headphone",
+    Country: "map",
+    Rock: "cassette",
+    "Taiwan Indie": "backpack",
+    Indie: "backpack",
+    Mixed: "spark",
+    Hidden: "star",
   };
-  return map[genre] || "🎵";
+  return map[genre] || "music-note";
 };
 
-const getPartIcon = (part: ItemPart): string => {
-  const map: Record<ItemPart | string, string> = {
-    clothes: "👕", headwear: "👒", accessory: "💍", handheld: "🪄", shoes: "👞", enhance: "✨", "final weekly pet": "🥚"
+export const getPartIconType = (part: ItemPart): PixelIconType => {
+  const map: Record<ItemPart | string, PixelIconType> = {
+    clothes: "jacket",
+    headwear: "cap",
+    accessory: "heart",
+    handheld: "microphone",
+    shoes: "shoe",
+    enhance: "spark",
+    "final weekly pet": "egg",
   };
-  return map[part] || "🧩";
+  return map[part] || "ticket";
 };
 
 export const PixelItemPlaceholder: React.FC<{
@@ -178,9 +412,11 @@ export const PixelItemPlaceholder: React.FC<{
         </div>
       ) : (
         <div className="flex flex-col items-center">
-          <div className="text-3xl relative">
-            <span>{getPartIcon(part)}</span>
-            <span className="absolute bottom-[-4px] right-[-4px] text-lg bg-white rounded-full pt-1">{getGenreIcon(genre)}</span>
+          <div className="relative flex items-center justify-center">
+            <PixelIcon type={getPartIconType(part)} size={44} />
+            <span className="absolute bottom-[-6px] right-[-6px] rounded-full border-2 border-[var(--color-black)] bg-white p-1">
+              <PixelIcon type={getGenreIconType(genre)} size={16} />
+            </span>
           </div>
           <div className="type-caption mt-2 text-center text-red-500">缺少素材：{genre} {part}</div>
         </div>
@@ -194,9 +430,13 @@ export const PixelItemCard = ({ item, fallbackDay, className }: { item?: MusicIt
   if (!item) {
     return (
       <div className={cn("pixel-item-card opacity-70", className)}>
-        <div className="pixel-item-thumb flex items-center justify-center text-3xl">❔</div>
+        <div className="pixel-item-thumb flex items-center justify-center"><PixelIcon type="lock" size={36} /></div>
         <div className="pixel-item-name">未解鎖</div>
-        <div className="pixel-item-stars">☆ ☆ ☆</div>
+        <div className="pixel-item-stars">
+          <PixelIcon type="star" size={14} />
+          <PixelIcon type="star" size={14} />
+          <PixelIcon type="star" size={14} />
+        </div>
       </div>
     );
   }
@@ -208,7 +448,11 @@ export const PixelItemCard = ({ item, fallbackDay, className }: { item?: MusicIt
         <PixelItemPlaceholder genre={item.genre} part={item.part} imageSrc={item.imageSrc} className="w-full h-full border-none shadow-none bg-transparent" />
       </div>
       <div className="pixel-item-name">{item.label || `${item.genre} ${item.part}`}</div>
-      <div className="pixel-item-stars">★ ★ ★</div>
+      <div className="pixel-item-stars">
+        <PixelIcon type="star" size={14} />
+        <PixelIcon type="star" size={14} />
+        <PixelIcon type="star" size={14} />
+      </div>
     </div>
   );
 };
