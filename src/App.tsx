@@ -90,10 +90,10 @@ const AppContent: React.FC = () => {
   return (
     <div className="webapp-outer">
       <div className="webapp-shell">
-        <main className="relative flex min-h-[100dvh] flex-col">
+        <div className="relative flex min-h-[100dvh] flex-col">
           <PixelHeader />
 
-          <div className="webapp-content">
+          <main className="webapp-content">
             {!userProfile ? (
               <LoginView />
             ) : (
@@ -103,7 +103,7 @@ const AppContent: React.FC = () => {
                 {activeTab === "map" && <MapView />}
               </>
             )}
-          </div>
+          </main>
 
           {userProfile && (
             <nav className="pixel-nav-shell fixed bottom-0 left-1/2 z-50 flex -translate-x-1/2 items-center px-2 py-2">
@@ -121,7 +121,7 @@ const AppContent: React.FC = () => {
               </button>
             </nav>
           )}
-        </main>
+        </div>
       </div>
     </div>
   );
