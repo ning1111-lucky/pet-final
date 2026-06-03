@@ -136,60 +136,73 @@ export const LoginView: React.FC = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="page-stack">
-      <div className="w-full space-y-5">
-        <Card {...retroCardProps} className="pixel-card relative bg-white px-5 py-5 !m-0">
-          <div className="space-y-5">
-            <div className="space-y-3">
-              <PixelBadge className="bg-[var(--color-primary)] text-[var(--color-text)]">MUSIC PET HATCH</PixelBadge>
-              <div className="grid grid-cols-[1fr_122px] gap-4 items-start">
-                <div className="space-y-3 min-w-0">
-                  <h1 className="text-[var(--color-text)] text-left text-[2.15rem] font-extrabold leading-[1.06] tracking-[-0.045em]">
-                    把你的聽歌紀錄
-                    <br />
-                    孵化成寵物
-                  </h1>
-                  <p className="type-body text-[var(--color-text)] opacity-90">
-                    連結音樂來源，收集 3 天素材，最後生成專屬於你的音樂寵物。
-                  </p>
-                </div>
+      <div className="w-full space-y-[18px]">
+        <Card {...retroCardProps} className="pixel-card flex items-center justify-between gap-4 bg-[var(--color-card-secondary)] px-4 py-4 !m-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-14 w-14 items-center justify-center rounded-[20px] border-[3px] border-[var(--color-black)] bg-[var(--color-pink)] shadow-[4px_4px_0_var(--color-black)] text-[28px]">
+              ♪
+            </div>
+            <div className="min-w-0">
+              <div className="text-[1.1rem] font-extrabold leading-none text-[var(--color-text)]">Playlist Pet</div>
+              <div className="type-caption mt-1 text-[var(--color-text-secondary)]">把你的聽歌紀錄孵化成音樂寵物</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            aria-label="收藏"
+            className="flex h-14 w-14 items-center justify-center rounded-[20px] border-[3px] border-[var(--color-black)] bg-white shadow-[4px_4px_0_var(--color-black)] text-[28px] leading-none"
+          >
+            ♡
+          </button>
+        </Card>
 
-                <div className="relative">
-                  <div className="rounded-[26px] border-[3px] border-[var(--color-black)] bg-[#eef6ff] p-2 shadow-[4px_4px_0_var(--color-black)]">
-                    <img src="/base-1.png" alt="music pet hero" className="w-full rounded-[20px] bg-white p-3" />
-                  </div>
-                  <div className="absolute -left-3 bottom-2 rounded-[18px] border-[3px] border-[var(--color-black)] bg-[var(--color-pink)] px-3 py-2 shadow-[3px_3px_0_var(--color-black)]">
-                    <div className="type-label text-[15px]">Collect 3 days</div>
-                    <div className="type-caption text-[var(--color-text)] opacity-80">Generate your pet</div>
-                  </div>
-                </div>
+        <Card {...retroCardProps} className="pixel-card bg-white px-5 py-5 !m-0">
+          <div className="flex items-start gap-4">
+            <div className="min-w-0 flex-1 space-y-4">
+              <PixelBadge className="bg-[var(--color-primary)] text-[var(--color-text)]">MUSIC PET HATCH</PixelBadge>
+              <div className="space-y-3">
+                <h1 className="text-left text-[2rem] font-extrabold leading-[1.08] tracking-[-0.04em] text-[var(--color-text)]">
+                  把你的聽歌紀錄
+                  <br />
+                  孵化成寵物
+                </h1>
+                <p className="type-body text-[var(--color-text)] opacity-90">
+                  連結音樂來源，收集 3 天素材，最後生成專屬於你的音樂寵物。
+                </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
-              <RetroButton
-                type="button"
-                {...getButtonTheme(musicProvider === "spotify" ? "primary" : "secondary")}
-                onClick={() => setMusicProvider("spotify")}
-                className="!m-0 !w-full !px-4 !py-3"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                Spotify 直連
-              </RetroButton>
-              <RetroButton
-                type="button"
-                {...getButtonTheme(musicProvider === "lastfm" ? "primary" : "secondary")}
-                onClick={() => setMusicProvider("lastfm")}
-                className="!m-0 !w-full !px-4 !py-3"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                通用同步模式
-              </RetroButton>
+            <div className="w-[108px] flex-shrink-0 space-y-3">
+              <div className="rounded-[22px] border-[3px] border-[var(--color-black)] bg-[#eef6ff] p-2 shadow-[4px_4px_0_var(--color-black)]">
+                <img src="/base-1.png" alt="music pet hero" className="w-full rounded-[18px] bg-white p-2" />
+              </div>
             </div>
           </div>
         </Card>
 
-        <Card {...retroCardProps} className="w-full px-5 py-5 space-y-5 bg-white !m-0">
-          <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
+        <div className="grid grid-cols-1 gap-3">
+          <RetroButton
+            type="button"
+            {...getButtonTheme(musicProvider === "spotify" ? "primary" : "secondary")}
+            onClick={() => setMusicProvider("spotify")}
+            className="!m-0 !w-full !px-4 !py-3"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            Spotify 直連
+          </RetroButton>
+          <RetroButton
+            type="button"
+            {...getButtonTheme(musicProvider === "lastfm" ? "primary" : "secondary")}
+            onClick={() => setMusicProvider("lastfm")}
+            className="!m-0 !w-full !px-4 !py-3"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            通用同步模式
+          </RetroButton>
+        </div>
+
+        <Card {...retroCardProps} className="w-full px-5 py-5 bg-white !m-0">
+          <div className="space-y-5">
             <PixelSectionTitle
               eyebrow="STEP 1"
               title="選擇你的音樂入口"
@@ -227,14 +240,12 @@ export const LoginView: React.FC = () => {
                         </div>
                         <div
                           className={[
-                            "w-6 h-6 rounded-full border flex-shrink-0 mt-1",
+                            "mt-1 h-6 w-6 flex-shrink-0 rounded-full border",
                             selected ? "border-[rgba(17,17,17,0.12)] bg-white shadow-[inset_0_0_0_6px_var(--color-primary-strong)]" : "border-[rgba(17,17,17,0.12)] bg-white",
                           ].join(" ")}
                         />
                       </div>
-                      <div className="type-caption text-[var(--color-muted)] mt-2 leading-relaxed">
-                        {option.hint}
-                      </div>
+                      <div className="type-caption mt-2 leading-relaxed text-[var(--color-muted)]">{option.hint}</div>
                     </Card>
                   </button>
                 );
@@ -244,7 +255,7 @@ export const LoginView: React.FC = () => {
             {musicProvider === "lastfm" && (
               <div className="rounded-[24px] border border-[rgba(17,17,17,0.06)] bg-[var(--color-card-secondary)] p-4 shadow-[var(--shadow-soft)]">
                 <div className="type-label text-[var(--color-text)]">通用同步模式帳號</div>
-                <p className="type-caption text-[var(--color-muted)] mt-2 leading-relaxed">
+                <p className="type-caption mt-2 leading-relaxed text-[var(--color-muted)]">
                   這個模式適合 YouTube Music、Apple Music、網易雲音樂，或任何能同步到 Last.fm 的播放器。
                 </p>
                 <Input
@@ -257,7 +268,11 @@ export const LoginView: React.FC = () => {
                 />
               </div>
             )}
+          </div>
+        </Card>
 
+        <Card {...retroCardProps} className="w-full px-5 py-5 bg-white !m-0">
+          <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
             <PixelSectionTitle eyebrow="STEP 2" title="建立你的音樂護照" variant="dark" className="items-start text-left" />
 
             <div className="grid gap-4">
@@ -271,11 +286,11 @@ export const LoginView: React.FC = () => {
               </div>
             </div>
             <div className="grid gap-4">
-              <div className="flex flex-col space-y-1 min-w-0">
+              <div className="flex min-w-0 flex-col space-y-1">
                 <label className="type-label text-[var(--color-text)]">國家 / 地區</label>
                 <Input {...retroInputProps} required value={country} onChange={e => setCountry(e.target.value)} className="w-full" />
               </div>
-              <div className="flex flex-col space-y-1 min-w-0">
+              <div className="flex min-w-0 flex-col space-y-1">
                 <label className="type-label text-[var(--color-text)]">城市</label>
                 <Input {...retroInputProps} required value={city} onChange={e => setCity(e.target.value)} className="w-full" />
               </div>
@@ -285,13 +300,13 @@ export const LoginView: React.FC = () => {
               <Input {...retroInputProps} value={style} onChange={e => setStyle(e.target.value)} className="w-full" placeholder="例：日系、Y2K" />
             </div>
 
-            <label className="flex items-start space-x-2 cursor-pointer rounded-[18px] border border-[rgba(17,17,17,0.06)] bg-[var(--color-card-secondary)] px-3 py-3 shadow-[var(--shadow-soft)]">
-              <input required type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-1 flex-shrink-0 w-4 h-4" />
-              <span className="type-caption opacity-90 leading-relaxed">我同意將音樂紀錄用於生成音樂寵物與研究展示。</span>
+            <label className="flex cursor-pointer items-start space-x-2 rounded-[18px] border border-[rgba(17,17,17,0.06)] bg-[var(--color-card-secondary)] px-3 py-3 shadow-[var(--shadow-soft)]">
+              <input required type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 flex-shrink-0" />
+              <span className="type-caption leading-relaxed opacity-90">我同意將音樂紀錄用於生成音樂寵物與研究展示。</span>
             </label>
 
             {submitError && (
-              <div className="type-caption text-red-600 rounded-[18px] border border-red-200 bg-red-50 px-3 py-3">
+              <div className="type-caption rounded-[18px] border border-red-200 bg-red-50 px-3 py-3 text-red-600">
                 {submitError}
               </div>
             )}
