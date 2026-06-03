@@ -9,6 +9,7 @@ import { TodayView } from "./views/TodayView";
 import { CollectionView } from "./views/CollectionView";
 import { MapView } from "./views/MapView";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { PixelIcon } from "./components/UI";
 
 const ACTIVE_TAB_STORAGE_KEY = "melody_active_tab";
 const VALID_TABS = ["today", "items", "map"] as const;
@@ -35,35 +36,11 @@ const getInitialActiveTab = (): ActiveTab => {
 };
 
 const BottomNavIcon = ({ type, active }: { type: string; active: boolean }) => {
-  const color = active ? "#ff9dd6" : "rgba(255,255,255,0.68)";
-
-  const NoteIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill={color} xmlns="http://www.w3.org/2000/svg">
-      <path d="M13.5 3.5v8.2a2.8 2.8 0 1 1-1.4-2.44V6.3L7.9 7.4v5.3a2.8 2.8 0 1 1-1.4-2.44V5.7a1 1 0 0 1 .75-.97l5.2-1.3a1 1 0 0 1 1.05.07Z" />
-    </svg>
-  );
-
-  const BoxIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" strokeWidth="1.8" stroke={color} xmlns="http://www.w3.org/2000/svg">
-      <path d="M4.8 6.3 10 3.8l5.2 2.5v7.4L10 16.2l-5.2-2.5V6.3Z" />
-      <path d="M4.8 6.3 10 8.8l5.2-2.5" />
-      <path d="M10 8.8v7.4" />
-    </svg>
-  );
-
-  const MapIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" strokeWidth="1.8" stroke={color} xmlns="http://www.w3.org/2000/svg">
-      <path d="M3.6 5.4 8 3.8l4 2 4.4-2v10.8L12 16.2l-4-2-4.4 1.6V5.4Z" />
-      <path d="M8 3.8v10.4" />
-      <path d="M12 5.8v10.4" />
-    </svg>
-  );
-
   return (
     <div className="modern-tab-icon">
-      {type === "today" && <NoteIcon />}
-      {type === "items" && <BoxIcon />}
-      {type === "map" && <MapIcon />}
+      {type === "today" && <PixelIcon type="music-note" size={20} />}
+      {type === "items" && <PixelIcon type="backpack" size={20} />}
+      {type === "map" && <PixelIcon type="map" size={20} />}
     </div>
   );
 };
@@ -91,22 +68,20 @@ const AppContent: React.FC = () => {
           )}
         </main>
 
-        {userProfile && (
-          <nav className="mobile-bottom-nav">
-            <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
-              <BottomNavIcon type="today" active={activeTab === "today"} />
-              <span className="pixel-nav-tab-label">今日</span>
-            </button>
-            <button onClick={() => setActiveTab("items")} className={`pixel-nav-tab ${activeTab === "items" ? "pixel-nav-tab-active" : ""}`}>
-              <BottomNavIcon type="items" active={activeTab === "items"} />
-              <span className="pixel-nav-tab-label">物品</span>
-            </button>
-            <button onClick={() => setActiveTab("map")} className={`pixel-nav-tab ${activeTab === "map" ? "pixel-nav-tab-active" : ""}`}>
-              <BottomNavIcon type="map" active={activeTab === "map"} />
-              <span className="pixel-nav-tab-label">地圖</span>
-            </button>
-          </nav>
-        )}
+        <nav className="mobile-bottom-nav">
+          <button onClick={() => setActiveTab("today")} className={`pixel-nav-tab ${activeTab === "today" ? "pixel-nav-tab-active" : ""}`}>
+            <BottomNavIcon type="today" active={activeTab === "today"} />
+            <span className="pixel-nav-tab-label">今日</span>
+          </button>
+          <button onClick={() => setActiveTab("items")} className={`pixel-nav-tab ${activeTab === "items" ? "pixel-nav-tab-active" : ""}`}>
+            <BottomNavIcon type="items" active={activeTab === "items"} />
+            <span className="pixel-nav-tab-label">物品</span>
+          </button>
+          <button onClick={() => setActiveTab("map")} className={`pixel-nav-tab ${activeTab === "map" ? "pixel-nav-tab-active" : ""}`}>
+            <BottomNavIcon type="map" active={activeTab === "map"} />
+            <span className="pixel-nav-tab-label">地圖</span>
+          </button>
+        </nav>
       </div>
     </div>
   );

@@ -1774,3 +1774,429 @@ html, body, #root {
     height: 116px;
   }
 }
+
+/* Homepage rebuild: Header → Hero → Quick Actions → Source Select → Passport */
+.start-home-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 3px solid #111;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #f4ffd4 0%, #e6ff9f 100%);
+  box-shadow: 6px 6px 0 #111;
+}
+
+.start-home-brand-chip {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.start-home-brand-icon,
+.start-home-brand-favorite {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 3px solid #111;
+  border-radius: 18px;
+  box-shadow: 4px 4px 0 #111;
+}
+
+.start-home-brand-icon {
+  background: #ffb8d9;
+}
+
+.start-home-brand-favorite {
+  background: #ffd84d;
+}
+
+.start-home-brand-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.start-home-brand-title {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #111;
+  text-transform: uppercase;
+}
+
+.start-home-brand-subtitle {
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: #204fa8;
+}
+
+.start-home-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border: 3px solid #111;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 216, 77, 0.18), transparent 28%),
+    radial-gradient(circle at bottom left, rgba(255, 183, 213, 0.16), transparent 28%),
+    linear-gradient(180deg, #fffdfa 0%, #f8f8f4 100%);
+  box-shadow: 6px 6px 0 #111;
+}
+
+.start-home-logo .pixel-logo-main {
+  font-size: 2.85rem;
+  line-height: 0.92;
+}
+
+.start-home-logo .pixel-logo-subtitle {
+  font-size: 1rem;
+  color: #111;
+}
+
+.start-home-slogan {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 3px solid #111;
+  border-radius: 999px;
+  background: #111;
+  color: #ffd84d;
+  font-family: "Silkscreen", "Inter", system-ui, sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 4px 4px 0 #111;
+}
+
+.start-home-slogan-icon {
+  display: grid;
+  place-items: center;
+  color: #ffb7d5;
+}
+
+.start-home-stage {
+  position: relative;
+  min-height: 168px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 12px 8px;
+  border: 3px solid #111;
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(0, 159, 255, 0.18) 0%, rgba(0, 159, 255, 0) 60%),
+    linear-gradient(180deg, #ffffff 0%, #f9f5ff 100%);
+  overflow: hidden;
+}
+
+.start-home-stage::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 18px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.08);
+}
+
+.start-home-stage-ground {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  width: 158px;
+  height: 26px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.12);
+}
+
+.stage-deco {
+  position: absolute;
+  display: grid;
+  place-items: center;
+}
+
+.deco-note-left {
+  top: 16px;
+  left: 20px;
+  color: #75d94b;
+}
+
+.deco-star-top {
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffd84d;
+}
+
+.deco-heart-right {
+  top: 24px;
+  right: 22px;
+  color: #ff9dd6;
+}
+
+.deco-cassette {
+  bottom: 54px;
+  right: 18px;
+  color: #ff9dd6;
+}
+
+.deco-spark {
+  bottom: 58px;
+  left: 26px;
+  color: #ffd84d;
+}
+
+.deco-headphone {
+  top: 50px;
+  right: 76px;
+  color: #00a6e8;
+}
+
+.start-home-pet,
+.start-home-egg {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.start-home-pet {
+  width: 96px;
+}
+
+.start-home-pet-shell {
+  position: relative;
+  width: 82px;
+  height: 104px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #111;
+  border-radius: 24px;
+  box-shadow: 4px 4px 0 #111;
+}
+
+.start-home-pet-shell.pink {
+  background: linear-gradient(180deg, #ffb8d9 0%, #ff97c7 100%);
+}
+
+.start-home-pet-shell.blue {
+  background: linear-gradient(180deg, #9bdfff 0%, #79c9ff 100%);
+}
+
+.start-home-pet-bubble {
+  position: absolute;
+  top: -10px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #111;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 3px 3px 0 #111;
+}
+
+.start-home-pet-accessory {
+  position: absolute;
+  top: 12px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+}
+
+.start-home-egg {
+  flex: 1;
+  justify-content: center;
+}
+
+.start-home-egg-shell {
+  position: relative;
+  z-index: 1;
+  width: 118px;
+  height: 138px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #111;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff7e9 0%, #ffe9b8 100%);
+  box-shadow: 4px 4px 0 #111;
+}
+
+.start-home-egg-nest {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  width: 124px;
+  height: 22px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #6f491d;
+  border: 3px solid #111;
+  box-shadow: 4px 4px 0 #111;
+}
+
+.start-home-window .retro-window-body {
+  gap: 14px;
+}
+
+.source-screen-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.source-window-card {
+  padding: 16px;
+  border: 3px solid #111;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 4px 4px 0 #111;
+}
+
+.source-window-card-large {
+  background: linear-gradient(180deg, #fffdf7 0%, #f8f8f4 100%);
+}
+
+.source-window-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.source-window-icon {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 3px solid #111;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #dff4ff 0%, #c4ebff 100%);
+  box-shadow: 3px 3px 0 #111;
+}
+
+.source-window-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.source-window-copy-row-start {
+  justify-content: flex-start;
+}
+
+.passport-provider-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 3px solid #111;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 3px 3px 0 #111;
+}
+
+.passport-form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.passport-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.passport-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #111;
+  font-weight: 700;
+}
+
+.passport-checkbox-row input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.passport-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .start-home-header {
+    padding: 14px 15px;
+  }
+
+  .start-home-brand-icon,
+  .start-home-brand-favorite {
+    width: 48px;
+    height: 48px;
+  }
+
+  .start-home-brand-title {
+    font-size: 1.15rem;
+  }
+
+  .start-home-brand-subtitle {
+    font-size: 0.86rem;
+  }
+
+  .start-home-logo .pixel-logo-main {
+    font-size: 2.4rem;
+  }
+
+  .start-home-stage {
+    min-height: 154px;
+    padding: 18px 10px 8px;
+  }
+
+  .start-home-pet {
+    width: 84px;
+  }
+
+  .start-home-pet-shell {
+    width: 72px;
+    height: 94px;
+  }
+
+  .start-home-egg-shell {
+    width: 102px;
+    height: 122px;
+  }
+
+  .start-home-egg-nest {
+    width: 108px;
+  }
+
+  .source-window-card-head {
+    gap: 12px;
+  }
+}

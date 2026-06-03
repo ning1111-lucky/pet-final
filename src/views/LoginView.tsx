@@ -2,7 +2,15 @@ import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useApp } from "../AppContext";
 import { MusicProvider } from "../types";
-import { PixelBadge, PixelButton, PixelIcon, PixelIconType, PixelLogoTitle, PixelStatusBar, RetroWindow } from "../components/UI";
+import {
+  PixelBadge,
+  PixelButton,
+  PixelIcon,
+  PixelIconType,
+  PixelLogoTitle,
+  PixelStatusBar,
+  RetroWindow,
+} from "../components/UI";
 
 type OnboardingStep = "home" | "source" | "passport";
 
@@ -14,15 +22,17 @@ const providerOptions: Array<{
   hint: string;
   icon: PixelIconType;
   buttonLabel: string;
+  tone: "green" | "blue";
 }> = [
   {
     value: "spotify",
     badge: "SPOTIFY",
     title: "Spotify 直連",
     subtitle: "快速連結你的 Spotify 帳號，取得近期播放與常聽風格。",
-    hint: "授權後即可開始每日素材孵化。",
+    hint: "登入後即可開始每日素材孵化。",
     icon: "headphone",
     buttonLabel: "CONNECT SPOTIFY",
+    tone: "green",
   },
   {
     value: "lastfm",
@@ -32,6 +42,7 @@ const providerOptions: Array<{
     hint: "適合 YouTube Music、Apple Music 與其他同步平台。",
     icon: "globe",
     buttonLabel: "SYNC MODE",
+    tone: "blue",
   },
 ];
 
@@ -47,6 +58,93 @@ async function readApiJsonResponse(response: Response): Promise<Record<string, u
   } catch {
     return { error: rawText.trim() || "同步失敗，請重試" };
   }
+}
+
+function HomeScreen({ onStart }: { onStart: () => void }) {
+  return (
+    <div className="page-stack">
+      <PixelStatusBar />
+
+      <section className="start-home-header">
+        <div className="start-home-brand-chip">
+          <div className="start-home-brand-icon">
+            <PixelIcon type="music-note" size={22} />
+          </div>
+          <div className="start-home-brand-copy">
+            <div className="start-home-brand-title">Playlist Pet</div>
+            <div className="start-home-brand-subtitle">把你的聽歌紀錄孵化成音樂寵物</div>
+          </div>
+        </div>
+        <button type="button" className="start-home-brand-favorite" aria-label="favorite">
+          <PixelIcon type="heart" size={20} />
+        </button>
+      </section>
+
+      <section className="start-home-hero">
+        <PixelLogoTitle
+          kicker="PRESS START TO HATCH!"
+          title="PLAYLIST PET"
+          subtitle="把你的聽歌紀錄孵化成音樂寵物"
+          className="start-home-logo"
+        />
+
+        <div className="start-home-slogan">
+          <span className="start-home-slogan-icon">
+            <PixelIcon type="heart" size={14} />
+          </span>
+          <span>PRESS START TO HATCH!</span>
+          <span className="start-home-slogan-icon">
+            <PixelIcon type="music-note" size={14} />
+          </span>
+        </div>
+
+        <div className="start-home-stage">
+          <span className="stage-deco deco-note-left"><PixelIcon type="music-note" size={18} /></span>
+          <span className="stage-deco deco-star-top"><PixelIcon type="star" size={18} /></span>
+          <span className="stage-deco deco-heart-right"><PixelIcon type="heart" size={16} /></span>
+          <span className="stage-deco deco-cassette"><PixelIcon type="cassette" size={20} /></span>
+          <span className="stage-deco deco-spark"><PixelIcon type="spark" size={18} /></span>
+          <span className="stage-deco deco-headphone"><PixelIcon type="headphone" size={22} /></span>
+
+          <div className="start-home-stage-ground" />
+
+          <div className="start-home-pet start-home-pet-left">
+            <div className="start-home-pet-bubble"><PixelIcon type="heart" size={12} /></div>
+            <div className="start-home-pet-shell pink">
+              <PixelIcon type="cat" size={62} />
+            </div>
+          </div>
+
+          <div className="start-home-egg">
+            <div className="start-home-egg-nest" />
+            <div className="start-home-egg-shell">
+              <PixelIcon type="egg" size={92} />
+            </div>
+          </div>
+
+          <div className="start-home-pet start-home-pet-right">
+            <div className="start-home-pet-shell blue">
+              <PixelIcon type="cat" size={62} />
+              <span className="start-home-pet-accessory">
+                <PixelIcon type="headphone" size={18} />
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <RetroWindow title="開始音樂旅程" tone="pink" className="start-home-window" bodyClassName="window-stack-tight text-center">
+          <p className="window-copy">
+            連結你的音樂帳號，
+            <br />
+            讓 <strong>Playlist Pet</strong> 開始認識你的音樂宇宙！
+          </p>
+          <PixelButton variant="pink" className="w-full justify-center" onClick={onStart}>
+            START
+          </PixelButton>
+        </RetroWindow>
+      </section>
+    </div>
+  );
 }
 
 function SourceSelectView({
@@ -73,7 +171,7 @@ function SourceSelectView({
                 <div className="source-window-icon"><PixelIcon type={option.icon} size={28} /></div>
                 <div className="source-window-copy">
                   <div className="source-window-copy-row source-window-copy-row-start">
-                    <PixelBadge tone={option.value === "spotify" ? "green" : "blue"}>{option.badge}</PixelBadge>
+                    <PixelBadge tone={option.tone}>{option.badge}</PixelBadge>
                   </div>
                   <h3 className="window-mini-title">{option.title}</h3>
                   <p className="window-copy">{option.subtitle}</p>
@@ -161,121 +259,91 @@ export const LoginView: React.FC = () => {
     setStep("passport");
   };
 
+  if (step === "home") {
+    return (
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="page-stack">
+        <HomeScreen onStart={() => setStep("source")} />
+      </motion.div>
+    );
+  }
+
   if (step === "source") {
-    return <SourceSelectView onChoose={handleChooseProvider} onBack={() => setStep("home")} />;
+    return (
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="page-stack">
+        <SourceSelectView onChoose={handleChooseProvider} onBack={() => setStep("home")} />
+      </motion.div>
+    );
   }
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="page-stack">
       <PixelStatusBar />
 
-      {step === "home" ? (
-        <>
-          <PixelLogoTitle
-            kicker="PRESS START TO HATCH!"
-            title="PLAYLIST PET"
-            subtitle="把你的聽歌紀錄孵化成音樂寵物"
-            className="home-screen-title"
-          />
+      <PixelLogoTitle
+        kicker="MUSIC PASSPORT"
+        title="音樂護照"
+        subtitle="完成旅程設定，然後開始收集 3 天素材。"
+      />
 
-          <section className="home-stage-screen">
-            <span className="home-stage-spark spark-a"><PixelIcon type="spark" size={18} /></span>
-            <span className="home-stage-spark spark-b"><PixelIcon type="music-note" size={18} /></span>
-            <span className="home-stage-spark spark-c"><PixelIcon type="heart" size={18} /></span>
-            <span className="home-stage-spark spark-d"><PixelIcon type="star" size={18} /></span>
-            <span className="home-stage-spark spark-e"><PixelIcon type="music-note" size={18} /></span>
-            <div className="home-stage-icon icon-left-top"><PixelIcon type="music-note" size={24} /></div>
-            <div className="home-stage-icon icon-right-top"><PixelIcon type="headphone" size={26} /></div>
-            <div className="home-stage-icon icon-right-bottom"><PixelIcon type="cassette" size={24} /></div>
-            <div className="home-stage-pet is-left"><PixelIcon type="cat" size={64} /></div>
-            <div className="home-stage-egg">
-              <div className="home-stage-egg-note"><PixelIcon type="music-note" size={18} /></div>
-            </div>
-            <div className="home-stage-pet is-right"><PixelIcon type="cat" size={64} /></div>
-          </section>
+      <RetroWindow title="建立你的音樂護照" tone="green">
+        <div className="passport-provider-banner">
+          <div>
+            <div className="window-label">已選音樂入口</div>
+            <div className="window-mini-title mt-1">{selectedProvider.title}</div>
+          </div>
+          <PixelBadge tone={musicProvider === "spotify" ? "green" : "blue"}>{selectedProvider.badge}</PixelBadge>
+        </div>
 
-          <RetroWindow title="開始音樂旅程" tone="pink">
-            <div className="window-stack-tight text-center">
-              <p className="window-copy">
-                連結你的音樂帳號，
-                <br />
-                讓 <strong>Playlist Pet</strong> 開始認識你的音樂宇宙！
-              </p>
-              <PixelButton variant="pink" className="w-full justify-center" onClick={() => setStep("source")}>
-                START
-              </PixelButton>
-            </div>
-          </RetroWindow>
-        </>
-      ) : (
-        <>
-          <PixelLogoTitle
-            kicker="MUSIC PASSPORT"
-            title="音樂護照"
-            subtitle="完成旅程設定，然後開始收集 3 天素材。"
-          />
+        <form onSubmit={handleSubmit} className="passport-form-grid">
+          <label className="passport-field">
+            <span className="window-label">姓名 / 暱稱</span>
+            <input value={name} onChange={(event) => setName(event.target.value)} placeholder="例如：Aning" className="pixel-input" />
+          </label>
+          <label className="passport-field">
+            <span className="window-label">Email</span>
+            <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="pixel-input" />
+          </label>
+          <label className="passport-field">
+            <span className="window-label">國家 / 地區</span>
+            <input value={country} onChange={(event) => setCountry(event.target.value)} placeholder="台灣" className="pixel-input" />
+          </label>
+          <label className="passport-field">
+            <span className="window-label">城市</span>
+            <input value={city} onChange={(event) => setCity(event.target.value)} placeholder="台北" className="pixel-input" />
+          </label>
+          <label className="passport-field">
+            <span className="window-label">穿搭風格（選填）</span>
+            <input value={style} onChange={(event) => setStyle(event.target.value)} placeholder="Y2K、復古、街頭…" className="pixel-input" />
+          </label>
 
-          <RetroWindow title="建立你的音樂護照" tone="green">
-            <div className="passport-provider-banner">
-              <div>
-                <div className="window-label">已選音樂入口</div>
-                <div className="window-mini-title mt-1">{selectedProvider.title}</div>
-              </div>
-              <PixelBadge tone={musicProvider === "spotify" ? "green" : "blue"}>{selectedProvider.badge}</PixelBadge>
-            </div>
+          {musicProvider === "lastfm" && (
+            <label className="passport-field">
+              <span className="window-label">Last.fm 使用者名稱</span>
+              <input value={lastfmUsername} onChange={(event) => setLastfmUsername(event.target.value)} placeholder="例如：musiclover123" className="pixel-input" />
+            </label>
+          )}
 
-            <form onSubmit={handleSubmit} className="passport-form-grid">
-              <label className="passport-field">
-                <span className="window-label">姓名 / 暱稱</span>
-                <input value={name} onChange={(event) => setName(event.target.value)} placeholder="例如：Aning" className="pixel-input" />
-              </label>
-              <label className="passport-field">
-                <span className="window-label">Email</span>
-                <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" className="pixel-input" />
-              </label>
-              <label className="passport-field">
-                <span className="window-label">國家 / 地區</span>
-                <input value={country} onChange={(event) => setCountry(event.target.value)} placeholder="台灣" className="pixel-input" />
-              </label>
-              <label className="passport-field">
-                <span className="window-label">城市</span>
-                <input value={city} onChange={(event) => setCity(event.target.value)} placeholder="台北" className="pixel-input" />
-              </label>
-              <label className="passport-field">
-                <span className="window-label">穿搭風格（選填）</span>
-                <input value={style} onChange={(event) => setStyle(event.target.value)} placeholder="Y2K、復古、街頭…" className="pixel-input" />
-              </label>
+          <label className="passport-checkbox-row">
+            <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
+            <span>我同意將音樂紀錄用於設計展示研究（不串接真實資料庫）。</span>
+          </label>
 
-              {musicProvider === "lastfm" && (
-                <label className="passport-field">
-                  <span className="window-label">Last.fm 使用者名稱</span>
-                  <input value={lastfmUsername} onChange={(event) => setLastfmUsername(event.target.value)} placeholder="例如：musiclover123" className="pixel-input" />
-                </label>
-              )}
+          {submitError ? <div className="window-error">{submitError}</div> : null}
 
-              <label className="passport-checkbox-row">
-                <input type="checkbox" checked={agreed} onChange={(event) => setAgreed(event.target.checked)} />
-                <span>我同意將音樂紀錄用於設計展示研究（不串接真實資料庫）。</span>
-              </label>
-
-              {submitError ? <div className="window-error">{submitError}</div> : null}
-
-              <div className="passport-actions">
-                <PixelButton
-                  type="submit"
-                  className="w-full justify-center"
-                  disabled={isSubmitting || !agreed || !name || !email || !country || !city || (musicProvider === "lastfm" && !lastfmUsername.trim())}
-                >
-                  {isSubmitting ? "同步中..." : "開始音樂旅程"}
-                </PixelButton>
-                <PixelButton type="button" variant="secondary" className="w-full justify-center" onClick={() => setStep("source")}>
-                  BACK
-                </PixelButton>
-              </div>
-            </form>
-          </RetroWindow>
-        </>
-      )}
+          <div className="passport-actions">
+            <PixelButton
+              type="submit"
+              className="w-full justify-center"
+              disabled={isSubmitting || !agreed || !name || !email || !country || !city || (musicProvider === "lastfm" && !lastfmUsername.trim())}
+            >
+              {isSubmitting ? "同步中..." : "開始音樂旅程"}
+            </PixelButton>
+            <PixelButton type="button" variant="secondary" className="w-full justify-center" onClick={() => setStep("source")}>
+              BACK
+            </PixelButton>
+          </div>
+        </form>
+      </RetroWindow>
     </motion.div>
   );
 };
