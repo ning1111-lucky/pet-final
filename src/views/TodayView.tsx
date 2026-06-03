@@ -231,6 +231,21 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     () => (hatchSession?.startDate ? getDayDate(hatchSession.startDate, safeDay) : new Date().toISOString().slice(0, 10)),
     [hatchSession?.startDate, safeDay]
   );
+  const finalPetInput = useMemo(() => getFinalPetInput(), [getFinalPetInput, hatchSession]);
+  const debugDaySummaries = useMemo(
+    () =>
+      ([1, 2, 3] as const).map((day) => {
+        const dayState = hatchSession?.days?.[day];
+        return {
+          day,
+          date: dayState?.date || "",
+          songCount: dayState?.tracks?.length || 0,
+          itemCount: dayState?.items?.length || 0,
+          completed: Boolean(dayState?.completed),
+        };
+      }),
+    [hatchSession]
+  );
   const nextDayDate = useMemo(() => {
     const date = new Date(`${currentDayDate}T00:00:00`);
     date.setDate(date.getDate() + 1);
@@ -267,6 +282,17 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   useEffect(() => {
     setDraftLastfmUsername(userProfile?.lastfmUsername || "");
   }, [userProfile?.lastfmUsername]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || !hatchSession) return;
+
+    console.groupCollapsed("[Playlist Pet] Hatch session debug");
+    console.log("sessionId:", hatchSession.sessionId);
+    console.log("startDate:", hatchSession.startDate);
+    console.log("currentDay:", hatchSession.currentDay);
+    console.table(debugDaySummaries);
+    console.groupEnd();
+  }, [debugDaySummaries, hatchSession]);
 
   useEffect(() => {
     let active = true;
@@ -1138,6 +1164,26 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       {showDevTools && (
         <div className="section-divider pt-4 flex flex-wrap gap-2 justify-center mt-8">
           <div className="w-full text-center type-label mb-1">DEV TOOLS</div>
+          <div className="w-full section-plain text-left card-text space-y-2">
+            <div>
+              <strong>startDate:</strong> {hatchSession?.startDate || "-"}
+            </div>
+            <div>
+              <strong>currentDay:</strong> {hatchSession?.currentDay || safeDay}
+            </div>
+            <div className="space-y-1">
+              {debugDaySummaries.map((summary) => (
+                <div key={summary.day} className="flex items-center justify-between gap-3 text-sm">
+                  <span>
+                    Day {summary.day} · {summary.date || "-"}
+                  </span>
+                  <span>
+                    songs {summary.songCount} / items {summary.itemCount} / {summary.completed ? "done" : "pending"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
           <RetroButton
             {...getButtonTheme("secondary")}
             onClick={advanceDay}
@@ -1168,4 +1214,3 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     </div>
   );
 };
-  const finalPetInput = getFinalPetInput();
