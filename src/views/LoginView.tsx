@@ -137,63 +137,53 @@ export const LoginView: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="page-stack">
       <div className="w-full space-y-5">
-        <Card {...retroCardProps} className="pixel-card relative overflow-hidden bg-white px-6 pt-6 pb-6 !m-0">
-          <div className="absolute top-4 right-4 text-[18px] leading-none text-[var(--color-pink)] opacity-80">♡</div>
-          <div className="absolute bottom-5 right-6 text-[16px] leading-none text-[var(--color-primary-strong)] opacity-70">✦</div>
+        <Card {...retroCardProps} className="pixel-card relative bg-white px-5 py-5 !m-0">
+          <div className="space-y-5">
+            <div className="space-y-3">
+              <PixelBadge className="bg-[var(--color-primary)] text-[var(--color-text)]">MUSIC PET HATCH</PixelBadge>
+              <div className="grid grid-cols-[1fr_122px] gap-4 items-start">
+                <div className="space-y-3 min-w-0">
+                  <h1 className="text-[var(--color-text)] text-left text-[2.15rem] font-extrabold leading-[1.06] tracking-[-0.045em]">
+                    把你的聽歌紀錄
+                    <br />
+                    孵化成寵物
+                  </h1>
+                  <p className="type-body text-[var(--color-text)] opacity-90">
+                    連結音樂來源，收集 3 天素材，最後生成專屬於你的音樂寵物。
+                  </p>
+                </div>
 
-          <div className="grid grid-cols-[1fr_112px] gap-4 items-start">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <PixelBadge className="bg-[var(--color-primary)] text-[var(--color-text)]">MUSIC PET HATCH</PixelBadge>
-                <h1 className="text-[var(--color-text)] text-left text-[2.2rem] font-extrabold leading-[1.02] tracking-[-0.045em]">
-                  把你的
-                  <br />
-                  聽歌紀錄
-                  <br />
-                  孵化成寵物
-                </h1>
-                <p className="type-body max-w-[212px] text-[var(--color-text)] opacity-90">
-                  連接音樂來源、收集 3 天素材，最後生成一隻屬於你的像素音樂寵物。
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <RetroButton
-                  type="button"
-                  {...getButtonTheme(musicProvider === "spotify" ? "primary" : "secondary")}
-                  onClick={() => setMusicProvider("spotify")}
-                  className="!m-0 !px-4 !py-2"
-                  style={{ fontFamily: "var(--font-body)" }}
-                >
-                  Spotify 直連
-                </RetroButton>
-                <RetroButton
-                  type="button"
-                  {...getButtonTheme(musicProvider === "lastfm" ? "primary" : "secondary")}
-                  onClick={() => setMusicProvider("lastfm")}
-                  className="!m-0 !px-4 !py-2"
-                  style={{ fontFamily: "var(--font-body)" }}
-                >
-                  通用同步模式
-                </RetroButton>
+                <div className="relative">
+                  <div className="rounded-[26px] border-[3px] border-[var(--color-black)] bg-[#eef6ff] p-2 shadow-[4px_4px_0_var(--color-black)]">
+                    <img src="/base-1.png" alt="music pet hero" className="w-full rounded-[20px] bg-white p-3" />
+                  </div>
+                  <div className="absolute -left-3 bottom-2 rounded-[18px] border-[3px] border-[var(--color-black)] bg-[var(--color-pink)] px-3 py-2 shadow-[3px_3px_0_var(--color-black)]">
+                    <div className="type-label text-[15px]">Collect 3 days</div>
+                    <div className="type-caption text-[var(--color-text)] opacity-80">Generate your pet</div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="relative h-[182px]">
-              <div className="absolute left-0 top-8 w-[84px] rounded-[22px] bg-[var(--color-card-secondary)] p-2 shadow-[var(--shadow-soft)] rotate-[-8deg]">
-                <img src="/base-1.png" alt="music pet card" className="w-full rounded-[18px] bg-[#ffe9f2] p-2" />
-                <div className="type-caption mt-2">Pet Seed</div>
-                <div className="type-label mt-1">Day 1-3</div>
-              </div>
-              <div className="absolute right-0 top-0 w-[90px] rounded-[22px] bg-[var(--color-card-secondary)] p-2 shadow-[var(--shadow-soft)] rotate-[7deg]">
-                <img src="/base-2.png" alt="music pet companion" className="w-full rounded-[18px] bg-[#d8e9ff] p-2" />
-                <div className="type-caption mt-2">Source</div>
-                <div className="type-label mt-1">Connect</div>
-              </div>
-              <div className="absolute right-1 bottom-2 w-[78px] rounded-[18px] bg-[var(--color-primary)] px-3 py-2 shadow-[var(--shadow-soft)]">
-                <div className="type-label">Ready</div>
-                <div className="type-caption mt-1">to hatch</div>
-              </div>
+            <div className="grid grid-cols-1 gap-3">
+              <RetroButton
+                type="button"
+                {...getButtonTheme(musicProvider === "spotify" ? "primary" : "secondary")}
+                onClick={() => setMusicProvider("spotify")}
+                className="!m-0 !w-full !px-4 !py-3"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
+                Spotify 直連
+              </RetroButton>
+              <RetroButton
+                type="button"
+                {...getButtonTheme(musicProvider === "lastfm" ? "primary" : "secondary")}
+                onClick={() => setMusicProvider("lastfm")}
+                className="!m-0 !w-full !px-4 !py-3"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
+                通用同步模式
+              </RetroButton>
             </div>
           </div>
         </Card>
@@ -233,7 +223,7 @@ export const LoginView: React.FC = () => {
                             {option.badge}
                           </div>
                           <div className="type-label text-[18px]">{option.title}</div>
-                          <div className="type-body opacity-85">{option.subtitle}</div>
+                          <div className="type-body opacity-90">{option.subtitle}</div>
                         </div>
                         <div
                           className={[
@@ -242,7 +232,7 @@ export const LoginView: React.FC = () => {
                           ].join(" ")}
                         />
                       </div>
-                      <div className="type-caption text-[var(--color-muted)] mt-3 leading-relaxed">
+                      <div className="type-caption text-[var(--color-muted)] mt-2 leading-relaxed">
                         {option.hint}
                       </div>
                     </Card>
