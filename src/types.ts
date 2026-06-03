@@ -22,6 +22,16 @@ export interface MusicItem {
   label: string;
   icon: string; // Emoji or identifier for CSS placeholder
   imageSrc?: string | null;
+  sourceDay?: number;
+  sourceDate?: string;
+}
+
+export interface TrackRecord {
+  id: string;
+  title: string;
+  artist: string;
+  playedAt: string;
+  provider: MusicProvider;
 }
 
 export interface Pet {
@@ -50,6 +60,8 @@ export interface MapEntry {
   secondGenre?: Genre;
   items?: MusicItem[];
   provider?: string | null;
+  sourceDay?: number;
+  sourceDate?: string;
 }
 
 export interface DailyMusicData {
@@ -59,6 +71,30 @@ export interface DailyMusicData {
   assetGenre?: Genre;
   distribution: { genre: Genre; percentage: number }[];
   quote: string;
+}
+
+export interface HatchDayState {
+  date: string;
+  tracks: TrackRecord[];
+  analysis: DailyMusicData | null;
+  items: MusicItem[];
+  completed: boolean;
+}
+
+export interface HatchSession {
+  sessionId: string;
+  startDate: string;
+  currentDay: number;
+  days: {
+    1: HatchDayState;
+    2: HatchDayState;
+    3: HatchDayState;
+  };
+}
+
+export interface DailyMusicPayload {
+  data: DailyMusicData;
+  tracks: TrackRecord[];
 }
 
 export interface GeminiAssetAnalysis {

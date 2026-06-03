@@ -64,7 +64,7 @@ export function buildDailyMusicData(options: {
   const subGenre = distribution[1]?.genre || mainGenre;
 
   return {
-    songCount: Math.max(1, options.songCount || 1),
+    songCount: Math.max(0, options.songCount || 0),
     mainGenre,
     subGenre,
     assetGenre: mainGenre,

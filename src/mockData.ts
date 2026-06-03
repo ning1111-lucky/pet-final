@@ -1,4 +1,4 @@
-import { DailyMusicData, Genre, ItemPart, MapEntry, Pet, MusicItem, MusicProvider } from "./types";
+import { DailyMusicData, DailyMusicPayload, Genre, ItemPart, MapEntry, Pet, MusicItem, MusicProvider, TrackRecord } from "./types";
 import { generateId } from "./utils";
 
 export const MUSIC_PROVIDER: MusicProvider = "mock";
@@ -71,11 +71,30 @@ function generateRandomMusicDistribution(): { genre: Genre, percentage: number }
     .sort((a, b) => b.percentage - a.percentage);
 }
 
+function buildMockTrackRecords(dayKey: string, count: number, distribution: { genre: Genre; percentage: number }[]): TrackRecord[] {
+  const baseDate = new Date(`${dayKey}T09:00:00`);
+  const genrePool = distribution.flatMap((entry) => Array(Math.max(1, Math.round(entry.percentage / 20))).fill(entry.genre));
+
+  return Array.from({ length: count }).map((_, index) => {
+    const genre = genrePool[index % genrePool.length] || distribution[0]?.genre || "Pop";
+    const playedAt = new Date(baseDate.getTime() + index * 45 * 60 * 1000);
+    return {
+      id: `${dayKey}-${index}-${genre}`,
+      name: `${genre} Track ${index + 1}`,
+      artist: `${genre} Artist ${(index % 4) + 1}`,
+      playedAt: playedAt.toISOString(),
+      genres: [genre],
+      source: "mock",
+    };
+  });
+}
+
 // mock generator
-async function getMockTodayMusicData(): Promise<DailyMusicData> {
+async function getMockTodayMusicData(dayKey?: string): Promise<DailyMusicPayload> {
   const distribution = generateRandomMusicDistribution();
   const topGenre = distribution[0].genre;
   const secondGenre = distribution[1]?.genre || topGenre;
+  const songCount = Math.floor(Math.random() * 18) + 8;
   
   let mainGenreStr: string = topGenre;
   
@@ -89,23 +108,37 @@ async function getMockTodayMusicData(): Promise<DailyMusicData> {
   // we fallback to topGenre when strictly assigning the true asset genre later or here.
   const assetGenre = topGenre;
 
-  return {
-    songCount: Math.floor(Math.random() * 50) + 10,
+  const data: DailyMusicData = {
+    songCount,
     mainGenre: mainGenreStr as Genre,
     subGenre: secondGenre,
     assetGenre: assetGenre,
     distribution: distribution,
     quote: `充滿 ${assetGenre} 氛圍的一天。`
   };
+  const tracks = buildMockTrackRecords(dayKey || new Date().toISOString().slice(0, 10), songCount, distribution);
+  return { data, tracks };
 }
 
-export async function getSpotifyTodayMusicData(): Promise<DailyMusicData> {
-  const response = await fetch("/api/music/today?provider=spotify", {
+type MusicFetchOptions = {
+  lastfmUsername?: string;
+  dayStart?: string;
+  dayEnd?: string;
+  dayIndex?: number;
+};
+
+export async function getSpotifyTodayMusicData(options: MusicFetchOptions = {}): Promise<DailyMusicPayload> {
+  const query = new URLSearchParams({ provider: "spotify" });
+  if (options.dayStart) query.set("dayStart", options.dayStart);
+  if (options.dayEnd) query.set("dayEnd", options.dayEnd);
+  if (typeof options.dayIndex === "number") query.set("dayIndex", String(options.dayIndex));
+
+  const response = await fetch(`/api/music/today?${query.toString()}`, {
     credentials: "include",
   });
   const body = await response.json().catch(() => ({}));
 
-  if (!response.ok || body?.ok !== true || !body?.data) {
+  if (!response.ok || body?.ok !== true || !body?.data || !Array.isArray(body?.tracks)) {
     const error = typeof body?.error === "string" ? body.error : "Spotify 資料讀取失敗。";
     const enrichedError = new Error(error) as Error & { code?: string };
     if (typeof body?.code === "string") {
@@ -114,21 +147,27 @@ export async function getSpotifyTodayMusicData(): Promise<DailyMusicData> {
     throw enrichedError;
   }
 
-  return body.data as DailyMusicData;
+  return {
+    data: body.data as DailyMusicData,
+    tracks: body.tracks as TrackRecord[],
+  };
 }
 
-export async function getLastFmTodayMusicData(lastfmUsername?: string): Promise<DailyMusicData> {
+export async function getLastFmTodayMusicData(lastfmUsername?: string, options: MusicFetchOptions = {}): Promise<DailyMusicPayload> {
   const query = new URLSearchParams({ provider: "lastfm" });
   if (lastfmUsername) {
     query.set("lastfmUsername", lastfmUsername);
   }
+  if (options.dayStart) query.set("dayStart", options.dayStart);
+  if (options.dayEnd) query.set("dayEnd", options.dayEnd);
+  if (typeof options.dayIndex === "number") query.set("dayIndex", String(options.dayIndex));
 
   const response = await fetch(`/api/music/today?${query.toString()}`, {
     credentials: "include",
   });
   const body = await response.json().catch(() => ({}));
 
-  if (!response.ok || body?.ok !== true || !body?.data) {
+  if (!response.ok || body?.ok !== true || !body?.data || !Array.isArray(body?.tracks)) {
     const error = typeof body?.error === "string" ? body.error : "Last.fm 資料讀取失敗。";
     const enrichedError = new Error(error) as Error & { code?: string };
     if (typeof body?.code === "string") {
@@ -137,17 +176,20 @@ export async function getLastFmTodayMusicData(lastfmUsername?: string): Promise<
     throw enrichedError;
   }
 
-  return body.data as DailyMusicData;
+  return {
+    data: body.data as DailyMusicData,
+    tracks: body.tracks as TrackRecord[],
+  };
 }
 
 export const getTodayMusicData = async (
   provider: MusicProvider = MUSIC_PROVIDER,
-  options: { lastfmUsername?: string } = {}
-): Promise<DailyMusicData> => {
-  if (provider === "mock") return getMockTodayMusicData();
-  if (provider === "spotify") return getSpotifyTodayMusicData();
-  if (provider === "lastfm") return getLastFmTodayMusicData(options.lastfmUsername);
-  return getMockTodayMusicData();
+  options: MusicFetchOptions = {}
+): Promise<DailyMusicPayload> => {
+  if (provider === "mock") return getMockTodayMusicData(options.dayStart?.slice(0, 10));
+  if (provider === "spotify") return getSpotifyTodayMusicData(options);
+  if (provider === "lastfm") return getLastFmTodayMusicData(options.lastfmUsername, options);
+  return getMockTodayMusicData(options.dayStart?.slice(0, 10));
 };
 
 export const getBaseType = (genre: Genre): "O" | "G" | "B" => {

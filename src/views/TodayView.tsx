@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useApp } from "../AppContext";
 import { Button, Card, Input, ProgressBar } from "pixel-retroui";
 import { PixelBadge, PixelItemPlaceholder, PixelSectionTitle } from "../components/UI";
@@ -7,6 +7,7 @@ import { DailyMusicData, MusicItem, Genre, MapEntry, Pet, GeminiAssetAnalysis } 
 import { generateId } from "../utils";
 import { motion } from "motion/react";
 import { baseShapeMap, resolveAssetImage } from "../assetMap";
+import { getDayDate } from "../AppContext";
 
 const RetroButton = Button as unknown as React.ComponentType<React.PropsWithChildren<Record<string, unknown>>>;
 
@@ -183,6 +184,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     currentMockDay,
     currentBaseKey,
     currentWeekItems,
+    hatchSession,
     generateItem,
     advanceDay,
     resetWeek,
@@ -191,6 +193,8 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     autoFillWeek,
     userProfile,
     updateUserProfile,
+    saveTracksForCurrentDay,
+    getFinalPetInput,
   } = useApp();
 
   const [mockMusic, setMockMusic] = useState<DailyMusicData | null>(null);
@@ -223,6 +227,15 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
   const safeDay = Math.min(Math.max(Number(currentMockDay) || 1, 1), TOTAL_DAYS);
   const safeWeekItems = Array.isArray(currentWeekItems) ? currentWeekItems : [];
+  const currentDayDate = useMemo(
+    () => (hatchSession?.startDate ? getDayDate(hatchSession.startDate, safeDay) : new Date().toISOString().slice(0, 10)),
+    [hatchSession?.startDate, safeDay]
+  );
+  const nextDayDate = useMemo(() => {
+    const date = new Date(`${currentDayDate}T00:00:00`);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().slice(0, 10);
+  }, [currentDayDate]);
   const daySlotConfigs = getDaySlotConfigs(safeDay);
   const activeMusicProvider = userProfile?.musicProvider || "mock";
   const distribution = Array.isArray(mockMusic?.distribution) ? mockMusic.distribution : [];
@@ -263,10 +276,14 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
     getTodayMusicData(activeMusicProvider, {
       lastfmUsername: userProfile?.lastfmUsername,
+      dayStart: currentDayDate,
+      dayEnd: nextDayDate,
+      dayIndex: safeDay,
     })
-      .then((data) => {
+      .then((payload) => {
         if (!active) return;
-        setMockMusic(data);
+        setMockMusic(payload.data);
+        saveTracksForCurrentDay(payload.tracks, payload.data);
       })
       .catch((error: Error & { code?: string }) => {
         if (!active) return;
@@ -278,7 +295,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     return () => {
       active = false;
     };
-  }, [safeDay, activeMusicProvider, userProfile?.lastfmUsername]);
+  }, [safeDay, activeMusicProvider, userProfile?.lastfmUsername, currentDayDate, nextDayDate]);
 
   useEffect(() => {
     if (activeMusicProvider !== "spotify") {
@@ -498,7 +515,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
                 : mockMusic?.mainGenre === "Hidden"
                   ? "hidden"
                   : "pure",
-            listenCount: mockMusic?.songCount || 0,
+            listenCount: finalPetInput.finalTracks.length || mockMusic?.songCount || 0,
             day1ClothesKey: extractAssetKeyFromPath(selectedClothes),
             day1ShoesKey: extractAssetKeyFromPath(selectedShoes),
             day2HeadwearKey: extractAssetKeyFromPath(selectedHeadwear),
@@ -560,6 +577,8 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       secondGenre: subGenre,
       items: collectedItems,
       provider: generatedPetProvider || "leonardo",
+      sourceDay: safeDay,
+      sourceDate: currentDayDate,
       top: 50 + (Math.random() - 0.5) * 10,
       left: 50 + (Math.random() - 0.5) * 10,
     };
@@ -1149,3 +1168,4 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     </div>
   );
 };
+  const finalPetInput = getFinalPetInput();

@@ -47,7 +47,7 @@ export const CollectionView: React.FC<{ navigateTo: (tab: "today" | "items" | "m
           }
           return (
             <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} key={index} className="aspect-square bg-white pixel-border pixel-shadow flex flex-col items-center justify-center p-3 relative rounded-[24px]">
-               <div className="absolute top-3 left-3 text-xs font-bold bg-[var(--color-primary)] px-2 py-1 rounded-full">D{index + 1}</div>
+               <div className="absolute top-3 left-3 text-xs font-bold bg-[var(--color-primary)] px-2 py-1 rounded-full">D{item.sourceDay || index + 1}</div>
                <div className="absolute right-3 top-3"><PixelBadge className="bg-white">COLLECTED</PixelBadge></div>
                <PixelItemPlaceholder genre={item.genre} part={item.part} imageSrc={item.imageSrc} className="w-full h-full border-none shadow-none bg-transparent" />
                <div className="mt-2 text-center">
