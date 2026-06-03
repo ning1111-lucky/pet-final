@@ -1,8 +1,50 @@
 import React, { useState } from "react";
 import { useApp } from "../AppContext";
-import { Button, Card, PixelBadge, PixelSectionTitle } from "../components/UI";
+import { Button, Card, Input } from "pixel-retroui";
+import { PixelBadge, PixelSectionTitle } from "../components/UI";
 import { motion } from "motion/react";
 import { MusicProvider } from "../types";
+
+const RetroButton = Button as unknown as React.ComponentType<React.PropsWithChildren<Record<string, unknown>>>;
+
+const retroCardProps = {
+  bg: "var(--color-card)",
+  textColor: "var(--color-text)",
+  borderColor: "var(--color-black)",
+  shadowColor: "var(--color-black)",
+  style: { fontFamily: "var(--font-body)" } as React.CSSProperties,
+};
+
+const retroInputProps = {
+  bg: "var(--color-card)",
+  textColor: "var(--color-text)",
+  borderColor: "var(--color-black)",
+  style: {
+    fontFamily: "var(--font-body)",
+    width: "100%",
+    "--input-custom-bg": "var(--color-card)",
+    "--input-custom-text": "var(--color-text)",
+    "--input-custom-border": "var(--color-black)",
+  } as React.CSSProperties & Record<string, string>,
+};
+
+function getButtonTheme(variant: "primary" | "secondary" = "primary") {
+  if (variant === "secondary") {
+    return {
+      bg: "var(--color-card)",
+      textColor: "var(--color-text)",
+      shadow: "var(--color-black)",
+      borderColor: "var(--color-black)",
+    } as const;
+  }
+
+  return {
+    bg: "var(--color-primary)",
+    textColor: "var(--color-text)",
+    shadow: "var(--color-black)",
+    borderColor: "var(--color-black)",
+  } as const;
+}
 
 async function readApiJsonResponse(response: Response): Promise<Record<string, unknown>> {
   const rawText = await response.text().catch(() => "");
@@ -95,7 +137,7 @@ export const LoginView: React.FC = () => {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="page-stack">
       <div className="w-full space-y-5">
-        <section className="pixel-card relative overflow-hidden bg-white px-6 pt-6 pb-6">
+        <Card {...retroCardProps} className="pixel-card relative overflow-hidden bg-white px-6 pt-6 pb-6 !m-0">
           <div className="absolute top-4 right-4 text-[18px] leading-none text-[var(--color-pink)] opacity-80">♡</div>
           <div className="absolute bottom-5 right-6 text-[16px] leading-none text-[var(--color-primary-strong)] opacity-70">✦</div>
 
@@ -116,22 +158,24 @@ export const LoginView: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <Button
+                <RetroButton
                   type="button"
-                  variant={musicProvider === "spotify" ? "primary" : "secondary"}
+                  {...getButtonTheme(musicProvider === "spotify" ? "primary" : "secondary")}
                   onClick={() => setMusicProvider("spotify")}
-                  className="!px-4 !py-2"
+                  className="!m-0 !px-4 !py-2"
+                  style={{ fontFamily: "var(--font-body)" }}
                 >
                   Spotify 直連
-                </Button>
-                <Button
+                </RetroButton>
+                <RetroButton
                   type="button"
-                  variant={musicProvider === "lastfm" ? "primary" : "secondary"}
+                  {...getButtonTheme(musicProvider === "lastfm" ? "primary" : "secondary")}
                   onClick={() => setMusicProvider("lastfm")}
-                  className="!px-4 !py-2"
+                  className="!m-0 !px-4 !py-2"
+                  style={{ fontFamily: "var(--font-body)" }}
                 >
                   通用同步模式
-                </Button>
+                </RetroButton>
               </div>
             </div>
 
@@ -152,9 +196,9 @@ export const LoginView: React.FC = () => {
               </div>
             </div>
           </div>
-        </section>
+        </Card>
 
-        <Card className="w-full px-5 py-5 space-y-5 bg-white">
+        <Card {...retroCardProps} className="w-full px-5 py-5 space-y-5 bg-white !m-0">
           <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
             <PixelSectionTitle
               eyebrow="STEP 1"
@@ -173,31 +217,35 @@ export const LoginView: React.FC = () => {
                     key={option.value}
                     type="button"
                     onClick={() => setMusicProvider(option.value)}
-                    className={[
-                      "text-left rounded-[24px] border p-4 transition-all shadow-[var(--shadow-soft)]",
-                      selected
-                        ? "border-[rgba(17,17,17,0.08)] -translate-y-0.5 bg-[var(--color-primary)]"
-                        : "border-[rgba(17,17,17,0.06)] hover:-translate-y-0.5 bg-white",
-                    ].join(" ")}
+                    className="text-left transition-transform hover:-translate-y-0.5"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-2">
-                        <div className="inline-flex rounded-full border border-[rgba(17,17,17,0.08)] bg-white px-3 py-1 type-caption">
-                          {option.badge}
+                    <Card
+                      bg={selected ? "var(--color-primary)" : "var(--color-card)"}
+                      textColor="var(--color-text)"
+                      borderColor="var(--color-black)"
+                      shadowColor="var(--color-black)"
+                      style={{ fontFamily: "var(--font-body)" }}
+                      className="!m-0 rounded-[24px] p-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-2">
+                          <div className="inline-flex rounded-full border border-[rgba(17,17,17,0.08)] bg-white px-3 py-1 type-caption">
+                            {option.badge}
+                          </div>
+                          <div className="type-label text-[18px]">{option.title}</div>
+                          <div className="type-body opacity-85">{option.subtitle}</div>
                         </div>
-                        <div className="type-label text-[18px]">{option.title}</div>
-                        <div className="type-body opacity-85">{option.subtitle}</div>
+                        <div
+                          className={[
+                            "w-6 h-6 rounded-full border flex-shrink-0 mt-1",
+                            selected ? "border-[rgba(17,17,17,0.12)] bg-white shadow-[inset_0_0_0_6px_var(--color-primary-strong)]" : "border-[rgba(17,17,17,0.12)] bg-white",
+                          ].join(" ")}
+                        />
                       </div>
-                      <div
-                        className={[
-                          "w-6 h-6 rounded-full border flex-shrink-0 mt-1",
-                          selected ? "border-[rgba(17,17,17,0.12)] bg-white shadow-[inset_0_0_0_6px_var(--color-primary-strong)]" : "border-[rgba(17,17,17,0.12)] bg-white",
-                        ].join(" ")}
-                      />
-                    </div>
-                    <div className="type-caption text-[var(--color-muted)] mt-3 leading-relaxed">
-                      {option.hint}
-                    </div>
+                      <div className="type-caption text-[var(--color-muted)] mt-3 leading-relaxed">
+                        {option.hint}
+                      </div>
+                    </Card>
                   </button>
                 );
               })}
@@ -209,11 +257,12 @@ export const LoginView: React.FC = () => {
                 <p className="type-caption text-[var(--color-muted)] mt-2 leading-relaxed">
                   這個模式適合 YouTube Music、Apple Music、網易雲音樂，或任何能同步到 Last.fm 的播放器。
                 </p>
-                <input
+                <Input
+                  {...retroInputProps}
                   required
                   value={lastfmUsername}
                   onChange={e => setLastfmUsername(e.target.value)}
-                  className="pixel-input mt-3"
+                  className="w-full !mt-3"
                   placeholder="輸入你的 Last.fm 使用者名稱"
                 />
               </div>
@@ -224,26 +273,26 @@ export const LoginView: React.FC = () => {
             <div className="grid gap-4">
               <div className="flex flex-col space-y-1">
                 <label className="type-label text-[var(--color-text)]">姓名 / 暱稱</label>
-                <input required value={name} onChange={e => setName(e.target.value)} className="pixel-input" />
+                <Input {...retroInputProps} required value={name} onChange={e => setName(e.target.value)} className="w-full" />
               </div>
               <div className="flex flex-col space-y-1">
                 <label className="type-label text-[var(--color-text)]">Email</label>
-                <input required type="email" value={email} onChange={e => setEmail(e.target.value)} className="pixel-input" />
+                <Input {...retroInputProps} required type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full" />
               </div>
             </div>
             <div className="grid gap-4">
               <div className="flex flex-col space-y-1 min-w-0">
                 <label className="type-label text-[var(--color-text)]">國家 / 地區</label>
-                <input required value={country} onChange={e => setCountry(e.target.value)} className="pixel-input" />
+                <Input {...retroInputProps} required value={country} onChange={e => setCountry(e.target.value)} className="w-full" />
               </div>
               <div className="flex flex-col space-y-1 min-w-0">
                 <label className="type-label text-[var(--color-text)]">城市</label>
-                <input required value={city} onChange={e => setCity(e.target.value)} className="pixel-input" />
+                <Input {...retroInputProps} required value={city} onChange={e => setCity(e.target.value)} className="w-full" />
               </div>
             </div>
             <div className="flex flex-col space-y-1">
               <label className="type-label text-[var(--color-text)]">穿搭風格 (選填)</label>
-              <input value={style} onChange={e => setStyle(e.target.value)} className="pixel-input" placeholder="例：日系、Y2K" />
+              <Input {...retroInputProps} value={style} onChange={e => setStyle(e.target.value)} className="w-full" placeholder="例：日系、Y2K" />
             </div>
 
             <label className="flex items-start space-x-2 cursor-pointer rounded-[18px] border border-[rgba(17,17,17,0.06)] bg-[var(--color-card-secondary)] px-3 py-3 shadow-[var(--shadow-soft)]">
@@ -258,13 +307,15 @@ export const LoginView: React.FC = () => {
             )}
 
             <div className="pt-2">
-              <Button
+              <RetroButton
                 type="submit"
-                className="w-full !py-4 !text-[1rem]"
+                {...getButtonTheme("primary")}
+                className="w-full !m-0 !py-4 !text-[1rem]"
                 disabled={isSubmitting || !name || !email || !country || !city || !agreed || (musicProvider === "lastfm" && !lastfmUsername.trim())}
+                style={{ fontFamily: "var(--font-body)" }}
               >
                 {isSubmitting ? "正在建立音樂護照..." : "開始音樂旅程"}
-              </Button>
+              </RetroButton>
             </div>
           </form>
         </Card>

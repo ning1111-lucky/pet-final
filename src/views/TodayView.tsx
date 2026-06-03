@@ -1,11 +1,53 @@
 import React, { useEffect, useState } from "react";
 import { useApp } from "../AppContext";
-import { Button, PixelBadge, PixelItemPlaceholder, PixelProgressBar, PixelSectionTitle } from "../components/UI";
+import { Button, Card, Input, ProgressBar } from "pixel-retroui";
+import { PixelBadge, PixelItemPlaceholder, PixelSectionTitle } from "../components/UI";
 import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, TOTAL_DAYS } from "../mockData";
 import { DailyMusicData, MusicItem, Genre, MapEntry, Pet, GeminiAssetAnalysis } from "../types";
 import { generateId } from "../utils";
 import { motion } from "motion/react";
 import { baseShapeMap, resolveAssetImage } from "../assetMap";
+
+const RetroButton = Button as unknown as React.ComponentType<React.PropsWithChildren<Record<string, unknown>>>;
+
+const retroCardProps = {
+  bg: "var(--color-card)",
+  textColor: "var(--color-text)",
+  borderColor: "var(--color-black)",
+  shadowColor: "var(--color-black)",
+  style: { fontFamily: "var(--font-body)" } as React.CSSProperties,
+};
+
+const retroInputProps = {
+  bg: "var(--color-card)",
+  textColor: "var(--color-text)",
+  borderColor: "var(--color-black)",
+  style: {
+    fontFamily: "var(--font-body)",
+    width: "100%",
+    "--input-custom-bg": "var(--color-card)",
+    "--input-custom-text": "var(--color-text)",
+    "--input-custom-border": "var(--color-black)",
+  } as React.CSSProperties & Record<string, string>,
+};
+
+function getButtonTheme(variant: "primary" | "secondary" = "primary") {
+  if (variant === "secondary") {
+    return {
+      bg: "var(--color-card)",
+      textColor: "var(--color-text)",
+      shadow: "var(--color-black)",
+      borderColor: "var(--color-black)",
+    } as const;
+  }
+
+  return {
+    bg: "var(--color-primary)",
+    textColor: "var(--color-text)",
+    shadow: "var(--color-black)",
+    borderColor: "var(--color-black)",
+  } as const;
+}
 
 const GENERATED_WEEKLY_PET_IMAGE_KEY = "generatedWeeklyPetImage";
 
@@ -639,7 +681,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       </div>
 
       <div className="page-stack">
-      <section className="section-surface space-y-3">
+      <Card {...retroCardProps} className="section-surface !m-0 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="type-label">音樂來源</div>
@@ -655,13 +697,23 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => setShowMusicSourcePanel((value) => !value)}>
+          <RetroButton
+            {...getButtonTheme("secondary")}
+            onClick={() => setShowMusicSourcePanel((value) => !value)}
+            className="!m-0"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
             切換音樂來源
-          </Button>
+          </RetroButton>
           {activeMusicProvider === "spotify" && (
-            <Button onClick={handleConnectSpotify}>
+            <RetroButton
+              {...getButtonTheme("primary")}
+              onClick={handleConnectSpotify}
+              className="!m-0"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
               {spotifyConnected ? "重新連接 Spotify" : "連接 Spotify"}
-            </Button>
+            </RetroButton>
           )}
         </div>
 
@@ -692,30 +744,33 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             {(activeMusicProvider === "lastfm" || showMusicSourcePanel) && (
               <div className="space-y-2 pt-1">
                 <label className="type-label">Last.fm 使用者名稱</label>
-                <input
+                <Input
+                  {...retroInputProps}
                   value={draftLastfmUsername}
                   onChange={(event) => setDraftLastfmUsername(event.target.value)}
-                  className="pixel-input"
+                  className="w-full"
                   placeholder="例如：musiclover123"
                 />
                 <div className="flex justify-end">
-                  <Button
-                    variant="secondary"
+                  <RetroButton
+                    {...getButtonTheme("secondary")}
                     onClick={handleSaveLastfmUsername}
                     disabled={!draftLastfmUsername.trim()}
+                    className="!m-0"
+                    style={{ fontFamily: "var(--font-body)" }}
                   >
                     儲存 Last.fm 帳號
-                  </Button>
+                  </RetroButton>
                 </div>
               </div>
             )}
           </div>
         )}
-      </section>
+      </Card>
 
       <div className="space-y-5">
       {musicLoadError && (
-        <section className="section-surface text-center space-y-4">
+        <Card {...retroCardProps} className="section-surface !m-0 text-center space-y-4">
           <div>
             <h3 className="type-h2 mb-2">音樂資料尚未就緒</h3>
             <p className="type-body text-red-600">{musicLoadError}</p>
@@ -723,13 +778,23 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
           {activeMusicProvider === "spotify" && (
             <div className="flex flex-col gap-3">
-              <Button onClick={handleConnectSpotify}>
+              <RetroButton
+                {...getButtonTheme("primary")}
+                onClick={handleConnectSpotify}
+                className="!m-0"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
                 連接 Spotify
-              </Button>
+              </RetroButton>
               {spotifyConnected && (
-                <Button variant="secondary" onClick={handleDisconnectSpotify}>
+                <RetroButton
+                  {...getButtonTheme("secondary")}
+                  onClick={handleDisconnectSpotify}
+                  className="!m-0"
+                  style={{ fontFamily: "var(--font-body)" }}
+                >
                   解除 Spotify 連線
-                </Button>
+                </RetroButton>
               )}
             </div>
           )}
@@ -739,11 +804,11 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               目前登入資料沒有 Last.fm 使用者名稱，請重新登入並填寫。
             </div>
           )}
-        </section>
+        </Card>
       )}
 
       {mockMusic && (
-        <section className="section-surface flex flex-col space-y-4">
+        <Card {...retroCardProps} className="section-surface !m-0 flex flex-col space-y-4">
           <PixelSectionTitle title="相關數據" subtitle="把今天的聽歌紀錄整理成清楚的分析資料。" variant="dark" />
 
           <div className="metric-row">
@@ -770,30 +835,41 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
 
           <div className="section-plain">
             <div className="type-label mb-2">音樂風格分佈</div>
-            <PixelProgressBar
-              segments={distribution.map((item, index) => ({
-                label: item.genre,
-                percentage: item.percentage,
-                color:
-                  index === 0
-                    ? "var(--color-green)"
-                    : index === 1
-                      ? "var(--color-pink)"
-                      : "var(--color-yellow)",
-              }))}
-            />
+            <div className="space-y-3">
+              {distribution.map((item, index) => (
+                <div key={`${item.genre}-${index}`} className="space-y-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="type-caption text-[var(--color-text)]">{item.genre}</span>
+                    <span className="type-caption">{item.percentage}%</span>
+                  </div>
+                  <ProgressBar
+                    progress={item.percentage}
+                    size="sm"
+                    color={
+                      index === 0
+                        ? "var(--color-green)"
+                        : index === 1
+                          ? "var(--color-pink)"
+                          : "var(--color-yellow)"
+                    }
+                    borderColor="var(--color-black)"
+                    className="w-full"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="section-plain bg-white text-center italic">
             "{mockMusic.quote}"
           </div>
-        </section>
+        </Card>
       )}
       </div>
       </div>
 
       {mockMusic && !hasGeneratedToday && (
-        <section className="section-surface text-center">
+        <Card {...retroCardProps} className="section-surface !m-0 text-center">
           <PixelSectionTitle title="今日生成組合" subtitle="今天會同时使用主风格与次风格来掉落像素奖励。" variant="dark" />
 
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -835,9 +911,14 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             )}
 
             {!showGenAnim ? (
-              <Button onClick={handleGenerate} className="w-full !py-2">
+              <RetroButton
+                {...getButtonTheme("primary")}
+                onClick={handleGenerate}
+                className="w-full !m-0 !py-2"
+                style={{ fontFamily: "var(--font-body)" }}
+              >
                 確認今日分析並生成素材
-              </Button>
+              </RetroButton>
             ) : (
               <div className="min-h-[40px]" />
             )}
@@ -847,11 +928,11 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               </div>
             )}
           </div>
-        </section>
+        </Card>
       )}
 
       {hasGeneratedToday && (
-        <section className="section-surface text-center">
+        <Card {...retroCardProps} className="section-surface !m-0 text-center">
           <PixelSectionTitle title={`Day ${safeDay} 已收錄素材`} subtitle="今天的掉落奖励已经加入本周背包。" variant="dark" />
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
@@ -873,11 +954,11 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               </div>
             ))}
           </motion.div>
-        </section>
+        </Card>
       )}
 
       {isPetGenerationStage && (
-        <section className="section-surface text-center">
+        <Card {...retroCardProps} className="section-surface !m-0 text-center">
           <PixelSectionTitle title="確認生成音樂寵物" subtitle="QUEST CLEAR：先分析素材，再交给 Leonardo 生成最终角色。" variant="dark" />
 
           <div className="mb-4">
@@ -998,54 +1079,71 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
               )}
 
               <div className="mt-4 w-full">
-                <Button
+                <RetroButton
+                  {...getButtonTheme("primary")}
                   onClick={analyzeAndGeneratePet}
-                  className="w-full py-3"
+                  className="w-full !m-0 !py-3"
                   disabled={isAnalyzing || isGenerating}
+                  style={{ fontFamily: "var(--font-body)" }}
                 >
                   {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "重新分析並生成"}
-                </Button>
+                </RetroButton>
               </div>
             </div>
           ) : (
             <div className="mb-4">
-              <Button
+              <RetroButton
+                {...getButtonTheme("primary")}
                 onClick={analyzeAndGeneratePet}
-                className="w-full py-3"
+                className="w-full !m-0 !py-3"
                 disabled={isAnalyzing || isGenerating}
+                style={{ fontFamily: "var(--font-body)" }}
               >
                 {isAnalyzing ? "正在分析素材..." : isGenerating ? "正在生成寵物..." : "分析並生成"}
-              </Button>
+              </RetroButton>
             </div>
           )}
-        </section>
+        </Card>
       )}
 
-      <Button
+      <RetroButton
+        {...getButtonTheme("primary")}
         onClick={handleDeployToMap}
-        className="w-full py-3"
+        className="w-full !m-0 !py-3"
         disabled={!generatedImageUrl || isAnalyzing || isGenerating}
+        style={{ fontFamily: "var(--font-body)" }}
       >
         放到地圖上
-      </Button>
+      </RetroButton>
 
       {showDevTools && (
         <div className="section-divider pt-4 flex flex-wrap gap-2 justify-center mt-8">
           <div className="w-full text-center type-label mb-1">DEV TOOLS</div>
-          <Button
-            variant="secondary"
+          <RetroButton
+            {...getButtonTheme("secondary")}
             onClick={advanceDay}
-            className="!p-2"
+            className="!m-0 !p-2"
             disabled={safeDay >= TOTAL_DAYS}
+            style={{ fontFamily: "var(--font-body)" }}
           >
             模擬下一天
-          </Button>
-          <Button variant="secondary" onClick={handleResetWeek} className="!p-2">
+          </RetroButton>
+          <RetroButton
+            {...getButtonTheme("secondary")}
+            onClick={handleResetWeek}
+            className="!m-0 !p-2"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
             重置本週
-          </Button>
-          <Button variant="secondary" onClick={handleAutoFillWeek} className="!p-2 opacity-80">
+          </RetroButton>
+          <RetroButton
+            {...getButtonTheme("secondary")}
+            onClick={handleAutoFillWeek}
+            className="!m-0 !p-2 opacity-80"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
             一鍵生成三天
-          </Button>
+          </RetroButton>
         </div>
       )}
     </div>
