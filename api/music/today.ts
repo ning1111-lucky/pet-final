@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import { buildDailyMusicData } from "../_lib/music-analysis.js";
 import { ApiRequest, ApiResponse, getRequestUrl, jsonResponse } from "../_lib/http.js";
 import { getValidSpotifyAccessToken, spotifyApiFetch } from "../_lib/spotify.js";
-import type { DailyMusicData, DailyMusicPayload, TrackRecord } from "../../src/types";
+import type { DailyMusicData, DailyMusicPayload, LastFmTrackDebugItem, MusicFetchDebug, TrackRecord } from "../../src/types";
 
 dotenv.config({ path: ".env.local" });
 dotenv.config();
@@ -40,8 +40,10 @@ type LastFmRecentTracksResponse = {
     track?: Array<{
       name?: string;
       artist?: { "#text"?: string };
-      date?: { uts?: string };
+      album?: { "#text"?: string };
+      date?: { uts?: string; "#text"?: string };
       "@attr"?: { nowplaying?: string };
+      url?: string;
     }>;
   };
 };
@@ -73,6 +75,46 @@ function getDayWindow(req: ApiRequest) {
 
 function formatDateDebug(date: Date | null) {
   return date ? date.toISOString() : null;
+}
+
+function formatDateLocalDebug(date: Date | null) {
+  return date ? date.toLocaleString("zh-TW", { hour12: false }) : null;
+}
+
+function buildLastFmRequestUrl(params: Record<string, string>) {
+  const url = new URL("https://ws.audioscrobbler.com/2.0/");
+  url.searchParams.set("api_key", "REDACTED");
+  url.searchParams.set("format", "json");
+  Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
+  return url.toString();
+}
+
+function toLastFmTrackDebugItems(
+  tracks: Array<{
+    name?: string;
+    artist?: { "#text"?: string };
+    album?: { "#text"?: string };
+    date?: { uts?: string; "#text"?: string };
+    "@attr"?: { nowplaying?: string };
+    url?: string;
+  }>
+): LastFmTrackDebugItem[] {
+  return tracks.slice(0, 5).map((track) => ({
+    name: track.name || "",
+    artist: track.artist?.["#text"] || "",
+    album: track.album?.["#text"] || "",
+    dateUts: track.date?.uts || null,
+    dateText: track.date?.["#text"] || null,
+    nowplaying: track["@attr"]?.nowplaying === "true",
+    url: track.url || "",
+  }));
+}
+
+function isNowPlayingWithinWindow(track: { "@attr"?: { nowplaying?: string } }, dayStart: Date | null, dayEnd: Date | null) {
+  if (track["@attr"]?.nowplaying !== "true") return false;
+  if (!dayStart || !dayEnd) return true;
+  const now = Date.now();
+  return now >= dayStart.getTime() && now < dayEnd.getTime();
 }
 
 function isWithinDayRange(playedAt: string | undefined, dayStart: Date | null, dayEnd: Date | null) {
@@ -115,8 +157,8 @@ async function getSpotifyDailyMusicData(req: ApiRequest, res: ApiResponse): Prom
     id: item.track?.id || `${item.played_at || "spotify"}-${index}`,
     title: item.track?.name || `Spotify Track ${index + 1}`,
     artist: (item.track?.artists || []).map((artist) => artist.name).filter(Boolean).join(", ") || "Unknown Artist",
-    playedAt: item.played_at || null,
-    source: "spotify",
+    playedAt: item.played_at || new Date().toISOString(),
+    provider: "spotify",
   }));
 
   const artistIds = Array.from(
@@ -168,7 +210,7 @@ function getLastFmApiKey() {
 async function lastFmFetch<T>(params: Record<string, string>) {
   const apiKey = getLastFmApiKey();
   if (!apiKey) {
-    throw new Error("Last.fm 尚未設定完成，請先加入 LASTFM_API_KEY。");
+    throw Object.assign(new Error("Last.fm 尚未設定完成，請先加入 LASTFM_API_KEY。"), { statusCode: 500, code: "LASTFM_API_KEY_MISSING" });
   }
 
   const url = new URL("https://ws.audioscrobbler.com/2.0/");
@@ -179,7 +221,11 @@ async function lastFmFetch<T>(params: Record<string, string>) {
   const response = await fetch(url);
   const body = await readJson<T & { message?: string; error?: number }>(response);
   if (!response.ok || body?.error) {
-    throw new Error(body?.message || "Last.fm API 請求失敗。");
+    throw Object.assign(new Error(body?.message || "Last.fm API 請求失敗。"), {
+      statusCode: response.status || 502,
+      code: "LASTFM_API_ERROR",
+      details: body,
+    });
   }
 
   return body as T;
@@ -200,18 +246,77 @@ async function getLastFmDailyMusicData(req: ApiRequest): Promise<DailyMusicPaylo
   }
 
   const { dayStart, dayEnd, dayIndex } = getDayWindow(req);
+  const debugRecentOnly = url.searchParams.get("debugRecentOnly") === "true" || url.searchParams.get("debugRecentOnly") === "1";
+  const startDate = (url.searchParams.get("startDate") || "").trim();
+  const localToday = new Date().toLocaleDateString("sv-SE");
+  const timezoneOffset = new Date().getTimezoneOffset();
+  const fromUnix = dayStart ? Math.floor(dayStart.getTime() / 1000) : null;
+  const toUnix = dayEnd ? Math.floor(dayEnd.getTime() / 1000) : null;
 
-  const params: Record<string, string> = {
+  const dayRangeParams: Record<string, string> = {
     method: "user.getRecentTracks",
     user: username,
     limit: "50",
   };
-  if (dayStart) params.from = String(Math.floor(dayStart.getTime() / 1000));
-  if (dayEnd) params.to = String(Math.floor(dayEnd.getTime() / 1000));
+  if (fromUnix !== null) dayRangeParams.from = String(fromUnix);
+  if (toUnix !== null) dayRangeParams.to = String(toUnix);
 
-  const recentTracks = await lastFmFetch<LastFmRecentTracksResponse>(params);
+  const recentParams: Record<string, string> = {
+    method: "user.getRecentTracks",
+    user: username,
+    limit: "10",
+  };
 
-  const tracks = recentTracks.recenttracks?.track || [];
+  let dayRangeResponse: LastFmRecentTracksResponse | null = null;
+  let recentResponse: LastFmRecentTracksResponse | null = null;
+  let apiErrorMessage: string | null = null;
+  let filteredOutReason: string | null = null;
+
+  try {
+    if (!debugRecentOnly) {
+      dayRangeResponse = await lastFmFetch<LastFmRecentTracksResponse>(dayRangeParams);
+    }
+    recentResponse = await lastFmFetch<LastFmRecentTracksResponse>(recentParams);
+  } catch (error) {
+    apiErrorMessage = error instanceof Error ? error.message : "Last.fm API 請求失敗。";
+    throw Object.assign(error instanceof Error ? error : new Error(apiErrorMessage), {
+      debug: {
+        source: "lastfm",
+        username,
+        currentDay: dayIndex,
+        startDate,
+        localToday,
+        timezoneOffset,
+        dayStartLocalString: formatDateLocalDebug(dayStart),
+        dayEndLocalString: formatDateLocalDebug(dayEnd),
+        dayStartISO: formatDateDebug(dayStart),
+        dayEndISO: formatDateDebug(dayEnd),
+        fromUnix,
+        toUnix,
+        requestUrlWithoutApiKey: debugRecentOnly ? buildLastFmRequestUrl(recentParams) : buildLastFmRequestUrl(dayRangeParams),
+        dayRangeRequestUrlWithoutApiKey: buildLastFmRequestUrl(dayRangeParams),
+        recentRequestUrlWithoutApiKey: buildLastFmRequestUrl(recentParams),
+        rawTrackCount: 0,
+        parsedTrackCount: 0,
+        dayRangeRawCount: 0,
+        dayRangeParsedCount: 0,
+        recentRawCount: 0,
+        rawFirstTracks: [],
+        recentFirstTracks: [],
+        filteredOutReason: null,
+        error: apiErrorMessage,
+      } satisfies MusicFetchDebug,
+    });
+  }
+
+  const dayRangeTracks = dayRangeResponse?.recenttracks?.track || [];
+  const recentTracks = recentResponse?.recenttracks?.track || [];
+  const sourceTracks = debugRecentOnly ? recentTracks : dayRangeTracks;
+
+  const tracks = sourceTracks.filter((track) => {
+    if (track.date?.uts) return true;
+    return isNowPlayingWithinWindow(track, dayStart, dayEnd);
+  });
   const artistNames = Array.from(
     new Set(
       tracks
@@ -235,23 +340,71 @@ async function getLastFmDailyMusicData(req: ApiRequest): Promise<DailyMusicPaylo
     id: `${username}-${track.date?.uts || "lastfm"}-${index}`,
     title: track.name || `Last.fm Track ${index + 1}`,
     artist: track.artist?.["#text"] || "Unknown Artist",
-    playedAt: track.date?.uts ? new Date(Number(track.date.uts) * 1000).toISOString() : null,
-    source: "lastfm",
+    playedAt: track.date?.uts ? new Date(Number(track.date.uts) * 1000).toISOString() : new Date().toISOString(),
+    provider: "lastfm",
   }));
 
+  if (!debugRecentOnly) {
+    if (dayRangeTracks.length === 0 && recentTracks.length > 0) {
+      filteredOutReason = "Last.fm 最近有歌，但 current hatch day 的 from/to 範圍內沒有任何 scrobble。";
+    } else if (dayRangeTracks.length > 0 && normalizedTracks.length === 0) {
+      filteredOutReason = "Last.fm day range 有回傳 track，但都沒有可用的 date.uts；只有 nowplaying 或資料不完整。";
+    } else if (dayRangeTracks.length === 0 && recentTracks.length === 0) {
+      filteredOutReason = "Last.fm 最近 10 首與 day range 都沒有任何資料。";
+    }
+  } else if (recentTracks.length === 0) {
+    filteredOutReason = "Last.fm 最近 10 首沒有回傳任何資料。";
+  }
+
   const data = buildDailyMusicData({
-    songCount: Math.max(tracks.length, 0),
+    songCount: Math.max(normalizedTracks.length, 0),
     rawGenres,
-    quote: buildLastFmQuote(username, artistNames, dayIndex),
+    quote:
+      normalizedTracks.length > 0
+        ? buildLastFmQuote(username, artistNames, dayIndex)
+        : debugRecentOnly
+          ? `${username} 的 Last.fm 最近 10 首目前沒有可顯示的歌曲。`
+          : `${username} 的 Last.fm 第 ${dayIndex || 1} 天目前沒有同步到當日歌曲。`,
   });
+  const debug: MusicFetchDebug = {
+    source: "lastfm",
+    username,
+    currentDay: dayIndex,
+    startDate,
+    localToday,
+    timezoneOffset,
+    dayStartLocalString: formatDateLocalDebug(dayStart),
+    dayEndLocalString: formatDateLocalDebug(dayEnd),
+    dayStartISO: formatDateDebug(dayStart),
+    dayEndISO: formatDateDebug(dayEnd),
+    fromUnix,
+    toUnix,
+    requestUrlWithoutApiKey: debugRecentOnly ? buildLastFmRequestUrl(recentParams) : buildLastFmRequestUrl(dayRangeParams),
+    dayRangeRequestUrlWithoutApiKey: buildLastFmRequestUrl(dayRangeParams),
+    recentRequestUrlWithoutApiKey: buildLastFmRequestUrl(recentParams),
+    rawTrackCount: sourceTracks.length,
+    parsedTrackCount: normalizedTracks.length,
+    dayRangeRawCount: dayRangeTracks.length,
+    dayRangeParsedCount: debugRecentOnly ? 0 : normalizedTracks.length,
+    recentRawCount: recentTracks.length,
+    rawFirstTracks: toLastFmTrackDebugItems(dayRangeTracks),
+    recentFirstTracks: toLastFmTrackDebugItems(recentTracks),
+    filteredOutReason,
+    error: apiErrorMessage,
+  };
   console.info("[music/today][lastfm]", {
     username,
     dayIndex,
     dayStart: formatDateDebug(dayStart),
     dayEnd: formatDateDebug(dayEnd),
-    trackCount: normalizedTracks.length,
+    fromUnix,
+    toUnix,
+    dayRangeRawCount: dayRangeTracks.length,
+    recentRawCount: recentTracks.length,
+    parsedTrackCount: normalizedTracks.length,
+    filteredOutReason,
   });
-  return { data, tracks: normalizedTracks };
+  return { data, tracks: normalizedTracks, debug };
 }
 
 async function getMockDailyMusicData(req: ApiRequest): Promise<DailyMusicPayload> {
@@ -274,11 +427,12 @@ export default async function handler(req: ApiRequest, res: ApiResponse) {
           ? await getLastFmDailyMusicData(req)
           : await getMockDailyMusicData(req);
 
-    return jsonResponse(res, 200, { ok: true, provider, data: payload.data, tracks: payload.tracks });
+    return jsonResponse(res, 200, { ok: true, provider, data: payload.data, tracks: payload.tracks, debug: payload.debug || null });
   } catch (error) {
     const statusCode = typeof (error as { statusCode?: unknown })?.statusCode === "number" ? Number((error as { statusCode: number }).statusCode) : 500;
     const code = typeof (error as { code?: unknown })?.code === "string" ? String((error as { code: string }).code) : null;
     const message = error instanceof Error ? error.message : "音樂資料讀取失敗。";
-    return jsonResponse(res, statusCode, { ok: false, error: message, code });
+    const debug = isRecord(error) && "debug" in error ? (error as { debug?: unknown }).debug : null;
+    return jsonResponse(res, statusCode, { ok: false, error: message, code, debug });
   }
 }

@@ -34,6 +34,43 @@ export interface TrackRecord {
   provider: MusicProvider;
 }
 
+export interface LastFmTrackDebugItem {
+  name: string;
+  artist: string;
+  album: string;
+  dateUts: string | null;
+  dateText: string | null;
+  nowplaying: boolean;
+  url: string;
+}
+
+export interface MusicFetchDebug {
+  source: MusicProvider;
+  username?: string;
+  currentDay?: number;
+  startDate?: string;
+  localToday?: string;
+  timezoneOffset?: number;
+  dayStartLocalString?: string | null;
+  dayEndLocalString?: string | null;
+  dayStartISO?: string | null;
+  dayEndISO?: string | null;
+  fromUnix?: number | null;
+  toUnix?: number | null;
+  requestUrlWithoutApiKey?: string | null;
+  dayRangeRequestUrlWithoutApiKey?: string | null;
+  recentRequestUrlWithoutApiKey?: string | null;
+  dayRangeRawCount?: number;
+  rawTrackCount?: number;
+  parsedTrackCount?: number;
+  dayRangeParsedCount?: number;
+  recentRawCount?: number;
+  rawFirstTracks?: LastFmTrackDebugItem[];
+  recentFirstTracks?: LastFmTrackDebugItem[];
+  filteredOutReason?: string | null;
+  error?: string | null;
+}
+
 export interface Pet {
   id: string;
   name: string;
@@ -95,6 +132,7 @@ export interface HatchSession {
 export interface DailyMusicPayload {
   data: DailyMusicData;
   tracks: TrackRecord[];
+  debug?: MusicFetchDebug | null;
 }
 
 export interface GeminiAssetAnalysis {

@@ -80,11 +80,10 @@ function buildMockTrackRecords(dayKey: string, count: number, distribution: { ge
     const playedAt = new Date(baseDate.getTime() + index * 45 * 60 * 1000);
     return {
       id: `${dayKey}-${index}-${genre}`,
-      name: `${genre} Track ${index + 1}`,
+      title: `${genre} Track ${index + 1}`,
       artist: `${genre} Artist ${(index % 4) + 1}`,
       playedAt: playedAt.toISOString(),
-      genres: [genre],
-      source: "mock",
+      provider: "mock",
     };
   });
 }
@@ -125,6 +124,8 @@ type MusicFetchOptions = {
   dayStart?: string;
   dayEnd?: string;
   dayIndex?: number;
+  startDate?: string;
+  debugRecentOnly?: boolean;
 };
 
 export async function getSpotifyTodayMusicData(options: MusicFetchOptions = {}): Promise<DailyMusicPayload> {
@@ -132,6 +133,8 @@ export async function getSpotifyTodayMusicData(options: MusicFetchOptions = {}):
   if (options.dayStart) query.set("dayStart", options.dayStart);
   if (options.dayEnd) query.set("dayEnd", options.dayEnd);
   if (typeof options.dayIndex === "number") query.set("dayIndex", String(options.dayIndex));
+  if (options.startDate) query.set("startDate", options.startDate);
+  if (options.debugRecentOnly) query.set("debugRecentOnly", "true");
 
   const response = await fetch(`/api/music/today?${query.toString()}`, {
     credentials: "include",
@@ -140,9 +143,12 @@ export async function getSpotifyTodayMusicData(options: MusicFetchOptions = {}):
 
   if (!response.ok || body?.ok !== true || !body?.data || !Array.isArray(body?.tracks)) {
     const error = typeof body?.error === "string" ? body.error : "Spotify 資料讀取失敗。";
-    const enrichedError = new Error(error) as Error & { code?: string };
+    const enrichedError = new Error(error) as Error & { code?: string; debug?: DailyMusicPayload["debug"] };
     if (typeof body?.code === "string") {
       enrichedError.code = body.code;
+    }
+    if (body?.debug && typeof body.debug === "object") {
+      enrichedError.debug = body.debug as DailyMusicPayload["debug"];
     }
     throw enrichedError;
   }
@@ -150,6 +156,7 @@ export async function getSpotifyTodayMusicData(options: MusicFetchOptions = {}):
   return {
     data: body.data as DailyMusicData,
     tracks: body.tracks as TrackRecord[],
+    debug: (body.debug as DailyMusicPayload["debug"]) || null,
   };
 }
 
@@ -161,6 +168,8 @@ export async function getLastFmTodayMusicData(lastfmUsername?: string, options: 
   if (options.dayStart) query.set("dayStart", options.dayStart);
   if (options.dayEnd) query.set("dayEnd", options.dayEnd);
   if (typeof options.dayIndex === "number") query.set("dayIndex", String(options.dayIndex));
+  if (options.startDate) query.set("startDate", options.startDate);
+  if (options.debugRecentOnly) query.set("debugRecentOnly", "true");
 
   const response = await fetch(`/api/music/today?${query.toString()}`, {
     credentials: "include",
@@ -169,9 +178,12 @@ export async function getLastFmTodayMusicData(lastfmUsername?: string, options: 
 
   if (!response.ok || body?.ok !== true || !body?.data || !Array.isArray(body?.tracks)) {
     const error = typeof body?.error === "string" ? body.error : "Last.fm 資料讀取失敗。";
-    const enrichedError = new Error(error) as Error & { code?: string };
+    const enrichedError = new Error(error) as Error & { code?: string; debug?: DailyMusicPayload["debug"] };
     if (typeof body?.code === "string") {
       enrichedError.code = body.code;
+    }
+    if (body?.debug && typeof body.debug === "object") {
+      enrichedError.debug = body.debug as DailyMusicPayload["debug"];
     }
     throw enrichedError;
   }
@@ -179,6 +191,7 @@ export async function getLastFmTodayMusicData(lastfmUsername?: string, options: 
   return {
     data: body.data as DailyMusicData,
     tracks: body.tracks as TrackRecord[],
+    debug: (body.debug as DailyMusicPayload["debug"]) || null,
   };
 }
 

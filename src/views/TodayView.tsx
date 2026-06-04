@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useApp } from "../AppContext";
 import { Button, PixelBadge, PixelIcon, PixelItemCard, PixelLogoTitle, PixelProgress, PixelStatusBar, RetroWindow } from "../components/UI";
 import { getBaseType, getCollectionSlotIndex, getDaySlotConfigs, getTodayMusicData, TOTAL_DAYS } from "../mockData";
-import { DailyMusicData, MusicItem, Genre, MapEntry, Pet, GeminiAssetAnalysis } from "../types";
+import { DailyMusicData, MusicItem, Genre, MapEntry, Pet, GeminiAssetAnalysis, MusicFetchDebug } from "../types";
 import { generateId } from "../utils";
 import { motion } from "motion/react";
 import { baseShapeMap, resolveAssetImage } from "../assetMap";
@@ -170,7 +170,10 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const [notionPromptContext, setNotionPromptContext] = useState("");
   const [musicLoadError, setMusicLoadError] = useState<string | null>(null);
   const [musicLoadCode, setMusicLoadCode] = useState<string | null>(null);
-  const [musicFetchDebug, setMusicFetchDebug] = useState<{ dayStart: string; dayEnd: string; trackCount: number; provider: string } | null>(null);
+  const [musicFetchDebug, setMusicFetchDebug] = useState<MusicFetchDebug | null>(null);
+  const [recentDebug, setRecentDebug] = useState<MusicFetchDebug | null>(null);
+  const [recentDebugError, setRecentDebugError] = useState<string | null>(null);
+  const [testingRecentTracks, setTestingRecentTracks] = useState(false);
   const [spotifyConnected, setSpotifyConnected] = useState<boolean | null>(null);
   const [spotifyDisplayName, setSpotifyDisplayName] = useState<string | null>(null);
   const [showMusicSourcePanel, setShowMusicSourcePanel] = useState(false);
@@ -190,6 +193,11 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     () => (hatchSession?.startDate ? getDayDate(hatchSession.startDate, safeDay) : new Date().toISOString().slice(0, 10)),
     [hatchSession?.startDate, safeDay]
   );
+  const showLastFmDebug = useMemo(() => {
+    if (import.meta.env.DEV) return true;
+    if (typeof window === "undefined") return false;
+    return new URLSearchParams(window.location.search).get("debug") === "1";
+  }, []);
   const finalPetInput = useMemo(() => getFinalPetInput(), [getFinalPetInput, hatchSession]);
   const debugDaySummaries = useMemo(
     () =>
@@ -264,6 +272,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       dayStart: currentDayDate,
       dayEnd: nextDayDate,
       dayIndex: safeDay,
+      startDate: hatchSession?.startDate,
     })
       .then((payload) => {
         if (!active) return;
@@ -274,25 +283,37 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             dayStart: currentDayDate,
             dayEnd: nextDayDate,
             trackCount: payload.tracks.length,
+            debug: payload.debug || null,
           });
         }
-        setMusicFetchDebug({
-          provider: activeMusicProvider,
-          dayStart: currentDayDate,
-          dayEnd: nextDayDate,
-          trackCount: payload.tracks.length,
-        });
+        setMusicFetchDebug(
+          payload.debug || {
+            source: activeMusicProvider,
+            username: userProfile?.lastfmUsername || "",
+            currentDay: safeDay,
+            startDate: hatchSession?.startDate || "",
+            dayStartISO: currentDayDate,
+            dayEndISO: nextDayDate,
+            parsedTrackCount: payload.tracks.length,
+          }
+        );
         setMockMusic(payload.data);
         saveTracksForCurrentDay(payload.tracks, payload.data);
       })
-      .catch((error: Error & { code?: string }) => {
+      .catch((error: Error & { code?: string; debug?: MusicFetchDebug | null }) => {
         if (!active) return;
-        setMusicFetchDebug({
-          provider: activeMusicProvider,
-          dayStart: currentDayDate,
-          dayEnd: nextDayDate,
-          trackCount: 0,
-        });
+        setMusicFetchDebug(
+          error.debug || {
+            source: activeMusicProvider,
+            username: userProfile?.lastfmUsername || "",
+            currentDay: safeDay,
+            startDate: hatchSession?.startDate || "",
+            dayStartISO: currentDayDate,
+            dayEndISO: nextDayDate,
+            parsedTrackCount: 0,
+            error: error.message || "音樂資料讀取失敗。",
+          }
+        );
         setMockMusic(null);
         setMusicLoadError(error.message || "音樂資料讀取失敗。");
         setMusicLoadCode(error.code || null);
@@ -301,7 +322,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     return () => {
       active = false;
     };
-  }, [safeDay, activeMusicProvider, userProfile?.lastfmUsername, currentDayDate, nextDayDate]);
+  }, [safeDay, activeMusicProvider, userProfile?.lastfmUsername, currentDayDate, nextDayDate, hatchSession?.startDate]);
 
   useEffect(() => {
     if (activeMusicProvider !== "spotify") {
@@ -643,6 +664,23 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const currentDayTrackCount = hatchSession?.days?.[safeDay]?.tracks?.length || 0;
   const currentDayItemCount = hatchSession?.days?.[safeDay]?.items?.length || todaysGeneratedItems.length;
   const currentDayXp = Math.min(300, currentDayTrackCount * 12 + currentDayItemCount * 40);
+  const debugReason = useMemo(() => {
+    if (activeMusicProvider !== "lastfm") return "目前不是 Last.fm / 通用同步模式。";
+    if (!userProfile?.lastfmUsername?.trim()) return "Last.fm username 未设置";
+    if (musicLoadCode === "LASTFM_API_KEY_MISSING") return "Last.fm API key missing";
+    if (musicLoadCode === "LASTFM_API_ERROR") return "Last.fm API returned error";
+    if (musicLoadCode === "LASTFM_USERNAME_REQUIRED") return "Last.fm username missing";
+    if (musicFetchDebug?.error) return musicFetchDebug.error;
+    if ((musicFetchDebug?.dayRangeRawCount || 0) === 0 && (musicFetchDebug?.recentRawCount || 0) > 0) {
+      return "Last.fm recent tracks exist, but not in current hatch day.";
+    }
+    if ((musicFetchDebug?.recentRawCount || 0) === 0) return "Last.fm recent fallback returned 0 tracks.";
+    if ((musicFetchDebug?.dayRangeRawCount || 0) > 0 && (musicFetchDebug?.parsedTrackCount || 0) === 0) {
+      return "Last.fm returned tracks, but parser filtered them out.";
+    }
+    if (currentDayTrackCount === 0) return "Day range returned 0 usable tracks.";
+    return "Last.fm day-range lookup appears normal.";
+  }, [activeMusicProvider, currentDayTrackCount, musicFetchDebug, musicLoadCode, userProfile?.lastfmUsername]);
   const handleProviderChange = (provider: "mock" | "spotify" | "lastfm") => {
     updateUserProfile({ musicProvider: provider });
     if (userProfile) {
@@ -683,6 +721,32 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
       });
     }
     setShowMusicSourcePanel(false);
+  };
+
+  const handleDebugRecentTracks = async () => {
+    if (activeMusicProvider !== "lastfm") return;
+
+    setTestingRecentTracks(true);
+    setRecentDebug(null);
+    setRecentDebugError(null);
+
+    try {
+      const payload = await getTodayMusicData("lastfm", {
+        lastfmUsername: userProfile?.lastfmUsername,
+        dayStart: currentDayDate,
+        dayEnd: nextDayDate,
+        dayIndex: safeDay,
+        startDate: hatchSession?.startDate,
+        debugRecentOnly: true,
+      });
+      setRecentDebug(payload.debug || null);
+    } catch (error) {
+      const typedError = error as Error & { debug?: MusicFetchDebug | null };
+      setRecentDebug(typedError.debug || null);
+      setRecentDebugError(typedError.message || "Last.fm 最近 10 首測試失敗。");
+    } finally {
+      setTestingRecentTracks(false);
+    }
   };
 
   if (!mockMusic && !musicLoadError) {
@@ -987,9 +1051,9 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           <div className="window-stack-tight">
             <div className="window-hint"><strong>startDate:</strong> {hatchSession?.startDate || "-"}</div>
             <div className="window-hint"><strong>currentDay:</strong> {hatchSession?.currentDay || safeDay}</div>
-            <div className="window-hint"><strong>dayStart:</strong> {musicFetchDebug?.dayStart || currentDayDate}</div>
-            <div className="window-hint"><strong>dayEnd:</strong> {musicFetchDebug?.dayEnd || nextDayDate}</div>
-            <div className="window-hint"><strong>apiTrackCount:</strong> {musicFetchDebug?.trackCount ?? 0} ({musicFetchDebug?.provider || activeMusicProvider})</div>
+            <div className="window-hint"><strong>dayStart:</strong> {musicFetchDebug?.dayStartISO || currentDayDate}</div>
+            <div className="window-hint"><strong>dayEnd:</strong> {musicFetchDebug?.dayEndISO || nextDayDate}</div>
+            <div className="window-hint"><strong>apiTrackCount:</strong> {musicFetchDebug?.parsedTrackCount ?? 0} ({musicFetchDebug?.source || activeMusicProvider})</div>
             <div className="space-y-1">
               {debugDaySummaries.map((summary) => (
                 <div key={summary.day} className="window-hint flex items-center justify-between gap-2">
@@ -1009,6 +1073,95 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             <Button variant="secondary" className="w-full justify-center" onClick={handleAutoFillWeek}>
               一鍵生成三天
             </Button>
+          </div>
+        </RetroWindow>
+      ) : null}
+
+      {showLastFmDebug ? (
+        <RetroWindow title="Last.fm Debug" tone="yellow">
+          <div className="window-stack-tight">
+            <div className="window-hint"><strong>目前來源：</strong>{providerLabel}</div>
+            <div className="window-hint"><strong>Last.fm username：</strong>{userProfile?.lastfmUsername?.trim() || "未设置"}</div>
+            <div className="window-hint"><strong>currentDay：</strong>{musicFetchDebug?.currentDay ?? safeDay}</div>
+            <div className="window-hint"><strong>startDate：</strong>{musicFetchDebug?.startDate || hatchSession?.startDate || "-"}</div>
+            <div className="window-hint"><strong>localToday：</strong>{musicFetchDebug?.localToday || "-"}</div>
+            <div className="window-hint"><strong>timezoneOffset：</strong>{musicFetchDebug?.timezoneOffset ?? "-"}</div>
+            <div className="window-hint"><strong>dayStartLocal：</strong>{musicFetchDebug?.dayStartLocalString || "-"}</div>
+            <div className="window-hint"><strong>dayEndLocal：</strong>{musicFetchDebug?.dayEndLocalString || "-"}</div>
+            <div className="window-hint"><strong>dayStartISO：</strong>{musicFetchDebug?.dayStartISO || "-"}</div>
+            <div className="window-hint"><strong>dayEndISO：</strong>{musicFetchDebug?.dayEndISO || "-"}</div>
+            <div className="window-hint"><strong>fromUnix：</strong>{musicFetchDebug?.fromUnix ?? "-"}</div>
+            <div className="window-hint"><strong>toUnix：</strong>{musicFetchDebug?.toUnix ?? "-"}</div>
+            <div className="window-hint"><strong>dayRange URL：</strong>{musicFetchDebug?.dayRangeRequestUrlWithoutApiKey || musicFetchDebug?.requestUrlWithoutApiKey || "-"}</div>
+            <div className="window-hint"><strong>recent URL：</strong>{musicFetchDebug?.recentRequestUrlWithoutApiKey || "-"}</div>
+            <div className="window-hint"><strong>dayRangeRawCount：</strong>{musicFetchDebug?.dayRangeRawCount ?? 0}</div>
+            <div className="window-hint"><strong>dayRangeParsedCount：</strong>{musicFetchDebug?.dayRangeParsedCount ?? 0}</div>
+            <div className="window-hint"><strong>recentRawCount：</strong>{musicFetchDebug?.recentRawCount ?? 0}</div>
+            <div className="window-hint"><strong>parsedTrackCount：</strong>{musicFetchDebug?.parsedTrackCount ?? 0}</div>
+            <div className="window-hint"><strong>debug reason：</strong>{debugReason}</div>
+            {musicFetchDebug?.filteredOutReason ? <div className="window-hint"><strong>filteredOutReason：</strong>{musicFetchDebug.filteredOutReason}</div> : null}
+            {musicFetchDebug?.error ? <div className="window-error">{musicFetchDebug.error}</div> : null}
+            {musicLoadError && !musicFetchDebug?.error ? <div className="window-error">{musicLoadError}</div> : null}
+
+            <div className="analysis-copy-block">
+              <div className="window-label">dayRange first tracks</div>
+              {(musicFetchDebug?.rawFirstTracks || []).length > 0 ? (
+                <div className="space-y-2">
+                  {(musicFetchDebug?.rawFirstTracks || []).map((track, index) => (
+                    <div key={`${track.name}-${index}`} className="window-hint">
+                      {index + 1}. {track.name} / {track.artist} / uts: {track.dateUts || "-"} / nowplaying: {track.nowplaying ? "true" : "false"}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="window-hint">沒有 day range tracks</div>
+              )}
+            </div>
+
+            <div className="analysis-copy-block">
+              <div className="window-label">recent first tracks</div>
+              {(musicFetchDebug?.recentFirstTracks || []).length > 0 ? (
+                <div className="space-y-2">
+                  {(musicFetchDebug?.recentFirstTracks || []).map((track, index) => (
+                    <div key={`${track.name}-${index}`} className="window-hint">
+                      {index + 1}. {track.name} / {track.artist} / uts: {track.dateUts || "-"} / nowplaying: {track.nowplaying ? "true" : "false"}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="window-hint">沒有 recent tracks</div>
+              )}
+            </div>
+
+            {activeMusicProvider === "lastfm" ? (
+              <>
+                <Button variant="secondary" className="w-full justify-center" onClick={handleDebugRecentTracks} disabled={testingRecentTracks}>
+                  {testingRecentTracks ? "測試中..." : "測試 Last.fm 最近 10 首"}
+                </Button>
+                {recentDebugError ? <div className="window-error">{recentDebugError}</div> : null}
+                {recentDebug ? (
+                  <div className="analysis-copy-block">
+                    <div className="window-label">recent-only test</div>
+                    <div className="window-hint"><strong>request：</strong>{recentDebug.requestUrlWithoutApiKey || recentDebug.recentRequestUrlWithoutApiKey || "-"}</div>
+                    <div className="window-hint"><strong>recentRawCount：</strong>{recentDebug.recentRawCount ?? 0}</div>
+                    <div className="window-hint"><strong>parsedTrackCount：</strong>{recentDebug.parsedTrackCount ?? 0}</div>
+                    {(recentDebug.recentFirstTracks || []).length > 0 ? (
+                      <div className="space-y-2">
+                        {(recentDebug.recentFirstTracks || []).map((track, index) => (
+                          <div key={`${track.name}-${index}`} className="window-hint">
+                            {index + 1}. {track.name} / {track.artist} / uts: {track.dateUts || "-"} / nowplaying: {track.nowplaying ? "true" : "false"}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="window-hint">最近 10 首也沒有可顯示資料</div>
+                    )}
+                    {recentDebug.filteredOutReason ? <div className="window-hint"><strong>reason：</strong>{recentDebug.filteredOutReason}</div> : null}
+                    {recentDebug.error ? <div className="window-error">{recentDebug.error}</div> : null}
+                  </div>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </RetroWindow>
       ) : null}
