@@ -3,12 +3,15 @@ import { motion } from "motion/react";
 import { useApp } from "../AppContext";
 import { MusicProvider } from "../types";
 import homeBg from "../assets/pixel/backgrounds/home-bg.png";
+import pinkCatSprite from "../assets/pixel/home/pink-cat.svg";
+import blueCatSprite from "../assets/pixel/home/blue-cat.svg";
+import musicEggSprite from "../assets/pixel/home/music-egg.svg";
+import catAvatarSprite from "../assets/pixel/home/cat-avatar.svg";
 import {
   PixelBadge,
   PixelButton,
   PixelIcon,
   PixelIconType,
-  PixelStatusBar,
   RetroWindow,
 } from "../components/UI";
 
@@ -129,34 +132,42 @@ function PixelDecorationLayer() {
   );
 }
 
+function HomeStatusBar() {
+  return (
+    <div className="pixel-status-bar home-status-bar">
+      <div className="status-cluster">
+        <div className="status-avatar">
+          <img src={catAvatarSprite} alt="" className="status-avatar-image" />
+        </div>
+        <div className="status-level-stack">
+          <div className="status-level-label">LV.01</div>
+          <div className="status-xp-track">
+            <span className="status-xp-fill" style={{ width: "36%" }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="status-actions">
+        <div className="status-gem-chip">
+          <PixelIcon type="gem" size={18} />
+          <span>120</span>
+        </div>
+        <button type="button" className="status-action-button" aria-label="新增">
+          <PixelIcon type="plus" size={16} />
+        </button>
+        <button type="button" className="status-action-button status-menu-button" aria-label="選單">
+          <PixelIcon type="menu" size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PixelPinkCat() {
   return (
     <div className="stage-pet stage-pet-pink" aria-hidden="true">
       <div className="stage-pet-sprite">
-        <svg viewBox="0 0 16 16" className="pixel-character-sprite" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
-          <rect x="4" y="1" width="2" height="2" fill="#111" />
-          <rect x="10" y="1" width="2" height="2" fill="#111" />
-          <rect x="5" y="1" width="1" height="1" fill="#ff7fbf" />
-          <rect x="10" y="1" width="1" height="1" fill="#ff7fbf" />
-          <rect x="3" y="3" width="10" height="8" fill="#111" />
-          <rect x="4" y="3" width="8" height="8" fill="#ff9dd6" />
-          <rect x="4" y="11" width="3" height="2" fill="#111" />
-          <rect x="9" y="11" width="3" height="2" fill="#111" />
-          <rect x="5" y="11" width="2" height="2" fill="#ff9dd6" />
-          <rect x="9" y="11" width="2" height="2" fill="#ff9dd6" />
-          <rect x="5" y="6" width="2" height="2" fill="#fff" />
-          <rect x="9" y="6" width="2" height="2" fill="#fff" />
-          <rect x="6" y="7" width="1" height="1" fill="#111" />
-          <rect x="9" y="7" width="1" height="1" fill="#111" />
-          <rect x="6" y="8" width="1" height="1" fill="#ffb7d5" />
-          <rect x="9" y="8" width="1" height="1" fill="#ffb7d5" />
-          <rect x="7" y="8" width="2" height="1" fill="#111" />
-          <rect x="7" y="9" width="2" height="1" fill="#111" />
-          <rect x="2" y="8" width="1" height="3" fill="#111" />
-          <rect x="13" y="8" width="1" height="3" fill="#111" />
-          <rect x="2" y="9" width="1" height="2" fill="#ff9dd6" />
-          <rect x="13" y="9" width="1" height="2" fill="#ff9dd6" />
-        </svg>
+        <img src={pinkCatSprite} alt="" className="stage-pet-image" />
       </div>
       <div className="stage-pet-bubble">
         <PixelIcon type="heart" size={12} />
@@ -169,30 +180,7 @@ function PixelBlueCat() {
   return (
     <div className="stage-pet stage-pet-blue" aria-hidden="true">
       <div className="stage-pet-sprite">
-        <svg viewBox="0 0 16 16" className="pixel-character-sprite" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
-          <rect x="4" y="1" width="2" height="2" fill="#111" />
-          <rect x="10" y="1" width="2" height="2" fill="#111" />
-          <rect x="5" y="1" width="1" height="1" fill="#8ac6ff" />
-          <rect x="10" y="1" width="1" height="1" fill="#8ac6ff" />
-          <rect x="3" y="3" width="10" height="8" fill="#111" />
-          <rect x="4" y="3" width="8" height="8" fill="#6fd0ff" />
-          <rect x="4" y="11" width="3" height="2" fill="#111" />
-          <rect x="9" y="11" width="3" height="2" fill="#111" />
-          <rect x="5" y="11" width="2" height="2" fill="#6fd0ff" />
-          <rect x="9" y="11" width="2" height="2" fill="#6fd0ff" />
-          <rect x="5" y="6" width="2" height="2" fill="#fff" />
-          <rect x="9" y="6" width="2" height="2" fill="#fff" />
-          <rect x="6" y="7" width="1" height="1" fill="#111" />
-          <rect x="9" y="7" width="1" height="1" fill="#111" />
-          <rect x="6" y="8" width="1" height="1" fill="#b7ff5e" />
-          <rect x="9" y="8" width="1" height="1" fill="#b7ff5e" />
-          <rect x="7" y="8" width="2" height="1" fill="#111" />
-          <rect x="7" y="9" width="2" height="1" fill="#111" />
-          <rect x="2" y="8" width="1" height="3" fill="#111" />
-          <rect x="13" y="8" width="1" height="3" fill="#111" />
-          <rect x="2" y="9" width="1" height="2" fill="#6fd0ff" />
-          <rect x="13" y="9" width="1" height="2" fill="#6fd0ff" />
-        </svg>
+        <img src={blueCatSprite} alt="" className="stage-pet-image" />
       </div>
       <div className="stage-pet-headphone">
         <PixelIcon type="headphone" size={18} />
@@ -207,29 +195,8 @@ function PixelBlueCat() {
 function PixelPetEgg() {
   return (
     <div className="stage-egg" aria-hidden="true">
-      <div className="stage-egg-nest" />
       <div className="stage-egg-shell">
-        <svg viewBox="0 0 18 20" className="pixel-egg-sprite" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
-          <rect x="6" y="1" width="6" height="1" fill="#111" />
-          <rect x="4" y="2" width="2" height="1" fill="#111" />
-          <rect x="12" y="2" width="2" height="1" fill="#111" />
-          <rect x="3" y="3" width="1" height="2" fill="#111" />
-          <rect x="14" y="3" width="1" height="2" fill="#111" />
-          <rect x="2" y="5" width="1" height="8" fill="#111" />
-          <rect x="15" y="5" width="1" height="8" fill="#111" />
-          <rect x="3" y="13" width="1" height="3" fill="#111" />
-          <rect x="14" y="13" width="1" height="3" fill="#111" />
-          <rect x="4" y="16" width="2" height="1" fill="#111" />
-          <rect x="12" y="16" width="2" height="1" fill="#111" />
-          <rect x="6" y="17" width="6" height="1" fill="#111" />
-          <rect x="4" y="3" width="10" height="13" fill="#fff5df" />
-          <rect x="3" y="5" width="12" height="8" fill="#fff5df" />
-          <rect x="8" y="5" width="2" height="2" fill="#ff8ec4" />
-          <rect x="7" y="7" width="4" height="1" fill="#ff8ec4" />
-          <rect x="6" y="8" width="1" height="2" fill="#111" />
-          <rect x="11" y="8" width="1" height="2" fill="#111" />
-          <rect x="7" y="9" width="4" height="1" fill="#111" />
-        </svg>
+        <img src={musicEggSprite} alt="" className="stage-egg-image" />
       </div>
     </div>
   );
@@ -238,44 +205,49 @@ function PixelPetEgg() {
 function HomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="page-stack home-screen">
-      <PixelStatusBar />
       <section className="home-start-scene" style={{ backgroundImage: `url(${homeBg})` }}>
         <PixelDecorationLayer />
+        <HomeStatusBar />
 
-        <div className="home-logo-stack">
-          <div className="home-logo-title home-logo-title-playlist">PLAYLIST</div>
-          <div className="home-logo-title home-logo-title-pet">PET</div>
-        </div>
+        <section className="home-logo-area">
+          <div className="home-logo-stack">
+            <div className="home-logo-title home-logo-title-playlist">PLAYLIST</div>
+            <div className="home-logo-title home-logo-title-pet">PET</div>
+          </div>
+          <p className="home-logo-subtitle">把你的聽歌紀錄孵化成音樂寵物</p>
+          <div className="home-slogan-bar">
+            <span className="home-slogan-icon">
+              <PixelIcon type="heart" size={14} />
+            </span>
+            <span>PRESS START TO HATCH!</span>
+            <span className="home-slogan-icon">
+              <PixelIcon type="music-note" size={14} />
+            </span>
+          </div>
+        </section>
 
-        <p className="home-logo-subtitle">把你的聽歌紀錄孵化成音樂寵物</p>
-
-        <div className="home-slogan-bar">
-          <span className="home-slogan-icon">
-            <PixelIcon type="heart" size={14} />
-          </span>
-          <span>PRESS START TO HATCH!</span>
-          <span className="home-slogan-icon">
-            <PixelIcon type="music-note" size={14} />
-          </span>
-        </div>
-
-        <div className="home-stage">
+        <section className="home-stage">
           <PixelPinkCat />
           <PixelPetEgg />
           <PixelBlueCat />
-        </div>
-      </section>
+        </section>
 
-      <RetroWindow title="開始音樂旅程" tone="pink" className="home-start-window" bodyClassName="window-stack-tight text-center home-start-window-body">
-        <p className="window-copy home-start-copy">
-          連結你的音樂帳號，
-          <br />
-          讓 <strong>Playlist Pet</strong> 開始認識你的音樂宇宙！
-        </p>
-        <PixelButton variant="pink" className="w-full justify-center home-start-button" onClick={onStart}>
-          START
-        </PixelButton>
-      </RetroWindow>
+        <RetroWindow
+          title="開始音樂旅程"
+          tone="pink"
+          className="home-start-window"
+          bodyClassName="window-stack-tight text-center home-start-window-body"
+        >
+          <p className="window-copy home-start-copy">
+            連結你的音樂帳號，
+            <br />
+            讓 <strong>Playlist Pet</strong> 開始認識你的音樂宇宙！
+          </p>
+          <PixelButton variant="pink" className="w-full justify-center home-start-button" onClick={onStart}>
+            START
+          </PixelButton>
+        </RetroWindow>
+      </section>
     </div>
   );
 }
@@ -289,19 +261,21 @@ function SourceSelectView({
 }) {
   return (
     <div className="page-stack">
-      <PixelStatusBar />
-      <PixelLogoTitle
-        kicker="MUSIC SOURCE"
-        title="音樂入口"
-        subtitle="選擇你的音樂入口，讓 Playlist Pet 開始同步你的聲音宇宙。"
-      />
+      <HomeStatusBar />
+      <div className="source-page-title">
+        <div className="source-page-kicker">MUSIC SOURCE</div>
+        <h1 className="source-page-heading">音樂入口</h1>
+        <p className="source-page-subtitle">選擇你的音樂入口，讓 Playlist Pet 開始同步你的聲音宇宙。</p>
+      </div>
 
       <RetroWindow title="音樂入口" tone="yellow">
         <div className="source-screen-stack">
           {providerOptions.map((option) => (
             <div key={option.value} className="source-window-card source-window-card-large">
               <div className="source-window-card-head">
-                <div className="source-window-icon"><PixelIcon type={option.icon} size={28} /></div>
+                <div className="source-window-icon">
+                  <PixelIcon type={option.icon} size={28} />
+                </div>
                 <div className="source-window-copy">
                   <div className="source-window-copy-row source-window-copy-row-start">
                     <PixelBadge tone={option.tone}>{option.badge}</PixelBadge>
@@ -410,13 +384,13 @@ export const LoginView: React.FC = () => {
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="page-stack">
-      <PixelStatusBar />
+      <HomeStatusBar />
 
-      <PixelLogoTitle
-        kicker="MUSIC PASSPORT"
-        title="音樂護照"
-        subtitle="完成旅程設定，然後開始收集 3 天素材。"
-      />
+      <div className="source-page-title">
+        <div className="source-page-kicker">MUSIC PASSPORT</div>
+        <h1 className="source-page-heading">音樂護照</h1>
+        <p className="source-page-subtitle">完成旅程設定，然後開始收集 3 天素材。</p>
+      </div>
 
       <RetroWindow title="建立你的音樂護照" tone="green">
         <div className="passport-provider-banner">
