@@ -7,7 +7,6 @@ import {
   PixelButton,
   PixelIcon,
   PixelIconType,
-  PixelLogoTitle,
   PixelStatusBar,
   RetroWindow,
 } from "../components/UI";
@@ -60,89 +59,239 @@ async function readApiJsonResponse(response: Response): Promise<Record<string, u
   }
 }
 
+function PixelGameboy() {
+  return (
+    <div className="pixel-prop-gameboy" aria-hidden="true">
+      <div className="pixel-prop-screen" />
+      <div className="pixel-prop-controls">
+        <span className="pixel-dpad" />
+        <span className="pixel-button-cluster" />
+      </div>
+    </div>
+  );
+}
+
+function PixelDecorationLayer() {
+  return (
+    <div className="home-decoration-layer" aria-hidden="true">
+      <div className="home-prop home-prop-gameboy">
+        <PixelGameboy />
+      </div>
+      <div className="home-prop home-prop-headphone">
+        <PixelIcon type="headphone" size={54} />
+      </div>
+      <div className="home-prop home-prop-cassette">
+        <PixelIcon type="cassette" size={50} />
+      </div>
+
+      <span className="home-prop home-prop-note-a">
+        <PixelIcon type="music-note" size={18} />
+      </span>
+      <span className="home-prop home-prop-note-b">
+        <PixelIcon type="music-note" size={16} />
+      </span>
+      <span className="home-prop home-prop-note-c">
+        <PixelIcon type="music-note" size={14} />
+      </span>
+      <span className="home-prop home-prop-heart-a">
+        <PixelIcon type="heart" size={16} />
+      </span>
+      <span className="home-prop home-prop-heart-b">
+        <PixelIcon type="heart" size={14} />
+      </span>
+      <span className="home-prop home-prop-star-a">
+        <PixelIcon type="star" size={18} />
+      </span>
+      <span className="home-prop home-prop-star-b">
+        <PixelIcon type="star" size={14} />
+      </span>
+      <span className="home-prop home-prop-spark-a">
+        <PixelIcon type="spark" size={14} />
+      </span>
+      <span className="home-prop home-prop-spark-b">
+        <PixelIcon type="spark" size={18} />
+      </span>
+
+      <span className="home-confetti home-confetti-pink home-confetti-1" />
+      <span className="home-confetti home-confetti-yellow home-confetti-2" />
+      <span className="home-confetti home-confetti-blue home-confetti-3" />
+      <span className="home-confetti home-confetti-green home-confetti-4" />
+      <span className="home-confetti home-confetti-pink home-confetti-5" />
+      <span className="home-confetti home-confetti-yellow home-confetti-6" />
+      <span className="home-confetti home-confetti-blue home-confetti-7" />
+      <span className="home-confetti home-confetti-green home-confetti-8" />
+      <span className="home-confetti home-confetti-pink home-confetti-9" />
+      <span className="home-confetti home-confetti-yellow home-confetti-10" />
+      <span className="home-confetti home-confetti-blue home-confetti-11" />
+      <span className="home-confetti home-confetti-green home-confetti-12" />
+    </div>
+  );
+}
+
+function PixelPinkCat() {
+  return (
+    <div className="stage-pet stage-pet-pink" aria-hidden="true">
+      <div className="stage-pet-sprite">
+        <svg viewBox="0 0 16 16" className="pixel-character-sprite" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
+          <rect x="4" y="1" width="2" height="2" fill="#111" />
+          <rect x="10" y="1" width="2" height="2" fill="#111" />
+          <rect x="5" y="1" width="1" height="1" fill="#ff7fbf" />
+          <rect x="10" y="1" width="1" height="1" fill="#ff7fbf" />
+          <rect x="3" y="3" width="10" height="8" fill="#111" />
+          <rect x="4" y="3" width="8" height="8" fill="#ff9dd6" />
+          <rect x="4" y="11" width="3" height="2" fill="#111" />
+          <rect x="9" y="11" width="3" height="2" fill="#111" />
+          <rect x="5" y="11" width="2" height="2" fill="#ff9dd6" />
+          <rect x="9" y="11" width="2" height="2" fill="#ff9dd6" />
+          <rect x="5" y="6" width="2" height="2" fill="#fff" />
+          <rect x="9" y="6" width="2" height="2" fill="#fff" />
+          <rect x="6" y="7" width="1" height="1" fill="#111" />
+          <rect x="9" y="7" width="1" height="1" fill="#111" />
+          <rect x="6" y="8" width="1" height="1" fill="#ffb7d5" />
+          <rect x="9" y="8" width="1" height="1" fill="#ffb7d5" />
+          <rect x="7" y="8" width="2" height="1" fill="#111" />
+          <rect x="7" y="9" width="2" height="1" fill="#111" />
+          <rect x="2" y="8" width="1" height="3" fill="#111" />
+          <rect x="13" y="8" width="1" height="3" fill="#111" />
+          <rect x="2" y="9" width="1" height="2" fill="#ff9dd6" />
+          <rect x="13" y="9" width="1" height="2" fill="#ff9dd6" />
+        </svg>
+      </div>
+      <div className="stage-pet-bubble">
+        <PixelIcon type="heart" size={12} />
+      </div>
+    </div>
+  );
+}
+
+function PixelBlueCat() {
+  return (
+    <div className="stage-pet stage-pet-blue" aria-hidden="true">
+      <div className="stage-pet-sprite">
+        <svg viewBox="0 0 16 16" className="pixel-character-sprite" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
+          <rect x="4" y="1" width="2" height="2" fill="#111" />
+          <rect x="10" y="1" width="2" height="2" fill="#111" />
+          <rect x="5" y="1" width="1" height="1" fill="#8ac6ff" />
+          <rect x="10" y="1" width="1" height="1" fill="#8ac6ff" />
+          <rect x="3" y="3" width="10" height="8" fill="#111" />
+          <rect x="4" y="3" width="8" height="8" fill="#6fd0ff" />
+          <rect x="4" y="11" width="3" height="2" fill="#111" />
+          <rect x="9" y="11" width="3" height="2" fill="#111" />
+          <rect x="5" y="11" width="2" height="2" fill="#6fd0ff" />
+          <rect x="9" y="11" width="2" height="2" fill="#6fd0ff" />
+          <rect x="5" y="6" width="2" height="2" fill="#fff" />
+          <rect x="9" y="6" width="2" height="2" fill="#fff" />
+          <rect x="6" y="7" width="1" height="1" fill="#111" />
+          <rect x="9" y="7" width="1" height="1" fill="#111" />
+          <rect x="6" y="8" width="1" height="1" fill="#b7ff5e" />
+          <rect x="9" y="8" width="1" height="1" fill="#b7ff5e" />
+          <rect x="7" y="8" width="2" height="1" fill="#111" />
+          <rect x="7" y="9" width="2" height="1" fill="#111" />
+          <rect x="2" y="8" width="1" height="3" fill="#111" />
+          <rect x="13" y="8" width="1" height="3" fill="#111" />
+          <rect x="2" y="9" width="1" height="2" fill="#6fd0ff" />
+          <rect x="13" y="9" width="1" height="2" fill="#6fd0ff" />
+        </svg>
+      </div>
+      <div className="stage-pet-headphone">
+        <PixelIcon type="headphone" size={18} />
+      </div>
+      <div className="stage-pet-bubble">
+        <PixelIcon type="heart" size={12} />
+      </div>
+    </div>
+  );
+}
+
+function PixelPetEgg() {
+  return (
+    <div className="stage-egg" aria-hidden="true">
+      <div className="stage-egg-nest" />
+      <div className="stage-egg-shell">
+        <svg viewBox="0 0 18 20" className="pixel-egg-sprite" xmlns="http://www.w3.org/2000/svg" shapeRendering="crispEdges">
+          <rect x="6" y="1" width="6" height="1" fill="#111" />
+          <rect x="4" y="2" width="2" height="1" fill="#111" />
+          <rect x="12" y="2" width="2" height="1" fill="#111" />
+          <rect x="3" y="3" width="1" height="2" fill="#111" />
+          <rect x="14" y="3" width="1" height="2" fill="#111" />
+          <rect x="2" y="5" width="1" height="8" fill="#111" />
+          <rect x="15" y="5" width="1" height="8" fill="#111" />
+          <rect x="3" y="13" width="1" height="3" fill="#111" />
+          <rect x="14" y="13" width="1" height="3" fill="#111" />
+          <rect x="4" y="16" width="2" height="1" fill="#111" />
+          <rect x="12" y="16" width="2" height="1" fill="#111" />
+          <rect x="6" y="17" width="6" height="1" fill="#111" />
+          <rect x="4" y="3" width="10" height="13" fill="#fff5df" />
+          <rect x="3" y="5" width="12" height="8" fill="#fff5df" />
+          <rect x="8" y="5" width="2" height="2" fill="#ff8ec4" />
+          <rect x="7" y="7" width="4" height="1" fill="#ff8ec4" />
+          <rect x="6" y="8" width="1" height="2" fill="#111" />
+          <rect x="11" y="8" width="1" height="2" fill="#111" />
+          <rect x="7" y="9" width="4" height="1" fill="#111" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 function HomeScreen({ onStart }: { onStart: () => void }) {
   return (
-    <div className="page-stack">
+    <div className="page-stack home-screen">
       <PixelStatusBar />
 
-      <section className="start-home-header">
-        <div className="start-home-brand-chip">
-          <div className="start-home-brand-icon">
+      <section className="home-brand-bar">
+        <div className="home-brand-left">
+          <div className="home-brand-icon">
             <PixelIcon type="music-note" size={22} />
           </div>
-          <div className="start-home-brand-copy">
-            <div className="start-home-brand-title">Playlist Pet</div>
-            <div className="start-home-brand-subtitle">把你的聽歌紀錄孵化成音樂寵物</div>
+          <div className="home-brand-copy">
+            <div className="home-brand-title">Playlist Pet</div>
+            <div className="home-brand-subtitle">把你的聽歌紀錄孵化成音樂寵物</div>
           </div>
         </div>
-        <button type="button" className="start-home-brand-favorite" aria-label="favorite">
+        <button type="button" className="home-brand-favorite" aria-label="favorite">
           <PixelIcon type="heart" size={20} />
         </button>
       </section>
 
-      <section className="start-home-hero">
-        <PixelLogoTitle
-          kicker="PRESS START TO HATCH!"
-          title="PLAYLIST PET"
-          subtitle="把你的聽歌紀錄孵化成音樂寵物"
-          className="start-home-logo"
-        />
+      <section className="home-logo-section">
+        <PixelDecorationLayer />
 
-        <div className="start-home-slogan">
-          <span className="start-home-slogan-icon">
+        <div className="home-logo-stack">
+          <div className="home-logo-title home-logo-title-playlist">PLAYLIST</div>
+          <div className="home-logo-title home-logo-title-pet">PET</div>
+        </div>
+
+        <p className="home-logo-subtitle">把你的聽歌紀錄孵化成音樂寵物</p>
+
+        <div className="home-slogan-bar">
+          <span className="home-slogan-icon">
             <PixelIcon type="heart" size={14} />
           </span>
           <span>PRESS START TO HATCH!</span>
-          <span className="start-home-slogan-icon">
+          <span className="home-slogan-icon">
             <PixelIcon type="music-note" size={14} />
           </span>
         </div>
 
-        <div className="start-home-stage">
-          <span className="stage-deco deco-note-left"><PixelIcon type="music-note" size={18} /></span>
-          <span className="stage-deco deco-star-top"><PixelIcon type="star" size={18} /></span>
-          <span className="stage-deco deco-heart-right"><PixelIcon type="heart" size={16} /></span>
-          <span className="stage-deco deco-cassette"><PixelIcon type="cassette" size={20} /></span>
-          <span className="stage-deco deco-spark"><PixelIcon type="spark" size={18} /></span>
-          <span className="stage-deco deco-headphone"><PixelIcon type="headphone" size={22} /></span>
-
-          <div className="start-home-stage-ground" />
-
-          <div className="start-home-pet start-home-pet-left">
-            <div className="start-home-pet-bubble"><PixelIcon type="heart" size={12} /></div>
-            <div className="start-home-pet-shell pink">
-              <PixelIcon type="cat" size={62} />
-            </div>
-          </div>
-
-          <div className="start-home-egg">
-            <div className="start-home-egg-nest" />
-            <div className="start-home-egg-shell">
-              <PixelIcon type="egg" size={92} />
-            </div>
-          </div>
-
-          <div className="start-home-pet start-home-pet-right">
-            <div className="start-home-pet-shell blue">
-              <PixelIcon type="cat" size={62} />
-              <span className="start-home-pet-accessory">
-                <PixelIcon type="headphone" size={18} />
-              </span>
-            </div>
-          </div>
+        <div className="home-stage">
+          <div className="home-stage-ground" />
+          <PixelPinkCat />
+          <PixelPetEgg />
+          <PixelBlueCat />
         </div>
-
-        <RetroWindow title="開始音樂旅程" tone="pink" className="start-home-window" bodyClassName="window-stack-tight text-center">
-          <p className="window-copy">
-            連結你的音樂帳號，
-            <br />
-            讓 <strong>Playlist Pet</strong> 開始認識你的音樂宇宙！
-          </p>
-          <PixelButton variant="pink" className="w-full justify-center" onClick={onStart}>
-            START
-          </PixelButton>
-        </RetroWindow>
       </section>
+
+      <RetroWindow title="開始音樂旅程" tone="pink" className="home-start-window" bodyClassName="window-stack-tight text-center">
+        <p className="window-copy home-start-copy">
+          連結你的音樂帳號，
+          <br />
+          讓 <strong>Playlist Pet</strong> 開始認識你的音樂宇宙！
+        </p>
+        <PixelButton variant="pink" className="w-full justify-center home-start-button" onClick={onStart}>
+          START
+        </PixelButton>
+      </RetroWindow>
     </div>
   );
 }
