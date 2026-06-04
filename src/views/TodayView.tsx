@@ -170,6 +170,7 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
   const [notionPromptContext, setNotionPromptContext] = useState("");
   const [musicLoadError, setMusicLoadError] = useState<string | null>(null);
   const [musicLoadCode, setMusicLoadCode] = useState<string | null>(null);
+  const [musicFetchDebug, setMusicFetchDebug] = useState<{ dayStart: string; dayEnd: string; trackCount: number; provider: string } | null>(null);
   const [spotifyConnected, setSpotifyConnected] = useState<boolean | null>(null);
   const [spotifyDisplayName, setSpotifyDisplayName] = useState<string | null>(null);
   const [showMusicSourcePanel, setShowMusicSourcePanel] = useState(false);
@@ -266,11 +267,32 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
     })
       .then((payload) => {
         if (!active) return;
+        if (import.meta.env.DEV) {
+          console.info("[Playlist Pet] music fetch window", {
+            provider: activeMusicProvider,
+            day: safeDay,
+            dayStart: currentDayDate,
+            dayEnd: nextDayDate,
+            trackCount: payload.tracks.length,
+          });
+        }
+        setMusicFetchDebug({
+          provider: activeMusicProvider,
+          dayStart: currentDayDate,
+          dayEnd: nextDayDate,
+          trackCount: payload.tracks.length,
+        });
         setMockMusic(payload.data);
         saveTracksForCurrentDay(payload.tracks, payload.data);
       })
       .catch((error: Error & { code?: string }) => {
         if (!active) return;
+        setMusicFetchDebug({
+          provider: activeMusicProvider,
+          dayStart: currentDayDate,
+          dayEnd: nextDayDate,
+          trackCount: 0,
+        });
         setMockMusic(null);
         setMusicLoadError(error.message || "音樂資料讀取失敗。");
         setMusicLoadCode(error.code || null);
@@ -792,27 +814,31 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
             <div className="stats-mini-grid">
               <div className="stats-mini-card">
                 <div className="type-caption">聽歌數量</div>
-                <div className="window-mini-title">{currentDayTrackCount || mockMusic.songCount} 首</div>
+                <div className="window-mini-title">{currentDayTrackCount} 首</div>
               </div>
               <div className="stats-mini-card">
                 <div className="type-caption">分析類型</div>
                 <div className="window-mini-title">
-                  {mockMusic.mainGenre === "Mixed" ? "混合型" : mockMusic.mainGenre === "Hidden" ? "隱藏版" : "純粹型"}
+                  {currentDayTrackCount === 0 ? "尚無資料" : mockMusic.mainGenre === "Mixed" ? "混合型" : mockMusic.mainGenre === "Hidden" ? "隱藏版" : "純粹型"}
                 </div>
               </div>
             </div>
 
             <div className="window-label">風格分布</div>
             <div className="quest-style-bars">
-              {distribution.map((item, index) => (
-                <div key={`${item.genre}-${index}`} className="quest-style-row">
-                  <div className="quest-style-copy">
-                    <span>{item.genre}</span>
-                    <span>{item.percentage}%</span>
+              {distribution.length > 0 ? (
+                distribution.map((item, index) => (
+                  <div key={`${item.genre}-${index}`} className="quest-style-row">
+                    <div className="quest-style-copy">
+                      <span>{item.genre}</span>
+                      <span>{item.percentage}%</span>
+                    </div>
+                    <PixelProgress value={item.percentage} max={100} color={index === 0 ? "var(--color-pink)" : index === 1 ? "var(--color-primary)" : "var(--color-yellow)"} />
                   </div>
-                  <PixelProgress value={item.percentage} max={100} color={index === 0 ? "var(--color-pink)" : index === 1 ? "var(--color-primary)" : "var(--color-yellow)"} />
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="window-hint">今天這個時段還沒有同步到可分析的播放紀錄。</div>
+              )}
             </div>
 
             <div className="quote-window">“{mockMusic.quote}”</div>
@@ -961,6 +987,9 @@ export const TodayView: React.FC<{ navigateTo: (tab: "today" | "items" | "map") 
           <div className="window-stack-tight">
             <div className="window-hint"><strong>startDate:</strong> {hatchSession?.startDate || "-"}</div>
             <div className="window-hint"><strong>currentDay:</strong> {hatchSession?.currentDay || safeDay}</div>
+            <div className="window-hint"><strong>dayStart:</strong> {musicFetchDebug?.dayStart || currentDayDate}</div>
+            <div className="window-hint"><strong>dayEnd:</strong> {musicFetchDebug?.dayEnd || nextDayDate}</div>
+            <div className="window-hint"><strong>apiTrackCount:</strong> {musicFetchDebug?.trackCount ?? 0} ({musicFetchDebug?.provider || activeMusicProvider})</div>
             <div className="space-y-1">
               {debugDaySummaries.map((summary) => (
                 <div key={summary.day} className="window-hint flex items-center justify-between gap-2">

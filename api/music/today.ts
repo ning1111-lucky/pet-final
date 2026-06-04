@@ -71,6 +71,10 @@ function getDayWindow(req: ApiRequest) {
   };
 }
 
+function formatDateDebug(date: Date | null) {
+  return date ? date.toISOString() : null;
+}
+
 function isWithinDayRange(playedAt: string | undefined, dayStart: Date | null, dayEnd: Date | null) {
   if (!playedAt || !dayStart || !dayEnd) return true;
   const playedTime = new Date(playedAt).getTime();
@@ -88,7 +92,7 @@ function getProvider(req: ApiRequest): MusicProvider {
 
 function buildSpotifyQuote(trackNames: string[], dayIndex?: number) {
   if (trackNames.length === 0) {
-    return `第 ${dayIndex || 1} 天的 Spotify 聆聽紀錄已經同步完成。`;
+    return `第 ${dayIndex || 1} 天目前還沒有同步到新的 Spotify 播放紀錄。`;
   }
   return `第 ${dayIndex || 1} 天的 Spotify 旅程從「${trackNames[0]}」一路延伸到 ${trackNames.length} 首歌。`;
 }
@@ -144,9 +148,15 @@ async function getSpotifyDailyMusicData(req: ApiRequest, res: ApiResponse): Prom
 
   const trackNames = recentTracks.map((item) => item.track?.name).filter((name): name is string => typeof name === "string" && name.length > 0);
   const data = buildDailyMusicData({
-    songCount: Math.max(trackNames.length, recentTracks.length, 1),
+    songCount: Math.max(trackNames.length, recentTracks.length, 0),
     rawGenres: artistGenres,
     quote: buildSpotifyQuote(trackNames, dayIndex),
+  });
+  console.info("[music/today][spotify]", {
+    dayIndex,
+    dayStart: formatDateDebug(dayStart),
+    dayEnd: formatDateDebug(dayEnd),
+    trackCount: tracks.length,
   });
   return { data, tracks };
 }
@@ -177,7 +187,7 @@ async function lastFmFetch<T>(params: Record<string, string>) {
 
 function buildLastFmQuote(username: string, artists: string[], dayIndex?: number) {
   if (artists.length === 0) {
-    return `${username} 的 Last.fm 第 ${dayIndex || 1} 天紀錄已同步完成。`;
+    return `${username} 的 Last.fm 第 ${dayIndex || 1} 天目前還沒有同步到新的播放紀錄。`;
   }
   return `${username} 第 ${dayIndex || 1} 天最近常聽的聲音來自 ${artists[0]} 等 ${artists.length} 組藝術家。`;
 }
@@ -230,9 +240,16 @@ async function getLastFmDailyMusicData(req: ApiRequest): Promise<DailyMusicPaylo
   }));
 
   const data = buildDailyMusicData({
-    songCount: Math.max(tracks.length, 1),
+    songCount: Math.max(tracks.length, 0),
     rawGenres,
     quote: buildLastFmQuote(username, artistNames, dayIndex),
+  });
+  console.info("[music/today][lastfm]", {
+    username,
+    dayIndex,
+    dayStart: formatDateDebug(dayStart),
+    dayEnd: formatDateDebug(dayEnd),
+    trackCount: normalizedTracks.length,
   });
   return { data, tracks: normalizedTracks };
 }

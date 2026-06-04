@@ -60,7 +60,8 @@ export function buildDailyMusicData(options: {
   quote: string;
 }): DailyMusicData {
   const distribution = buildDistribution(options.rawGenres);
-  const mainGenre = distribution[0]?.genre || "Pop";
+  const hasAnyListeningData = Math.max(0, options.songCount || 0) > 0 || options.rawGenres.length > 0;
+  const mainGenre = hasAnyListeningData ? distribution[0]?.genre || "Pop" : "Hidden";
   const subGenre = distribution[1]?.genre || mainGenre;
 
   return {
@@ -68,7 +69,7 @@ export function buildDailyMusicData(options: {
     mainGenre,
     subGenre,
     assetGenre: mainGenre,
-    distribution,
-    quote: options.quote || `今天的音樂能量偏向 ${mainGenre}。`,
+    distribution: hasAnyListeningData ? distribution : [],
+    quote: options.quote || (hasAnyListeningData ? `今天的音樂能量偏向 ${mainGenre}。` : "今天還沒有同步到新的音樂紀錄。"),
   };
 }
