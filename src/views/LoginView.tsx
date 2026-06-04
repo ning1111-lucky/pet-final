@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useApp } from "../AppContext";
 import { MusicProvider } from "../types";
+import homeBg from "../assets/pixel/backgrounds/home-bg.png";
 import {
   PixelBadge,
   PixelButton,
@@ -238,23 +239,7 @@ function HomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <div className="page-stack home-screen">
       <PixelStatusBar />
-
-      <section className="home-brand-bar">
-        <div className="home-brand-left">
-          <div className="home-brand-icon">
-            <PixelIcon type="music-note" size={22} />
-          </div>
-          <div className="home-brand-copy">
-            <div className="home-brand-title">Playlist Pet</div>
-            <div className="home-brand-subtitle">把你的聽歌紀錄孵化成音樂寵物</div>
-          </div>
-        </div>
-        <button type="button" className="home-brand-favorite" aria-label="favorite">
-          <PixelIcon type="heart" size={20} />
-        </button>
-      </section>
-
-      <section className="home-logo-section">
+      <section className="home-start-scene" style={{ backgroundImage: `url(${homeBg})` }}>
         <PixelDecorationLayer />
 
         <div className="home-logo-stack">
@@ -275,14 +260,13 @@ function HomeScreen({ onStart }: { onStart: () => void }) {
         </div>
 
         <div className="home-stage">
-          <div className="home-stage-ground" />
           <PixelPinkCat />
           <PixelPetEgg />
           <PixelBlueCat />
         </div>
       </section>
 
-      <RetroWindow title="開始音樂旅程" tone="pink" className="home-start-window" bodyClassName="window-stack-tight text-center">
+      <RetroWindow title="開始音樂旅程" tone="pink" className="home-start-window" bodyClassName="window-stack-tight text-center home-start-window-body">
         <p className="window-copy home-start-copy">
           連結你的音樂帳號，
           <br />
